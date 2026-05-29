@@ -1,0 +1,1704 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hospitalia｜観光データダッシュボード - AIが毎月自動で戦略レポートを生成</title>
+  <meta name="description" content="観光協会・DMO・自治体向け。観光客の本音をAIが分析し、毎月40件以上の施策を自動提案。月額15万円〜、最短1営業日で導入。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;600;700;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: 'Noto Sans JP', 'Inter', -apple-system, sans-serif;
+      color: #1a1a2e;
+      background: #fff;
+      line-height: 1.8;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    img { max-width: 100%; height: auto; display: block; }
+    a { text-decoration: none; color: inherit; }
+    ul { list-style: none; }
+
+    /* ===== UTILITY ===== */
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .container-narrow { max-width: 960px; margin: 0 auto; padding: 0 24px; }
+    .section-label {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #6366f1;
+      background: rgba(99,102,241,0.08);
+      padding: 6px 16px;
+      border-radius: 100px;
+      margin-bottom: 16px;
+    }
+    .section-title {
+      font-size: clamp(1.75rem, 4vw, 2.5rem);
+      font-weight: 800;
+      line-height: 1.3;
+      letter-spacing: -0.02em;
+      margin-bottom: 16px;
+    }
+    .section-desc {
+      font-size: 1.05rem;
+      color: #64748b;
+      line-height: 1.8;
+      max-width: 640px;
+    }
+    .text-center { text-align: center; }
+    .mx-auto { margin-left: auto; margin-right: auto; }
+
+    /* ===== BUTTONS ===== */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-family: inherit;
+      font-weight: 600;
+      font-size: 1rem;
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      color: #fff;
+      padding: 16px 36px;
+      box-shadow: 0 4px 24px rgba(99,102,241,0.3);
+      font-size: 1.05rem;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(99,102,241,0.4);
+    }
+    .btn-secondary {
+      background: #fff;
+      color: #6366f1;
+      padding: 16px 36px;
+      border: 2px solid rgba(99,102,241,0.2);
+      font-size: 1.05rem;
+    }
+    .btn-secondary:hover {
+      background: rgba(99,102,241,0.05);
+      border-color: #6366f1;
+    }
+    .btn-ghost {
+      background: rgba(255,255,255,0.15);
+      color: #fff;
+      padding: 14px 32px;
+      border: 1px solid rgba(255,255,255,0.3);
+      backdrop-filter: blur(10px);
+    }
+    .btn-ghost:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+    /* ===== HEADER ===== */
+    .header {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      transition: all 0.3s;
+    }
+    .header-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 72px;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 32px;
+    }
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-logo img { height: 32px; width: auto; }
+    .header-logo span {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #1a1a2e;
+      letter-spacing: -0.01em;
+    }
+    .header-nav { display: flex; align-items: center; gap: 32px; }
+    .header-nav a {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #64748b;
+      transition: color 0.2s;
+    }
+    .header-nav a:hover { color: #6366f1; }
+    .header-cta .btn {
+      padding: 10px 24px;
+      font-size: 0.875rem;
+      border-radius: 10px;
+    }
+    .mobile-toggle {
+      display: none;
+      flex-direction: column;
+      gap: 5px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+    }
+    .mobile-toggle span {
+      display: block;
+      width: 24px;
+      height: 2px;
+      background: #1a1a2e;
+      border-radius: 2px;
+      transition: 0.3s;
+    }
+
+    /* ===== HERO ===== */
+    .hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 120px 0 80px;
+      background: linear-gradient(165deg, #f8faff 0%, #eef2ff 40%, #e0e7ff 100%);
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -200px;
+      right: -200px;
+      width: 600px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(99,102,241,0.08) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -100px;
+      left: -100px;
+      width: 400px;
+      height: 400px;
+      background: radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 70%);
+      border-radius: 50%;
+    }
+    .hero-inner {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 64px;
+      align-items: center;
+      position: relative;
+      z-index: 1;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fff;
+      border: 1px solid rgba(99,102,241,0.15);
+      border-radius: 100px;
+      padding: 8px 20px 8px 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #6366f1;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 12px rgba(99,102,241,0.08);
+    }
+    .hero-badge-dot {
+      width: 8px;
+      height: 8px;
+      background: #22c55e;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .hero h1 {
+      font-size: clamp(2.25rem, 5vw, 3.5rem);
+      font-weight: 900;
+      line-height: 1.2;
+      letter-spacing: -0.03em;
+      color: #0f172a;
+      margin-bottom: 20px;
+    }
+    .hero h1 .accent {
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1.125rem;
+      color: #475569;
+      line-height: 1.8;
+      margin-bottom: 36px;
+      max-width: 520px;
+    }
+    .hero-buttons {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 48px;
+      flex-wrap: wrap;
+    }
+    .hero-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(99,102,241,0.12);
+    }
+    .hero-stat-value {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #6366f1;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+    .hero-stat-value span {
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+    .hero-stat-label {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      font-weight: 500;
+      margin-top: 4px;
+    }
+    .hero-visual {
+      position: relative;
+    }
+    .hero-visual img {
+      border-radius: 16px;
+      box-shadow: 0 32px 64px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.05);
+    }
+    .hero-float-card {
+      position: absolute;
+      background: #fff;
+      border-radius: 14px;
+      padding: 16px 20px;
+      box-shadow: 0 16px 48px rgba(0,0,0,0.1);
+      animation: float 6s ease-in-out infinite;
+    }
+    .hero-float-card.card-1 {
+      bottom: -20px;
+      left: -30px;
+    }
+    .hero-float-card.card-2 {
+      top: 20px;
+      right: -20px;
+      animation-delay: -3s;
+    }
+    .float-card-num {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #6366f1;
+    }
+    .float-card-text {
+      font-size: 0.75rem;
+      color: #64748b;
+      font-weight: 500;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    /* ===== SOCIAL PROOF BAR ===== */
+    .social-proof {
+      background: #0f172a;
+      padding: 28px 0;
+    }
+    .social-proof-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+    .social-proof-text {
+      font-size: 0.85rem;
+      color: rgba(255,255,255,0.5);
+      font-weight: 500;
+    }
+    .social-proof-logo {
+      height: 28px;
+      opacity: 0.7;
+      filter: brightness(0) invert(1);
+    }
+
+    /* ===== PROBLEM SECTION ===== */
+    .problems {
+      padding: 120px 0;
+      background: #fff;
+    }
+    .problems-header {
+      text-align: center;
+      margin-bottom: 72px;
+    }
+    .problems-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 24px;
+    }
+    .problem-card {
+      background: linear-gradient(180deg, #fafbff 0%, #fff 100%);
+      border: 1px solid #e2e8f0;
+      border-radius: 20px;
+      padding: 40px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+    .problem-card:hover {
+      border-color: #c7d2fe;
+      box-shadow: 0 8px 32px rgba(99,102,241,0.08);
+      transform: translateY(-2px);
+    }
+    .problem-num {
+      font-size: 3rem;
+      font-weight: 900;
+      color: rgba(99,102,241,0.08);
+      line-height: 1;
+      margin-bottom: 16px;
+    }
+    .problem-card h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: #0f172a;
+      line-height: 1.5;
+    }
+    .problem-card p {
+      font-size: 0.9rem;
+      color: #64748b;
+      line-height: 1.8;
+    }
+
+    /* ===== SOLUTION SECTION ===== */
+    .solution {
+      padding: 120px 0;
+      background: linear-gradient(180deg, #f8faff 0%, #fff 100%);
+    }
+    .solution-header {
+      text-align: center;
+      margin-bottom: 80px;
+    }
+    .solution-header .section-title .accent {
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* ===== DATA SHOWCASE ===== */
+    .data-showcase {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 80px;
+      align-items: center;
+      margin-bottom: 100px;
+    }
+    .data-showcase.reverse { direction: rtl; }
+    .data-showcase.reverse > * { direction: ltr; }
+    .data-showcase-content { }
+    .data-showcase-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+    }
+    .data-showcase-content h3 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #0f172a;
+    }
+    .data-showcase-content .tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #6366f1;
+      margin-bottom: 12px;
+    }
+    .data-showcase-content p {
+      font-size: 0.95rem;
+      color: #64748b;
+      line-height: 1.8;
+    }
+    .data-showcase-visual img {
+      border-radius: 16px;
+      box-shadow: 0 24px 48px rgba(0,0,0,0.08), 0 0 0 1px rgba(0,0,0,0.04);
+    }
+
+    /* ===== FEATURES GRID ===== */
+    .features {
+      padding: 120px 0;
+      background: #fff;
+    }
+    .features-header {
+      text-align: center;
+      margin-bottom: 72px;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 24px;
+    }
+    .feature-card {
+      background: #fafbff;
+      border: 1px solid #e8ecf4;
+      border-radius: 20px;
+      padding: 36px 32px;
+      transition: all 0.3s;
+    }
+    .feature-card:hover {
+      border-color: #c7d2fe;
+      box-shadow: 0 8px 32px rgba(99,102,241,0.08);
+      transform: translateY(-4px);
+    }
+    .feature-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .feature-icon svg {
+      width: 24px;
+      height: 24px;
+      color: #fff;
+    }
+    .feature-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      color: #0f172a;
+    }
+    .feature-card p {
+      font-size: 0.875rem;
+      color: #64748b;
+      line-height: 1.7;
+    }
+
+    /* ===== FLOW SECTION ===== */
+    .flow {
+      padding: 120px 0;
+      background: linear-gradient(180deg, #0f172a 0%, #1e293b 100%);
+      color: #fff;
+    }
+    .flow-header {
+      text-align: center;
+      margin-bottom: 80px;
+    }
+    .flow-header .section-label {
+      background: rgba(99,102,241,0.2);
+      color: #a5b4fc;
+    }
+    .flow-header .section-title { color: #fff; }
+    .flow-header .section-desc { color: rgba(255,255,255,0.6); }
+    .flow-steps {
+      display: flex;
+      gap: 0;
+      position: relative;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .flow-step {
+      flex: 1;
+      text-align: center;
+      padding: 0 20px;
+      position: relative;
+    }
+    .flow-step::after {
+      content: '';
+      position: absolute;
+      top: 28px;
+      right: -50%;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, #6366f1, rgba(99,102,241,0.2));
+    }
+    .flow-step:last-child::after { display: none; }
+    .flow-step-num {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: #fff;
+      margin: 0 auto 20px;
+      position: relative;
+      z-index: 2;
+    }
+    .flow-step h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .flow-step p {
+      font-size: 0.8rem;
+      color: rgba(255,255,255,0.5);
+      line-height: 1.6;
+    }
+
+    /* ===== DATA FLOW (4 Steps) ===== */
+    .data-flow {
+      padding: 120px 0;
+      background: #f8faff;
+    }
+    .data-flow-header {
+      text-align: center;
+      margin-bottom: 80px;
+    }
+    .data-flow-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 32px;
+      position: relative;
+    }
+    .data-flow-grid::before {
+      content: '';
+      position: absolute;
+      top: 60px;
+      left: 12%;
+      right: 12%;
+      height: 2px;
+      background: linear-gradient(90deg, #6366f1, #a855f7, #6366f1);
+      opacity: 0.2;
+    }
+    .data-flow-step {
+      text-align: center;
+      position: relative;
+    }
+    .data-flow-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      background: #fff;
+      border: 2px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px;
+      position: relative;
+      z-index: 2;
+      transition: all 0.3s;
+    }
+    .data-flow-step:hover .data-flow-icon {
+      border-color: #6366f1;
+      box-shadow: 0 8px 24px rgba(99,102,241,0.15);
+    }
+    .data-flow-icon img {
+      width: 40px;
+      height: 40px;
+      object-fit: contain;
+    }
+    .data-flow-step h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #0f172a;
+    }
+    .data-flow-step p {
+      font-size: 0.8rem;
+      color: #64748b;
+      line-height: 1.6;
+    }
+    .data-flow-num {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #6366f1;
+      margin-bottom: 8px;
+      letter-spacing: 0.1em;
+    }
+
+    /* ===== PRICING ===== */
+    .pricing {
+      padding: 120px 0;
+      background: #fff;
+    }
+    .pricing-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+    .pricing-card {
+      max-width: 640px;
+      margin: 0 auto;
+      background: linear-gradient(180deg, #fafbff 0%, #fff 100%);
+      border: 2px solid #e2e8f0;
+      border-radius: 28px;
+      padding: 56px 48px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .pricing-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #6366f1, #a855f7);
+    }
+    .pricing-popular {
+      display: inline-block;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 6px 20px;
+      border-radius: 100px;
+      margin-bottom: 24px;
+      letter-spacing: 0.05em;
+    }
+    .pricing-amount {
+      display: flex;
+      align-items: baseline;
+      justify-content: center;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+    .pricing-yen {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #6366f1;
+    }
+    .pricing-number {
+      font-size: 4rem;
+      font-weight: 900;
+      color: #0f172a;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+    .pricing-period {
+      font-size: 1rem;
+      color: #64748b;
+      font-weight: 500;
+    }
+    .pricing-tax {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      margin-bottom: 32px;
+    }
+    .pricing-badges {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 36px;
+      flex-wrap: wrap;
+    }
+    .pricing-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f0fdf4;
+      color: #16a34a;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 8px 16px;
+      border-radius: 100px;
+    }
+    .pricing-features {
+      text-align: left;
+      margin-bottom: 36px;
+    }
+    .pricing-features li {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid #f1f5f9;
+      font-size: 0.9rem;
+      color: #334155;
+    }
+    .pricing-features li:last-child { border-bottom: none; }
+    .pricing-check {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #6366f1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .pricing-check svg { width: 12px; height: 12px; color: #fff; }
+    .pricing-cta {
+      margin-top: 8px;
+    }
+    .pricing-cta .btn-primary {
+      width: 100%;
+      padding: 18px;
+      font-size: 1.1rem;
+      border-radius: 14px;
+    }
+    .pricing-note {
+      margin-top: 16px;
+      font-size: 0.8rem;
+      color: #94a3b8;
+    }
+
+    /* ===== ONBOARDING (FLOW) ===== */
+    .onboarding {
+      padding: 120px 0;
+      background: #f8faff;
+    }
+    .onboarding-header {
+      text-align: center;
+      margin-bottom: 72px;
+    }
+    .onboarding-timeline {
+      max-width: 720px;
+      margin: 0 auto;
+      position: relative;
+    }
+    .onboarding-timeline::before {
+      content: '';
+      position: absolute;
+      left: 28px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: linear-gradient(180deg, #6366f1, #e2e8f0);
+    }
+    .onboarding-step {
+      display: flex;
+      gap: 24px;
+      margin-bottom: 40px;
+      position: relative;
+    }
+    .onboarding-step:last-child { margin-bottom: 0; }
+    .onboarding-dot {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #fff;
+      border: 3px solid #6366f1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1rem;
+      font-weight: 800;
+      color: #6366f1;
+      flex-shrink: 0;
+      z-index: 2;
+    }
+    .onboarding-content {
+      background: #fff;
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      padding: 24px 28px;
+      flex: 1;
+      transition: all 0.3s;
+    }
+    .onboarding-content:hover {
+      border-color: #c7d2fe;
+      box-shadow: 0 4px 20px rgba(99,102,241,0.08);
+    }
+    .onboarding-content h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: #0f172a;
+    }
+    .onboarding-content p {
+      font-size: 0.85rem;
+      color: #64748b;
+      line-height: 1.7;
+    }
+    .onboarding-timeline-badge {
+      text-align: center;
+      margin-top: 48px;
+    }
+    .timeline-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 700;
+      padding: 14px 32px;
+      border-radius: 100px;
+      box-shadow: 0 4px 20px rgba(99,102,241,0.25);
+    }
+
+    /* ===== FAQ ===== */
+    .faq {
+      padding: 120px 0;
+      background: #fff;
+    }
+    .faq-header {
+      text-align: center;
+      margin-bottom: 64px;
+    }
+    .faq-list {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .faq-item {
+      border: 1px solid #e2e8f0;
+      border-radius: 16px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      transition: all 0.3s;
+    }
+    .faq-item:hover {
+      border-color: #c7d2fe;
+    }
+    .faq-question {
+      width: 100%;
+      background: none;
+      border: none;
+      padding: 24px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      cursor: pointer;
+      font-family: inherit;
+      text-align: left;
+    }
+    .faq-question span {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+    .faq-toggle {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: #f1f5f9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.3s;
+    }
+    .faq-item.active .faq-toggle {
+      background: #6366f1;
+      transform: rotate(45deg);
+    }
+    .faq-toggle svg { width: 14px; height: 14px; color: #64748b; }
+    .faq-item.active .faq-toggle svg { color: #fff; }
+    .faq-answer {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.4s ease;
+    }
+    .faq-answer-inner {
+      padding: 0 28px 24px;
+      font-size: 0.9rem;
+      color: #64748b;
+      line-height: 1.8;
+    }
+
+    /* ===== FINAL CTA ===== */
+    .final-cta {
+      padding: 120px 0;
+      background: linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #3730a3 100%);
+      position: relative;
+      overflow: hidden;
+      text-align: center;
+    }
+    .final-cta::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 800px;
+      height: 800px;
+      background: radial-gradient(circle, rgba(99,102,241,0.15) 0%, transparent 60%);
+      border-radius: 50%;
+    }
+    .final-cta .container { position: relative; z-index: 1; }
+    .final-cta h2 {
+      font-size: clamp(2rem, 4.5vw, 3rem);
+      font-weight: 900;
+      color: #fff;
+      margin-bottom: 16px;
+      letter-spacing: -0.02em;
+    }
+    .final-cta p {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.65);
+      margin-bottom: 40px;
+      max-width: 560px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .final-cta-buttons {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .final-cta .btn-primary {
+      background: #fff;
+      color: #4f46e5;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.2);
+      font-size: 1.1rem;
+      padding: 18px 40px;
+    }
+    .final-cta .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+
+    /* ===== FOOTER ===== */
+    .footer {
+      padding: 56px 0 32px;
+      background: #0f172a;
+      color: rgba(255,255,255,0.6);
+    }
+    .footer-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 24px;
+    }
+    .footer-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .footer-logo img { height: 28px; filter: brightness(0) invert(1); opacity: 0.8; }
+    .footer-logo span { font-size: 1rem; font-weight: 600; color: rgba(255,255,255,0.8); }
+    .footer-info { font-size: 0.8rem; line-height: 1.8; }
+    .footer-copy {
+      text-align: center;
+      font-size: 0.75rem;
+      color: rgba(255,255,255,0.3);
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+    }
+
+    /* ===== SCROLL TO TOP ===== */
+    .scroll-top {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: #6366f1;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 20px rgba(99,102,241,0.3);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s;
+      z-index: 999;
+    }
+    .scroll-top.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+    .scroll-top:hover { transform: translateY(-3px); }
+
+    /* ===== RESPONSIVE ===== */
+    @media (max-width: 1024px) {
+      .hero-inner { grid-template-columns: 1fr; gap: 48px; }
+      .hero-visual { max-width: 600px; margin: 0 auto; }
+      .data-showcase { grid-template-columns: 1fr; gap: 40px; }
+      .data-showcase.reverse { direction: ltr; }
+      .features-grid { grid-template-columns: repeat(2, 1fr); }
+      .data-flow-grid { grid-template-columns: repeat(2, 1fr); gap: 40px; }
+      .data-flow-grid::before { display: none; }
+    }
+
+    @media (max-width: 768px) {
+      .header-nav { display: none; }
+      .header-cta { display: none; }
+      .mobile-toggle { display: flex; }
+      .hero { padding: 100px 0 60px; min-height: auto; }
+      .hero h1 { font-size: 2rem; }
+      .hero-stats { grid-template-columns: repeat(3, 1fr); gap: 16px; }
+      .hero-stat-value { font-size: 1.35rem; }
+      .hero-float-card { display: none; }
+      .problems-grid { grid-template-columns: 1fr; }
+      .features-grid { grid-template-columns: 1fr; }
+      .flow-steps { flex-direction: column; gap: 32px; }
+      .flow-step::after { display: none; }
+      .data-flow-grid { grid-template-columns: 1fr 1fr; }
+      .pricing-card { padding: 40px 28px; }
+      .pricing-number { font-size: 3rem; }
+      .section-title { font-size: 1.5rem; }
+      .problems, .solution, .features, .flow, .data-flow, .pricing, .onboarding, .faq, .final-cta {
+        padding: 80px 0;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .hero-buttons { flex-direction: column; }
+      .hero-buttons .btn { width: 100%; }
+      .hero-stats { grid-template-columns: 1fr; gap: 12px; text-align: center; }
+      .data-flow-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ===== Mobile Menu ===== */
+    .mobile-menu {
+      position: fixed;
+      top: 72px;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(255,255,255,0.98);
+      backdrop-filter: blur(20px);
+      z-index: 999;
+      padding: 32px;
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .mobile-menu.active { display: flex; }
+    .mobile-menu a {
+      display: block;
+      padding: 16px 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #0f172a;
+      border-bottom: 1px solid #f1f5f9;
+    }
+    .mobile-menu .btn {
+      margin-top: 16px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <!-- ===== HEADER ===== -->
+  <header class="header" id="header">
+    <div class="header-inner">
+      <a href="#" class="header-logo">
+        <img src="assets/logo-icon.png" alt="Hospitalia">
+        <span>Hospitalia</span>
+      </a>
+      <nav class="header-nav">
+        <a href="#problems">課題</a>
+        <a href="#solution">提供内容</a>
+        <a href="#features">できること</a>
+        <a href="#pricing">料金</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+      <div class="header-cta">
+        <a href="#contact" class="btn btn-primary">お問い合わせ</a>
+      </div>
+      <button class="mobile-toggle" onclick="toggleMenu()" aria-label="メニュー">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" id="mobileMenu">
+    <a href="#problems" onclick="toggleMenu()">課題</a>
+    <a href="#solution" onclick="toggleMenu()">提供内容</a>
+    <a href="#features" onclick="toggleMenu()">できること</a>
+    <a href="#pricing" onclick="toggleMenu()">料金</a>
+    <a href="#faq" onclick="toggleMenu()">FAQ</a>
+    <a href="#contact" class="btn btn-primary" onclick="toggleMenu()">お問い合わせ</a>
+  </div>
+
+  <!-- ===== HERO ===== -->
+  <section class="hero" id="hero">
+    <div class="container">
+      <div class="hero-inner">
+        <div class="hero-content">
+          <div class="hero-badge">
+            <span class="hero-badge-dot"></span>
+            観光協会・DMO・自治体向け
+          </div>
+          <h1>
+            意思決定を<br>
+            <span class="accent">データで変える。</span>
+          </h1>
+          <p class="hero-sub">
+            観光客の本音をAIが自動分析。毎月40件以上の施策提案で、勘や経験に頼らない観光戦略を実現します。
+          </p>
+          <div class="hero-buttons">
+            <a href="#contact" class="btn btn-primary">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+              お問い合わせ
+            </a>
+            <a href="#solution" class="btn btn-secondary">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              デモを見る
+            </a>
+          </div>
+          <div class="hero-stats">
+            <div>
+              <div class="hero-stat-value">80<span>+件/月</span></div>
+              <div class="hero-stat-label">施策提案</div>
+            </div>
+            <div>
+              <div class="hero-stat-value">月次</div>
+              <div class="hero-stat-label">自動レポート生成</div>
+            </div>
+            <div>
+              <div class="hero-stat-value">15<span>万円〜</span></div>
+              <div class="hero-stat-label">月額（税別）</div>
+            </div>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <img src="assets/dashboard-hero.png" alt="Hospitalia ダッシュボード画面">
+          <div class="hero-float-card card-1">
+            <div class="float-card-num">40+</div>
+            <div class="float-card-text">月次施策提案数</div>
+          </div>
+          <div class="hero-float-card card-2">
+            <div class="float-card-num">1日</div>
+            <div class="float-card-text">最短導入期間</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SOCIAL PROOF ===== -->
+  <section class="social-proof">
+    <div class="container">
+      <div class="social-proof-inner">
+        <span class="social-proof-text">テクノロジーパートナー</span>
+        <img src="assets/aws-logo.png" alt="Amazon Web Services" class="social-proof-logo">
+        <span class="social-proof-text">Amazon公式認定パートナー</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PROBLEMS ===== -->
+  <section class="problems" id="problems">
+    <div class="container">
+      <div class="problems-header">
+        <span class="section-label">課題</span>
+        <h2 class="section-title">こんなお悩みはありませんか？</h2>
+        <p class="section-desc mx-auto">従来の観光データだけでは見えなかった課題。<br>Hospitaliaが解決します。</p>
+      </div>
+      <div class="problems-grid">
+        <div class="problem-card">
+          <div class="problem-num">01</div>
+          <h3>満足度調査だけでは、観光客の本音が見えない</h3>
+          <p>定型的なアンケートや満足度調査では、旅行中のリアルな声を捉えられず、現場で本当に何が求められているのかが把握できません。</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-num">02</div>
+          <h3>リアルな声を集められない</h3>
+          <p>旅ナカ・観光中のユーザーの「生の声」を集める手段がなく、観光庁のデータのみを参考にしてしまい、現場のニーズが分からない状態が続いています。</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-num">03</div>
+          <h3>外部データや生の声を束ねて分析ができない</h3>
+          <p>手元にデータはあるものの個別に分析してしまい、施策につながるインサイトを導き出せず、データを活かしきれていない状態です。</p>
+        </div>
+        <div class="problem-card">
+          <div class="problem-num">04</div>
+          <h3>結果として具体的な施策案が出ない</h3>
+          <p>有効な施策案が思い浮かばず、毎年似通った施策を繰り返してしまう。どうすれば改善できるか分からないという課題を抱えています。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== SOLUTION / DATA SHOWCASE ===== -->
+  <section class="solution" id="solution">
+    <div class="container">
+      <div class="solution-header">
+        <span class="section-label">提供内容</span>
+        <h2 class="section-title">観光客の声が、<span class="accent">80件の施策</span>になる。</h2>
+        <p class="section-desc mx-auto">発話データから不満・要望を自動抽出。課題・インサイト・施策まで一気通貫で可視化します。</p>
+      </div>
+
+      <!-- Quantitative -->
+      <div class="data-showcase">
+        <div class="data-showcase-content">
+          <span class="tag">Quantitative Data</span>
+          <h3>数値で見える現状</h3>
+          <p>発話データ数、デバイス操作数を言語別で可視化。推移や傾向も一目で把握が可能です。</p>
+        </div>
+        <div class="data-showcase-visual">
+          <img src="assets/macbook-display.png" alt="定量データダッシュボード">
+        </div>
+      </div>
+
+      <!-- Qualitative -->
+      <div class="data-showcase reverse">
+        <div class="data-showcase-content">
+          <span class="tag">Qualitative Data</span>
+          <h3>声から見える本音</h3>
+          <p>観光中のユーザーの生の声を収集・分析。言語別のニーズや課題を可視化し、データだけでは見えない本当の要望が分かります。</p>
+        </div>
+        <div class="data-showcase-visual">
+          <img src="assets/qualitative-data-dashboard.png" alt="定性データダッシュボード">
+        </div>
+      </div>
+
+      <!-- Insights -->
+      <div class="data-showcase">
+        <div class="data-showcase-content">
+          <span class="tag">Insights</span>
+          <h3>束ねて分析をしインサイトを</h3>
+          <p>定量データと定性データを統合分析し、パターンやトレンドを発見。外部ニュースや環境変化も考慮した、実践的なインサイトが得られます。</p>
+        </div>
+        <div class="data-showcase-visual">
+          <img src="assets/insights-dashboard.png" alt="インサイトダッシュボード">
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="data-showcase reverse">
+        <div class="data-showcase-content">
+          <span class="tag">Actions</span>
+          <h3>実行可能な施策案 毎月800以上</h3>
+          <p>観光/宿泊者の発話データと外部データから課題を抽出し、インサイトを導き出しそこからの施策を、様々なジャンルで毎月約800以上の施策をご覧いただけます。</p>
+        </div>
+        <div class="data-showcase-visual">
+          <img src="assets/policies-dashboard.png" alt="施策ダッシュボード">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FEATURES ===== -->
+  <section class="features" id="features">
+    <div class="container">
+      <div class="features-header">
+        <span class="section-label">機能</span>
+        <h2 class="section-title">Hospitaliaでできること</h2>
+        <p class="section-desc mx-auto">データ収集から施策実行・KPI管理まで、観光DXを一気通貫でサポートします。</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          </div>
+          <h3>月次インサイト&施策提案</h3>
+          <p>観光客の発話データをAIが自動分析。毎月40件以上の施策を革新案・着実案・緊急対応案に分類して提案します。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <h3>施策詳細・参考事例</h3>
+          <p>各施策の背景・期待効果・国内外の参考事例・導入イメージを詳細表示。稟議資料を作る手間を大幅に削減します。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+          </div>
+          <h3>ガントチャート管理</h3>
+          <p>施策をそのままロードマップに変換。担当者・期日・進捗状態をチームで共有しながら実行管理できます。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+          </div>
+          <h3>KPI管理・達成率追跡</h3>
+          <p>施策ごとにKPIを設定し、1ヶ月・3ヶ月・6ヶ月の目標値と警戒ラインを設定。達成率をリアルタイムで把握できます。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          </div>
+          <h3>エリア比較</h3>
+          <p>他エリアの戦略テーマ・主要施策・課題を横並びで比較。「他の自治体は何をしているか」を毎月確認できます。</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+          </div>
+          <h3>エクスポート・レポート出力</h3>
+          <p>ダッシュボードの内容をそのまま出力。議会報告・上位機関への報告資料作成の工数を大幅に削減します。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== DATA FLOW ===== -->
+  <section class="data-flow" id="data-flow">
+    <div class="container">
+      <div class="data-flow-header">
+        <span class="section-label">システム概要</span>
+        <h2 class="section-title">現場の声から施策まで</h2>
+        <p class="section-desc mx-auto">Amazon × TradFit 世界で唯一の観光データ収集基盤</p>
+      </div>
+      <div class="data-flow-grid">
+        <div class="data-flow-step">
+          <div class="data-flow-num">STEP 01</div>
+          <div class="data-flow-icon">
+            <img src="assets/hospitalia-device.png" alt="声を収集">
+          </div>
+          <h3>Hospitaliaで声を収集</h3>
+          <p>宿泊施設でユーザーが発した声をHospitaliaが収集。観光客の質問・不満・欲求を集めます。</p>
+        </div>
+        <div class="data-flow-step">
+          <div class="data-flow-num">STEP 02</div>
+          <div class="data-flow-icon">
+            <svg width="40" height="40" fill="none" stroke="#6366f1" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z"/></svg>
+          </div>
+          <h3>データ蓄積</h3>
+          <p>収集された声をクラウド上に蓄積。外部の観光記事・ニュースデータも抽出し蓄積します。</p>
+        </div>
+        <div class="data-flow-step">
+          <div class="data-flow-num">STEP 03</div>
+          <div class="data-flow-icon">
+            <svg width="40" height="40" fill="none" stroke="#6366f1" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/></svg>
+          </div>
+          <h3>AIで複数データを分析</h3>
+          <p>蓄積したデータをAIが分析し、インサイトと施策案を導き出します。</p>
+        </div>
+        <div class="data-flow-step">
+          <div class="data-flow-num">STEP 04</div>
+          <div class="data-flow-icon">
+            <svg width="40" height="40" fill="none" stroke="#6366f1" stroke-width="1.5" viewBox="0 0 24 24"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+          </div>
+          <h3>ダッシュボードで施策を決定</h3>
+          <p>分析結果をダッシュボードで確認し、データに基づいた具体的な施策を決定できます。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PRICING ===== -->
+  <section class="pricing" id="pricing">
+    <div class="container">
+      <div class="pricing-header">
+        <span class="section-label">料金</span>
+        <h2 class="section-title">シンプルな料金プラン</h2>
+        <p class="section-desc mx-auto">初期費用ゼロ・従量課金なし。必要なものはすべて含まれています。</p>
+      </div>
+      <div class="pricing-card">
+        <div class="pricing-popular">スタンダードプラン</div>
+        <div class="pricing-amount">
+          <span class="pricing-yen">¥</span>
+          <span class="pricing-number">150,000</span>
+          <span class="pricing-period">/ 月</span>
+        </div>
+        <div class="pricing-tax">税別</div>
+        <div class="pricing-badges">
+          <span class="pricing-badge">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            初期費用ゼロ
+          </span>
+          <span class="pricing-badge">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            従量課金なし
+          </span>
+          <span class="pricing-badge">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            運用・保守込み
+          </span>
+        </div>
+        <ul class="pricing-features">
+          <li>
+            <span class="pricing-check"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+            月次AIレポート自動生成（毎月更新）
+          </li>
+          <li>
+            <span class="pricing-check"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+            施策提案40件以上・詳細・参考事例表示
+          </li>
+          <li>
+            <span class="pricing-check"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+            ガントチャート・KPI管理
+          </li>
+          <li>
+            <span class="pricing-check"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+            エリア比較機能
+          </li>
+          <li>
+            <span class="pricing-check"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+            エクスポート・レポート出力
+          </li>
+          <li>
+            <span class="pricing-check"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+            システム運用・保守込み（追加費用なし）
+          </li>
+          <li>
+            <span class="pricing-check"><svg fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></span>
+            最短1営業日で導入開始
+          </li>
+        </ul>
+        <div class="pricing-cta">
+          <a href="#contact" class="btn btn-primary">まずは無料で相談する</a>
+        </div>
+        <p class="pricing-note">クレジットカード不要・無理な営業は一切しません</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ONBOARDING FLOW ===== -->
+  <section class="onboarding" id="onboarding">
+    <div class="container">
+      <div class="onboarding-header">
+        <span class="section-label">導入の流れ</span>
+        <h2 class="section-title">最短1営業日で導入</h2>
+        <p class="section-desc mx-auto">複雑な構築は不要。既存データをそのまま活用してすぐ運用開始できます。</p>
+      </div>
+      <div class="onboarding-timeline">
+        <div class="onboarding-step">
+          <div class="onboarding-dot">1</div>
+          <div class="onboarding-content">
+            <h3>お問い合わせ</h3>
+            <p>お問合せフォームからご連絡を頂きます。</p>
+          </div>
+        </div>
+        <div class="onboarding-step">
+          <div class="onboarding-dot">2</div>
+          <div class="onboarding-content">
+            <h3>打ち合わせ</h3>
+            <p>実際のダッシュボードの見方等のご説明をいたします。</p>
+          </div>
+        </div>
+        <div class="onboarding-step">
+          <div class="onboarding-dot">3</div>
+          <div class="onboarding-content">
+            <h3>開始日とプランの確定</h3>
+            <p>開始日の確認を行い、プランを確定します。</p>
+          </div>
+        </div>
+        <div class="onboarding-step">
+          <div class="onboarding-dot">4</div>
+          <div class="onboarding-content">
+            <h3>申し込み手続き</h3>
+            <p>契約書類を締結し、ログインに必要なパスワードを送付いたします。</p>
+          </div>
+        </div>
+        <div class="onboarding-step">
+          <div class="onboarding-dot">5</div>
+          <div class="onboarding-content">
+            <h3>ご利用開始</h3>
+            <p>パスワードで初回ログイン後、ご自身で新たにパスワードを設定し、すぐにご利用いただけます。</p>
+          </div>
+        </div>
+      </div>
+      <div class="onboarding-timeline-badge">
+        <span class="timeline-badge">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+          最短1営業日 〜 最長5営業日
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FAQ ===== -->
+  <section class="faq" id="faq">
+    <div class="container">
+      <div class="faq-header">
+        <span class="section-label">FAQ</span>
+        <h2 class="section-title">よくある質問</h2>
+      </div>
+      <div class="faq-list">
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>このダッシュボードは、どんな組織向けのサービスですか？</span>
+            <div class="faq-toggle"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">主に観光自治体、DMO、観光協会、観光関連事業者の方を想定しています。日々のデータ収集やレポート作成ではなく、「次に何を考え、何を決めるべきか」を整理するための意思決定支援ツールです。</div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>導入や運用に、専門的なIT知識は必要ですか？</span>
+            <div class="faq-toggle"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">必要ありません。ブラウザからログインするだけで利用できます。システム開発や個別のデータ基盤構築は不要で、チーム全員で同じ画面を見ながら意思決定を進められます。</div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>提案される施策案は、どれくらい具体的ですか？</span>
+            <div class="faq-toggle"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">抽象的な提案ではなく、「誰が・どこで・何をするか」を明確にしたタスクレベルまで整理したロードマップで提示します。会議資料や検討メモとしてそのまま利用できる粒度を目指しています。</div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>申し込みから利用開始まで、どれくらいかかりますか？</span>
+            <div class="faq-toggle"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">最短で1営業日以内にご利用開始いただけます。アカウント発行後は、画面構成と操作フローをすぐに確認でき、初期のシステム開発や長期のデータ整備は不要です。</div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>データが少ない地域でも使えますか？</span>
+            <div class="faq-toggle"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">はい。少量の情報から「施策の芽」を見つける補助を目的としています。データ量の多寡にかかわらず、検討の出発点としてご利用いただけます。</div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>AIの分析結果はどのように扱えばよいですか？</span>
+            <div class="faq-toggle"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">判断材料を整理する意思決定の補助ツールとしてご利用ください。提示内容は検討のたたき台として扱い、最終判断はご利用組織の基準に基づいて行ってください。</div>
+          </div>
+        </div>
+        <div class="faq-item">
+          <button class="faq-question" onclick="toggleFaq(this)">
+            <span>デモ画面は実運用と同じですか？</span>
+            <div class="faq-toggle"><svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></div>
+          </button>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">掲載データはサンプルですが、画面構成と分析の流れは実運用と同等です。機能や操作性をご確認いただけます。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FINAL CTA ===== -->
+  <section class="final-cta" id="contact">
+    <div class="container">
+      <h2>まずは、データで変わる<br>意思決定を体験しませんか？</h2>
+      <p>初期費用ゼロ・最短1営業日で導入。<br>お気軽にご相談ください。</p>
+      <div class="final-cta-buttons">
+        <a href="mailto:info@tradfit.co.jp" class="btn btn-primary">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+          お問い合わせ
+        </a>
+        <a href="#solution" class="btn btn-ghost">
+          <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          デモを見る
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div class="footer-logo">
+          <img src="assets/logo-icon.png" alt="Hospitalia">
+          <span>Hospitalia</span>
+        </div>
+        <div class="footer-info">
+          TradFit株式会社（トラッドフィット）/ TradFit Co., Ltd.<br>
+          東京都千代田区丸の内一丁目6番5号 丸の内北口ビルディング9階
+        </div>
+      </div>
+      <div class="footer-copy">
+        &copy; 2025 TradFit Co., Ltd. All rights reserved.
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scroll to top -->
+  <button class="scroll-top" id="scrollTop" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="トップへ戻る">
+    <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <script>
+    // Mobile menu
+    function toggleMenu() {
+      document.getElementById('mobileMenu').classList.toggle('active');
+    }
+
+    // FAQ accordion
+    function toggleFaq(btn) {
+      const item = btn.closest('.faq-item');
+      const answer = item.querySelector('.faq-answer');
+      const isActive = item.classList.contains('active');
+
+      // Close all
+      document.querySelectorAll('.faq-item').forEach(i => {
+        i.classList.remove('active');
+        i.querySelector('.faq-answer').style.maxHeight = null;
+      });
+
+      // Open clicked if it was closed
+      if (!isActive) {
+        item.classList.add('active');
+        answer.style.maxHeight = answer.scrollHeight + 'px';
+      }
+    }
+
+    // Scroll to top button
+    window.addEventListener('scroll', () => {
+      const btn = document.getElementById('scrollTop');
+      if (window.scrollY > 500) {
+        btn.classList.add('visible');
+      } else {
+        btn.classList.remove('visible');
+      }
+    });
+
+    // Header shadow on scroll
+    window.addEventListener('scroll', () => {
+      const header = document.getElementById('header');
+      if (window.scrollY > 10) {
+        header.style.boxShadow = '0 4px 20px rgba(0,0,0,0.06)';
+      } else {
+        header.style.boxShadow = 'none';
+      }
+    });
+
+    // Smooth reveal animation
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.style.opacity = '1';
+          entry.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.problem-card, .feature-card, .data-showcase, .onboarding-step, .data-flow-step').forEach(el => {
+      el.style.opacity = '0';
+      el.style.transform = 'translateY(24px)';
+      el.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+      observer.observe(el);
+    });
+  </script>
+</body>
+</html>
