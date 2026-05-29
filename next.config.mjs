@@ -1,22 +1,28 @@
 /** @type {import('next').NextConfig} */
 
-// GitHub Pages のプロジェクトページ（taka6116.github.io/LP-library/）で
-// 配信するための静的書き出し設定。本番ビルド時のみ basePath を付与する。
+// このプロジェクトは2通りの配信先を想定している:
+//   1. Vercel        … Next.js をネイティブ実行。ルート(/)配信なので basePath 不要。
+//   2. GitHub Pages  … 静的書き出し + /LP-library サブパス配信。
+//
+// GitHub Pages 用ビルドのときだけ環境変数 GITHUB_PAGES=true を立てて
+// 静的書き出し + basePath を有効化する。Vercel ではこの変数が無いので
+// 通常の Next.js アプリとしてルート配信される。
 const repo = "LP-library";
-const isProd = process.env.NODE_ENV === "production";
-const basePath = isProd ? `/${repo}` : "";
+const isGithubPages = process.env.GITHUB_PAGES === "true";
+const basePath = isGithubPages ? `/${repo}` : "";
 
-const nextConfig = {
-  output: "export",
-  basePath,
-  assetPrefix: isProd ? `/${repo}/` : "",
-  images: { unoptimized: true },
-  trailingSlash: true,
-  // プレーンな <img src="/sansan/..."> をクライアント側で basePath 付きに
-  // 解決するために公開する。
-  env: {
-    NEXT_PUBLIC_BASE_PATH: basePath,
-  },
-};
+const nextConfig = isGithubPages
+  ? {
+      output: "export",
+      basePath,
+      assetPrefix: `/${repo}/`,
+      images: { unoptimized: true },
+      trailingSlash: true,
+      env: { NEXT_PUBLIC_BASE_PATH: basePath },
+    }
+  : {
+      // Vercel など通常配信向け。basePath なし。
+      env: { NEXT_PUBLIC_BASE_PATH: "" },
+    };
 
 export default nextConfig;
