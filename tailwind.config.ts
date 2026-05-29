@@ -21,6 +21,8 @@ const config: Config = {
           "Meiryo",
           "sans-serif",
         ],
+        // AssetSync (SaaS hero) brand font.
+        lato: ["var(--font-lato)", "Helvetica Neue", "Arial", "sans-serif"],
       },
       colors: {
         // Sansan brand palette

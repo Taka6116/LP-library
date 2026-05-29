@@ -22,6 +22,15 @@ export const sectionCategories: SectionCategory[] = [
         recommendedFor: ["活用ガイド", "ヘルプ・サポートサイト", "ナレッジLP"],
       },
       {
+        id: "hero-assetsync",
+        categoryId: "hero",
+        title: "AssetSync SaaS Hero",
+        description: "黒基調・Latoフォントのダーク系SaaSヒーロー。ナビ+見出し+CTA+ダッシュボード風ビジュアル",
+        tags: ["SaaS", "ダーク", "プロダクト", "実セクション"],
+        componentType: "HeroAssetSync",
+        recommendedFor: ["SaaSプロダクト", "ダーク系LP", "プロダクト訴求"],
+      },
+      {
         id: "hero-problem-first",
         categoryId: "hero",
         title: "Problem-first Hero",
