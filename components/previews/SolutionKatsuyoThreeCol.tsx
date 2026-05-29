@@ -5,6 +5,7 @@ import {
   isCard,
   type SharedPreviewProps,
 } from "./_shared";
+import { asset } from "@/lib/asset";
 
 // 「Sansan活用法」3カラム プロモーション
 const COLS = [
@@ -51,7 +52,7 @@ export function SolutionKatsuyoThreeCol({ variant }: SharedPreviewProps) {
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
-                src={c.img}
+                src={asset(c.img)}
                 alt=""
                 className={card ? "h-12 w-auto" : "h-28 w-auto"}
               />

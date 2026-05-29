@@ -5,6 +5,7 @@ import {
   isCard,
   type SharedPreviewProps,
 } from "./_shared";
+import { asset } from "@/lib/asset";
 
 // 導入事例・活用事例カード（サムネイル付き）
 const CASES = [
@@ -43,7 +44,7 @@ export function ProofSansanCases({ variant }: SharedPreviewProps) {
               <div className="relative overflow-hidden">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
-                  src={c.img}
+                  src={asset(c.img)}
                   alt=""
                   className={`w-full object-cover transition duration-500 group-hover:scale-105 ${
                     card ? "h-16" : "h-48"

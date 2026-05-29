@@ -6,6 +6,7 @@ import {
   isCard,
   type SharedPreviewProps,
 } from "./_shared";
+import { asset } from "@/lib/asset";
 
 // Sansan User Forum（SUF）コミュニティ訴求セクション
 export function ProofSansanCommunity({ variant }: SharedPreviewProps) {
@@ -45,7 +46,7 @@ export function ProofSansanCommunity({ variant }: SharedPreviewProps) {
         <div className="flex justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/sansan/suf-illust.png"
+            src={asset("/sansan/suf-illust.png")}
             alt="Sansan User Forum"
             className={card ? "h-20 w-auto" : "h-52 w-auto sm:h-64"}
           />

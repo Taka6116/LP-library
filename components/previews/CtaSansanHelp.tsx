@@ -7,6 +7,7 @@ import {
   isCard,
   type SharedPreviewProps,
 } from "./_shared";
+import { asset } from "@/lib/asset";
 
 // 「お困りですか？」ヘルプ・サポート誘導CTA
 export function CtaSansanHelp({ variant }: SharedPreviewProps) {
@@ -20,7 +21,7 @@ export function CtaSansanHelp({ variant }: SharedPreviewProps) {
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src="/sansan/guide-icon.svg"
+          src={asset("/sansan/guide-icon.svg")}
           alt=""
           className={card ? "h-8 w-8" : "h-16 w-16"}
         />

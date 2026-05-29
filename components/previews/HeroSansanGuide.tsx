@@ -6,6 +6,7 @@ import {
   isCard,
   type SharedPreviewProps,
 } from "./_shared";
+import { asset } from "@/lib/asset";
 
 // Sansan活用ガイド ファーストビュー
 // パンくず + タイトル + 説明 + 注記ボックス + 右側マスコットイラスト
@@ -70,7 +71,7 @@ export function HeroSansanGuide({ variant }: SharedPreviewProps) {
         <div className="flex justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/sansan/img-guide-mv-illust.svg"
+            src={asset("/sansan/img-guide-mv-illust.svg")}
             alt="Sansan活用ガイド メインビジュアル"
             className={card ? "h-24 w-auto" : "h-56 w-auto sm:h-72"}
           />

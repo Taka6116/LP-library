@@ -5,6 +5,7 @@ import {
   isCard,
   type SharedPreviewProps,
 } from "./_shared";
+import { asset } from "@/lib/asset";
 
 // 「3つの質問で、あなたに合った活用法を」
 // 課題を選ばせて該当コンテンツへ導く診断・絞り込みセクション
@@ -26,7 +27,7 @@ export function HookSelectorThreeQuestions({ variant }: SharedPreviewProps) {
         <div className="flex justify-center">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/sansan/img-guide-select-illust.svg"
+            src={asset("/sansan/img-guide-select-illust.svg")}
             alt="活用法を選ぶ"
             className={card ? "h-20 w-auto" : "h-48 w-auto sm:h-60"}
           />
