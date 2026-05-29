@@ -95,7 +95,7 @@ export default function Page() {
                     {activeCategory.description}
                   </p>
 
-                  <div className="grid gap-5 sm:grid-cols-2">
+                  <div className="space-y-6">
                     {activeCategory.sections.map((section) => (
                       <SectionPatternCard
                         key={section.id}
