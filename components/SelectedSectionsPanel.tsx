@@ -25,16 +25,7 @@ export function SelectedSectionsPanel({
   const count = ordered.length;
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-soft">
-      <div className="mb-3 flex items-center justify-between">
-        <h2 className="text-sm font-bold uppercase tracking-wide text-slate-700">
-          Selected Sections
-        </h2>
-        <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-sansan-600 px-2 text-xs font-semibold text-white">
-          {count}
-        </span>
-      </div>
-
+    <div>
       {count === 0 ? (
         <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-400">
           まだセクションが選択されていません。
