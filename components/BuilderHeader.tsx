@@ -19,8 +19,19 @@ export function BuilderHeader({
   onOpenSelected,
 }: Props) {
   return (
-    <header className="sticky top-0 z-40 border-b border-white/40 bg-white/60 backdrop-blur-xl">
-      <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-3 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:py-4">
+    <header className="sticky top-0 z-40 px-3 pt-3 sm:px-4">
+      {/* 立体的なグラスバー: 半透明 + ブラー + ハイライト枠 + Violet系の落ち影 */}
+      <div className="relative mx-auto flex max-w-7xl flex-col gap-3 overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-b from-white/85 to-white/55 px-4 py-3 shadow-[0_12px_34px_-12px_rgba(76,29,149,0.35)] ring-1 ring-inset ring-white/60 backdrop-blur-xl sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:py-4">
+        {/* 上端の光沢ハイライト */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-80"
+        />
+        {/* やわらかいVioletの艶 */}
+        <span
+          aria-hidden
+          className="pointer-events-none absolute -right-10 -top-16 h-32 w-40 rounded-full bg-violet-300/30 blur-2xl"
+        />
         <div className="flex items-center gap-3">
           <div>
             <h1 className="text-base font-bold leading-tight text-slate-900 sm:text-lg">

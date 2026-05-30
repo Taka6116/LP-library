@@ -247,6 +247,15 @@ export const sectionCategories: SectionCategory[] = [
         recommendedFor: ["Web制作・代行サービス", "申込フローが明確な商材", "BtoB LP"],
       },
       {
+        id: "process-30min-steps",
+        categoryId: "process",
+        title: "サービスご利用の流れ 5 STEP（30min.）",
+        description: "イラスト見出し＋5枚の縦並びステップカード（グリーンの三角コネクタ付き）で利用の流れを提示",
+        tags: ["ステップ", "縦タイムライン", "実セクション"],
+        componentType: "ProcessThirtyMinSteps",
+        recommendedFor: ["来訪・予約型サービス", "サブスク／定期契約", "BtoC LP"],
+      },
+      {
         id: "process-step-flow",
         categoryId: "process",
         title: "Step Flow Process",
