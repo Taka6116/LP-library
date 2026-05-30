@@ -270,16 +270,16 @@ export function HeroHerpTrust({ variant }: SharedPreviewProps) {
         </nav>
 
         {/* BODY — 大きなノートPCの右端にフォームが重なる構成 */}
-        <div className="relative pt-10 lg:min-h-[580px]">
+        <div className="relative pt-10 lg:min-h-[560px]">
           {/* コピー（左・通常フロー） */}
-          <div className="space-y-5 lg:max-w-[440px]">
+          <div className="space-y-5 lg:max-w-[360px]">
             <p className="text-sm font-bold leading-relaxed" style={{ color: INK }}>
               オンライン完結型リファレンスチェックツール
               <br />
               「HERP Trust（ハープトラスト）」
             </p>
             <h1
-              className="text-[2.1rem] font-bold leading-[1.3] tracking-tight sm:text-[2.4rem]"
+              className="text-[2rem] font-bold leading-[1.3] tracking-tight"
               style={{ color: INK }}
             >
               リファレンスチェック
@@ -325,8 +325,8 @@ export function HeroHerpTrust({ variant }: SharedPreviewProps) {
             </div>
           </div>
 
-          {/* ノートPC素材（大きく・フォームの背面に回り込む） */}
-          <div className="mt-10 lg:absolute lg:right-2 lg:top-6 lg:mt-0 lg:w-[620px]">
+          {/* ノートPC素材（大きく・右端をフォームの背面に少しだけ重ねる） */}
+          <div className="mt-10 lg:absolute lg:right-[120px] lg:top-8 lg:mt-0 lg:w-[560px]">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={asset("/saaslp3.webp")}
@@ -335,7 +335,7 @@ export function HeroHerpTrust({ variant }: SharedPreviewProps) {
             />
           </div>
 
-          {/* 入力フォーム（PC右端に重ねる） */}
+          {/* 入力フォーム（PCの右端に重なり、PCより右へはみ出す） */}
           <div className="mt-8 lg:absolute lg:right-0 lg:top-0 lg:z-10 lg:mt-0 lg:w-[360px]">
             <LeadForm />
           </div>
