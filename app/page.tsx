@@ -67,7 +67,17 @@ export default function Page() {
   }
 
   return (
-    <div className="min-h-screen">
+    <div className="relative min-h-screen">
+      {/* 背景: 淡いVioletグラデーション + ブロブ（グラスモーフィズムの下地） */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-violet-50 via-white to-fuchsia-50"
+      >
+        <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-violet-300/30 blur-3xl" />
+        <div className="absolute right-0 top-40 h-80 w-80 rounded-full bg-fuchsia-300/25 blur-3xl" />
+        <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-indigo-300/20 blur-3xl" />
+      </div>
+
       <BuilderHeader
         mode={mode}
         onModeChange={setMode}
@@ -132,11 +142,11 @@ export default function Page() {
             onClick={() => setPanelOpen(false)}
             aria-hidden
           />
-          <aside className="absolute right-0 top-0 flex h-full w-full max-w-sm flex-col bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-4">
+          <aside className="absolute right-0 top-0 flex h-full w-full max-w-sm flex-col border-l border-white/50 bg-white/80 shadow-2xl backdrop-blur-xl">
+            <div className="flex items-center justify-between border-b border-white/60 px-5 py-4">
               <span className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-700">
                 Selected Sections
-                <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-sansan-600 px-2 text-xs font-semibold text-white">
+                <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 px-2 text-xs font-semibold text-white">
                   {selectedCount}
                 </span>
               </span>

@@ -49,7 +49,7 @@ export function SelectedSectionsPanel({
                   onClick={() => onJumpToCategory(cat.id)}
                   className="min-w-0 flex-1 text-left"
                 >
-                  <span className="block text-xs font-semibold text-sansan-600">
+                  <span className="block text-xs font-semibold text-violet-600">
                     {cat.label}
                   </span>
                   <span className="block truncate text-sm font-medium text-slate-700">
@@ -75,7 +75,7 @@ export function SelectedSectionsPanel({
           type="button"
           onClick={onGeneratePreview}
           disabled={count === 0}
-          className="w-full rounded-xl bg-sansan-600 px-4 py-3 text-sm font-semibold text-white shadow-soft transition hover:bg-sansan-500 disabled:cursor-not-allowed disabled:opacity-40"
+          className="w-full rounded-full bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 px-4 py-3 text-sm font-bold text-white shadow-lg shadow-violet-500/30 transition hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-40 disabled:shadow-none"
         >
           Generate Preview
         </button>

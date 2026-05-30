@@ -26,10 +26,10 @@ export function CategoryTabs({
             type="button"
             onClick={() => onSelectCategory(cat.id)}
             aria-pressed={active}
-            className={`group flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+            className={`group flex shrink-0 items-center gap-1.5 rounded-full px-4 py-2 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 ${
               active
-                ? "border-sansan-300 bg-sansan-50 text-sansan-700 shadow-soft"
-                : "border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:text-slate-900"
+                ? "bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 text-white shadow-lg shadow-violet-500/30"
+                : "border border-white/70 bg-white/60 text-slate-600 backdrop-blur hover:bg-white hover:text-violet-700"
             }`}
           >
             <span>{cat.label}</span>
@@ -37,8 +37,8 @@ export function CategoryTabs({
               <span
                 className={`grid h-4 w-4 place-items-center rounded-full text-[10px] font-bold ${
                   active
-                    ? "bg-sansan-600 text-white"
-                    : "bg-emerald-500 text-white"
+                    ? "bg-white/25 text-white"
+                    : "bg-gradient-to-br from-violet-600 to-fuchsia-500 text-white"
                 }`}
                 aria-label="selected"
               >

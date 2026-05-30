@@ -14,7 +14,7 @@ const options: { value: BuilderMode; label: string }[] = [
 
 export function ModeToggle({ mode, onChange }: Props) {
   return (
-    <div className="inline-flex rounded-xl border border-slate-200 bg-slate-100 p-1">
+    <div className="inline-flex rounded-full border border-white/70 bg-white/50 p-1 backdrop-blur">
       {options.map((opt) => {
         const active = mode === opt.value;
         return (
@@ -23,10 +23,10 @@ export function ModeToggle({ mode, onChange }: Props) {
             type="button"
             onClick={() => onChange(opt.value)}
             aria-pressed={active}
-            className={`rounded-lg px-3 py-1.5 text-sm font-semibold transition sm:px-4 ${
+            className={`rounded-full px-3 py-1.5 text-sm font-semibold transition sm:px-4 ${
               active
-                ? "bg-white text-sansan-700 shadow-soft"
-                : "text-slate-500 hover:text-slate-700"
+                ? "bg-gradient-to-r from-violet-600 to-fuchsia-500 text-white shadow-lg shadow-violet-500/25"
+                : "text-slate-500 hover:text-violet-700"
             }`}
           >
             {opt.label}
