@@ -238,6 +238,15 @@ export const sectionCategories: SectionCategory[] = [
     description: "導入までの流れと進め方を提示し不安を下げるセクション",
     sections: [
       {
+        id: "process-kurapuro-steps",
+        categoryId: "process",
+        title: "4 STEP 申込フロー（クラプロ）",
+        description: "赤い吹き出しタイトル＋4枚のステップカード（イラスト付き）で申込〜利用開始までを提示",
+        tags: ["ステップ", "申込フロー", "実セクション"],
+        componentType: "ProcessKurapuroSteps",
+        recommendedFor: ["Web制作・代行サービス", "申込フローが明確な商材", "BtoB LP"],
+      },
+      {
         id: "process-step-flow",
         categoryId: "process",
         title: "Step Flow Process",
