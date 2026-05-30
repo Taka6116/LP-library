@@ -55,41 +55,15 @@ function Logo({ card }: { card: boolean }) {
   );
 }
 
-/* アワード/実績バッジ */
+/* アワード/実績バッジ（提供素材: ITreview LEADER + 月桂樹 + 2,000社以上） */
 function Awards({ card }: { card: boolean }) {
   return (
-    <div className={`flex items-center ${card ? "gap-2" : "gap-5"}`}>
-      <div
-        className={`flex shrink-0 flex-col items-center justify-center rounded-md border text-center ${
-          card ? "h-9 w-9" : "h-16 w-16"
-        }`}
-        style={{ borderColor: "#e2e8f0", color: BLUE }}
-      >
-        <span className={`font-bold ${card ? "text-[5px]" : "text-[9px]"}`}>ITreview</span>
-        <span
-          className={`rounded-sm px-1 font-black text-white ${
-            card ? "text-[5px]" : "text-[10px]"
-          }`}
-          style={{ background: BLUE }}
-        >
-          LEADER
-        </span>
-        <span className={`${card ? "text-[4px]" : "text-[7px]"}`} style={{ color: MUTE }}>
-          2025 Winter
-        </span>
-      </div>
-      <div className="leading-tight">
-        <p className={`${card ? "text-[6px]" : "text-xs"}`} style={{ color: MUTE }}>
-          シリーズ累計導入実績
-        </p>
-        <p className={card ? "text-[10px]" : "text-2xl"} style={{ color: INK }}>
-          <span className="font-black" style={{ color: BLUE }}>
-            2,000
-          </span>
-          <span className={`font-bold ${card ? "text-[7px]" : "text-sm"}`}>社以上</span>
-        </p>
-      </div>
-    </div>
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={asset("/award-2000.webp")}
+      alt="ITreview LEADER 2025 Winter／シリーズ累計導入実績 2,000社以上"
+      className={`w-auto ${card ? "h-6" : "h-16"}`}
+    />
   );
 }
 
@@ -295,81 +269,74 @@ export function HeroHerpTrust({ variant }: SharedPreviewProps) {
           </div>
         </nav>
 
-        {/* BODY */}
-        <div className="grid gap-8 pt-10 lg:grid-cols-12">
-          {/* 左 + 中央 */}
-          <div className="lg:col-span-8">
-            <div className="grid items-center gap-8 md:grid-cols-[1.15fr_1fr]">
-              {/* コピー */}
-              <div className="space-y-5">
-                <p className="text-sm font-bold leading-relaxed" style={{ color: INK }}>
-                  オンライン完結型リファレンスチェックツール
-                  <br />
-                  「HERP Trust（ハープトラスト）」
-                </p>
-                <h1
-                  className="text-[2.1rem] font-bold leading-[1.3] tracking-tight"
-                  style={{ color: INK }}
-                >
-                  リファレンスチェック
-                  <br />
-                  月額1.5万円〜
-                </h1>
-                <p className="text-sm leading-relaxed" style={{ color: MUTE }}>
-                  HERP Trust（ハープトラスト）は、候補者の入社後の活躍を予測する新しい評価軸を、オンラインでスピーディーに取得できるリファレンスチェックです。
-                </p>
+        {/* BODY — 大きなノートPCの右端にフォームが重なる構成 */}
+        <div className="relative pt-10 lg:min-h-[580px]">
+          {/* コピー（左・通常フロー） */}
+          <div className="space-y-5 lg:max-w-[440px]">
+            <p className="text-sm font-bold leading-relaxed" style={{ color: INK }}>
+              オンライン完結型リファレンスチェックツール
+              <br />
+              「HERP Trust（ハープトラスト）」
+            </p>
+            <h1
+              className="text-[2.1rem] font-bold leading-[1.3] tracking-tight sm:text-[2.4rem]"
+              style={{ color: INK }}
+            >
+              リファレンスチェック
+              <br />
+              月額1.5万円〜
+            </h1>
+            <p className="text-sm leading-relaxed" style={{ color: MUTE }}>
+              HERP Trust（ハープトラスト）は、候補者の入社後の活躍を予測する新しい評価軸を、オンラインでスピーディーに取得できるリファレンスチェックです。
+            </p>
 
-                <div className="space-y-3 pt-1">
-                  <span
-                    className="flex w-full flex-col items-center justify-center rounded-md py-3.5 text-white shadow-sm"
-                    style={{ background: BLUE }}
-                  >
-                    <span className="text-xs font-normal opacity-90">
-                      ＼ 料金・機能・事例がわかる ／
-                    </span>
-                    <span className="mt-0.5 flex items-center gap-2 text-lg font-bold">
-                      今すぐ資料ダウンロード
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
-                        <path
-                          d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </span>
-                  </span>
-                  <span
-                    className="flex w-full items-center justify-center gap-2 rounded-md border-2 bg-white py-3.5 text-base font-bold"
-                    style={{ borderColor: BLUE, color: BLUE }}
-                  >
-                    オンラインデモ体験
-                    <span aria-hidden>→|</span>
-                  </span>
-                </div>
+            <div className="space-y-3 pt-1">
+              <span
+                className="flex w-full flex-col items-center justify-center rounded-md py-3.5 text-white shadow-sm"
+                style={{ background: BLUE }}
+              >
+                <span className="text-xs font-normal opacity-90">
+                  ＼ 料金・機能・事例がわかる ／
+                </span>
+                <span className="mt-0.5 flex items-center gap-2 text-lg font-bold">
+                  今すぐ資料ダウンロード
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden>
+                    <path
+                      d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+              </span>
+              <span
+                className="flex w-full items-center justify-center gap-2 rounded-md border-2 bg-white py-3.5 text-base font-bold"
+                style={{ borderColor: BLUE, color: BLUE }}
+              >
+                オンラインデモ体験
+                <span aria-hidden>→|</span>
+              </span>
+            </div>
 
-                <div className="pt-3">
-                  <Awards card={false} />
-                </div>
-              </div>
-
-              {/* ノートPC素材 */}
-              <div className="relative">
-                {/* 背景の淡いパネル */}
-                <div className="absolute inset-0 -z-0 translate-x-4 translate-y-4 rounded-2xl bg-[#f4f6fb]" aria-hidden />
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={asset("/saaslp3.webp")}
-                  alt="HERP Trust のリファレンスチェック結果ダッシュボード"
-                  className="relative w-full object-contain"
-                />
-              </div>
+            <div className="pt-3">
+              <Awards card={false} />
             </div>
           </div>
 
-          {/* 右: 入力フォーム */}
-          <div className="lg:col-span-4">
+          {/* ノートPC素材（大きく・フォームの背面に回り込む） */}
+          <div className="mt-10 lg:absolute lg:right-2 lg:top-6 lg:mt-0 lg:w-[620px]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={asset("/saaslp3.webp")}
+              alt="HERP Trust のリファレンスチェック結果ダッシュボード"
+              className="w-full object-contain drop-shadow-xl"
+            />
+          </div>
+
+          {/* 入力フォーム（PC右端に重ねる） */}
+          <div className="mt-8 lg:absolute lg:right-0 lg:top-0 lg:z-10 lg:mt-0 lg:w-[360px]">
             <LeadForm />
           </div>
         </div>
