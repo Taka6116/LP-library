@@ -5,6 +5,7 @@ import { HeroProblemFirst } from "@/components/previews/HeroProblemFirst";
 import { HeroOutcomeFirst } from "@/components/previews/HeroOutcomeFirst";
 import { HeroVisualDashboard } from "@/components/previews/HeroVisualDashboard";
 import { HeroAssetSync } from "@/components/previews/HeroAssetSync";
+import { HeroHerpTrust } from "@/components/previews/HeroHerpTrust";
 import { ProblemThreeCards } from "@/components/previews/ProblemThreeCards";
 import { ProblemBeforeState } from "@/components/previews/ProblemBeforeState";
 import { ProblemHiddenCost } from "@/components/previews/ProblemHiddenCost";
@@ -51,6 +52,7 @@ export const previewMap: Record<
   HeroOutcomeFirst,
   HeroVisualDashboard,
   HeroAssetSync,
+  HeroHerpTrust,
   ProblemThreeCards,
   ProblemBeforeState,
   ProblemHiddenCost,

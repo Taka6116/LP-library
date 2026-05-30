@@ -31,6 +31,15 @@ export const sectionCategories: SectionCategory[] = [
         recommendedFor: ["SaaSプロダクト", "ダーク系LP", "プロダクト訴求"],
       },
       {
+        id: "hero-herp-trust",
+        categoryId: "hero",
+        title: "HERP Trust リード獲得 Hero",
+        description: "ノートPCのダッシュボード＋右側に資料ダウンロード入力フォームを備えたBtoB SaaSヒーロー",
+        tags: ["SaaS", "BtoB", "入力フォーム", "実セクション"],
+        componentType: "HeroHerpTrust",
+        recommendedFor: ["BtoB SaaS", "資料請求・リード獲得LP", "HRTech"],
+      },
+      {
         id: "hero-problem-first",
         categoryId: "hero",
         title: "Problem-first Hero",
