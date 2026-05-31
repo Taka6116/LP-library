@@ -85,6 +85,15 @@ export const sectionCategories: SectionCategory[] = [
     description: "問い・ギャップ・誤解の反転で読み手の注意を引き込むセクション",
     sections: [
       {
+        id: "hook-desknets-features",
+        categoryId: "hook",
+        title: "3つの特長 FEATURES（desknet's NEO）",
+        description: "FEATURES透かし見出し＋3カラム（イラスト・大番号・2行タイトル・チェック項目）で強みを整理",
+        tags: ["特長", "3カラム", "チェックリスト", "実セクション"],
+        componentType: "HookDesknetsFeatures",
+        recommendedFor: ["BtoB SaaS", "機能・強みの整理", "比較検討フェーズLP"],
+      },
+      {
         id: "hook-30min-service",
         categoryId: "hook",
         title: "家事代行サービスとは？ 3つの円（30min.）",
