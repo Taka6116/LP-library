@@ -10,6 +10,7 @@ import { HeroDmmAiCamp } from "@/components/previews/HeroDmmAiCamp";
 import { ProcessKurapuroSteps } from "@/components/previews/ProcessKurapuroSteps";
 import { ProcessThirtyMinSteps } from "@/components/previews/ProcessThirtyMinSteps";
 import { BenefitMaxhubFeature } from "@/components/previews/BenefitMaxhubFeature";
+import { HookThirtyMinService } from "@/components/previews/HookThirtyMinService";
 import { ProblemThreeCards } from "@/components/previews/ProblemThreeCards";
 import { ProblemBeforeState } from "@/components/previews/ProblemBeforeState";
 import { ProblemHiddenCost } from "@/components/previews/ProblemHiddenCost";
@@ -61,6 +62,7 @@ export const previewMap: Record<
   ProcessKurapuroSteps,
   ProcessThirtyMinSteps,
   BenefitMaxhubFeature,
+  HookThirtyMinService,
   ProblemThreeCards,
   ProblemBeforeState,
   ProblemHiddenCost,

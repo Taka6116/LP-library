@@ -85,6 +85,15 @@ export const sectionCategories: SectionCategory[] = [
     description: "問い・ギャップ・誤解の反転で読み手の注意を引き込むセクション",
     sections: [
       {
+        id: "hook-30min-service",
+        categoryId: "hook",
+        title: "家事代行サービスとは？ 3つの円（30min.）",
+        description: "巡回型・短時間・ピンポイントの手描き3円を重ねて配置し、下に清掃イラストで世界観を伝える",
+        tags: ["サービス説明", "イラスト", "実セクション"],
+        componentType: "HookThirtyMinService",
+        recommendedFor: ["BtoC サービスLP", "やわらかい世界観の商材", "コンセプト訴求"],
+      },
+      {
         id: "hook-selector-three-questions",
         categoryId: "hook",
         title: "3つの質問で選ぶ Selector",
