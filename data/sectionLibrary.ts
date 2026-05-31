@@ -193,6 +193,15 @@ export const sectionCategories: SectionCategory[] = [
     description: "導入で得られる成果と価値を具体的に伝えるセクション",
     sections: [
       {
+        id: "benefit-progrit-reasons",
+        categoryId: "benefit",
+        title: "選ばれる理由 3カード（PROGRIT）",
+        description: "ドット模様のピーチ見出し＋オレンジ枠の3カード（番号・明朝見出し・ハイライト本文・写真）",
+        tags: ["選ばれる理由", "カード", "実セクション"],
+        componentType: "BenefitProgritReasons",
+        recommendedFor: ["コーチング・スクール", "強みを順番に見せたい商材", "BtoC LP"],
+      },
+      {
         id: "benefit-maxhub-feature",
         categoryId: "benefit",
         title: "FEATURE 3つの特徴（MAXHUB）",

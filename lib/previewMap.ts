@@ -12,6 +12,7 @@ import { ProcessThirtyMinSteps } from "@/components/previews/ProcessThirtyMinSte
 import { BenefitMaxhubFeature } from "@/components/previews/BenefitMaxhubFeature";
 import { HookThirtyMinService } from "@/components/previews/HookThirtyMinService";
 import { HookDesknetsFeatures } from "@/components/previews/HookDesknetsFeatures";
+import { BenefitProgritReasons } from "@/components/previews/BenefitProgritReasons";
 import { ProblemThreeCards } from "@/components/previews/ProblemThreeCards";
 import { ProblemBeforeState } from "@/components/previews/ProblemBeforeState";
 import { ProblemHiddenCost } from "@/components/previews/ProblemHiddenCost";
@@ -65,6 +66,7 @@ export const previewMap: Record<
   BenefitMaxhubFeature,
   HookThirtyMinService,
   HookDesknetsFeatures,
+  BenefitProgritReasons,
   ProblemThreeCards,
   ProblemBeforeState,
   ProblemHiddenCost,
