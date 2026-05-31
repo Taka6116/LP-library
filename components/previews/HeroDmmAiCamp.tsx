@@ -7,16 +7,31 @@ import { asset } from "@/lib/asset";
 const ORANGE = "#f47806";
 const GOLD = "#ffce3a";
 const NAVY = "#0a2436";
+// 右カラム背景は明るいブルー（お手本準拠）
+const BLUE_BG = "linear-gradient(135deg, #1f86c4 0%, #1668a0 50%, #124f79 100%)";
 
-const COURSES = [
-  "marketing",
-  "engineer",
-  "video",
-  "design",
-  "basic",
-  "hr",
-  "sales",
+// 全コース画像（フル7枚 + サムネ8枚=Dify含む）を全部使用。
+// フルとサムネを交互に並べて同コースの連続を避け、重複感を減らす。
+const FULL = ["marketing", "engineer", "video", "design", "basic", "hr", "sales"];
+const THUMB = [
+  "acc-thumb-dify",
+  "acc-thumb-marketing",
+  "acc-thumb-engineer",
+  "acc-thumb-video",
+  "acc-thumb-design",
+  "acc-thumb-basic",
+  "acc-thumb-hr",
+  "acc-thumb-sales",
 ];
+const CARDS: string[] = (() => {
+  const out: string[] = [];
+  const max = Math.max(FULL.length, THUMB.length);
+  for (let i = 0; i < max; i++) {
+    if (i < FULL.length) out.push(`/DMM/${FULL[i]}.webp`);
+    if (i < THUMB.length) out.push(`/DMM/${THUMB[i]}.webp`);
+  }
+  return out; // 15枚
+})();
 
 // 行ごとに並びをずらす
 function rotate<T>(arr: T[], n: number): T[] {
@@ -44,11 +59,11 @@ function MarqueeRow({
         } ${card ? "gap-1.5" : "gap-3"}`}
         style={{ animationDuration: `${duration}s` }}
       >
-        {cards.map((name, i) => (
+        {cards.map((path, i) => (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            key={`${name}-${i}`}
-            src={asset(`/DMM/${name}.webp`)}
+            key={`${path}-${i}`}
+            src={asset(path)}
             alt=""
             aria-hidden
             className={`shrink-0 rounded-lg object-cover shadow-lg ${
@@ -73,7 +88,7 @@ function Marquee({ card }: { card: boolean }) {
       {rows.map((r, i) => (
         <MarqueeRow
           key={i}
-          order={rotate(COURSES, i * 2)}
+          order={rotate(CARDS, i * 4)}
           dir={r.dir}
           duration={card ? r.dur / 2 : r.dur}
           card={card}
@@ -161,7 +176,7 @@ export function HeroDmmAiCamp({ variant }: SharedPreviewProps) {
       {/* ヒーロー本体（斜め背景 + 右マーキー） */}
       <div
         className={`relative overflow-hidden ${card ? "min-h-[150px]" : "min-h-[560px]"}`}
-        style={{ background: NAVY }}
+        style={{ background: BLUE_BG }}
       >
         {/* マーキー（全面） */}
         <div className="absolute inset-0">
