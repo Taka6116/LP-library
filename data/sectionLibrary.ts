@@ -31,6 +31,15 @@ export const sectionCategories: SectionCategory[] = [
         recommendedFor: ["SaaSプロダクト", "ダーク系LP", "プロダクト訴求"],
       },
       {
+        id: "hero-dmm-ai-camp",
+        categoryId: "hero",
+        title: "DMM 生成AI CAMP Hero（自動スクロール）",
+        description: "斜めのティール背景＋右カラムにコース画像の4行マーキー（行ごとに左右交互へ自動スクロール）",
+        tags: ["スクール", "マーキー", "アニメーション", "実セクション"],
+        componentType: "HeroDmmAiCamp",
+        recommendedFor: ["スクール・講座LP", "ラインナップを見せたい商材", "動きで訴求するLP"],
+      },
+      {
         id: "hero-herp-trust",
         categoryId: "hero",
         title: "HERP Trust リード獲得 Hero",

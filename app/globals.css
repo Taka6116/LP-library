@@ -21,6 +21,30 @@ body {
   letter-spacing: 0.01em;
 }
 
+/* DMM 生成AI CAMP hero: 横方向の自動スクロール（マーキー） */
+@keyframes marquee-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes marquee-right {
+  from { transform: translateX(-50%); }
+  to { transform: translateX(0); }
+}
+.animate-marquee-left {
+  animation: marquee-left 45s linear infinite;
+  will-change: transform;
+}
+.animate-marquee-right {
+  animation: marquee-right 45s linear infinite;
+  will-change: transform;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-marquee-left,
+  .animate-marquee-right {
+    animation: none;
+  }
+}
+
 /* Thin, calm scrollbars for the tab strip and preview area. */
 .scrollbar-thin::-webkit-scrollbar {
   height: 6px;
