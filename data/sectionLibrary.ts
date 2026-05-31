@@ -175,6 +175,15 @@ export const sectionCategories: SectionCategory[] = [
     description: "導入で得られる成果と価値を具体的に伝えるセクション",
     sections: [
       {
+        id: "benefit-maxhub-feature",
+        categoryId: "benefit",
+        title: "FEATURE 3つの特徴（MAXHUB）",
+        description: "大きなゴールドのFEATURE見出し＋左右交互の特徴3点（アウトライン数字・オリーブ装飾・写真）",
+        tags: ["特徴", "ジグザグ", "実セクション"],
+        componentType: "BenefitMaxhubFeature",
+        recommendedFor: ["プロダクト紹介LP", "機能訴求", "ハードウェア・什器"],
+      },
+      {
         id: "benefit-three-points",
         categoryId: "benefit",
         title: "Three Points Benefit",
