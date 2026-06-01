@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 import type { PreviewComponentProps } from "@/types/section";
 
 import { HeroProblemFirst } from "@/components/previews/HeroProblemFirst";
+import { HeroAshiato } from "@/components/previews/HeroAshiato";
 import { HeroOutcomeFirst } from "@/components/previews/HeroOutcomeFirst";
 import { HeroVisualDashboard } from "@/components/previews/HeroVisualDashboard";
 import { HeroAssetSync } from "@/components/previews/HeroAssetSync";
@@ -61,6 +62,7 @@ export const previewMap: Record<
   ComponentType<PreviewComponentProps>
 > = {
   HeroProblemFirst,
+  HeroAshiato,
   HeroOutcomeFirst,
   HeroVisualDashboard,
   HeroAssetSync,

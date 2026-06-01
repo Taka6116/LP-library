@@ -39,6 +39,15 @@ export const sectionCategories: SectionCategory[] = [
         componentType: "HeroHerpTrust",
         recommendedFor: ["BtoB SaaS", "資料請求・リード獲得LP", "HRTech"],
       },
+      {
+        id: "hero-ashiato",
+        categoryId: "hero",
+        title: "活躍の足跡を可視化する（ASHIATO）",
+        description: "青グラデーション全幅Hero。左:isometricイラスト / 右:見出し+黄色CTA+白アウトラインCTA / 底:受賞バー+社会的証明",
+        tags: ["青グラデーション", "イラスト", "HRTech", "実セクション", "BtoB"],
+        componentType: "HeroAshiato",
+        recommendedFor: ["HRTech・採用系SaaS", "明るい青系LP", "イラスト訴求型BtoB"],
+      },
     ],
   },
   {
