@@ -81,16 +81,17 @@ export function SectionPatternCard({
         </div>
       </div>
 
-      {/* Full live section — rendered exactly as it appears in a real LP */}
+      {/* Full live section — rendered exactly as it appears in a real LP.
+          Clicking empty areas of the section selects it; interactive controls
+          inside a preview (e.g. carousel arrows) call stopPropagation so they
+          work without triggering selection. Keyboard users use the toolbar
+          buttons above. */}
       <div className="relative">
-        {/* Click anywhere on the section to select it */}
-        <button
-          type="button"
-          aria-label={`${section.title} を選択`}
+        {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions, jsx-a11y/click-events-have-key-events */}
+        <div
           onClick={() => (selected ? onRemove(section.categoryId) : onSelect(section))}
-          className="absolute inset-0 z-10 cursor-pointer"
-        />
-        <div className="pointer-events-none">
+          className="cursor-pointer"
+        >
           {Preview ? (
             <Preview variant="full" />
           ) : (

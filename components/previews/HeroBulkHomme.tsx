@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type MouseEvent } from "react";
 import { isCard, type SharedPreviewProps } from "./_shared";
 import { asset } from "@/lib/asset";
 
@@ -36,7 +36,15 @@ export function HeroBulkHomme({ variant }: SharedPreviewProps) {
   const [active, setActive] = useState(0);
   const n = SLIDES.length;
 
-  const go = useCallback((i: number) => setActive(((i % n) + n) % n), [n]);
+  const go = useCallback(
+    (i: number, e?: MouseEvent) => {
+      // Prevent the parent SectionPatternCard from treating arrow/dot clicks
+      // as a "select this section" action.
+      e?.stopPropagation();
+      setActive(((i % n) + n) % n);
+    },
+    [n],
+  );
 
   // Auto-advance (full variant only)
   useEffect(() => {
@@ -122,7 +130,7 @@ export function HeroBulkHomme({ variant }: SharedPreviewProps) {
             <button
               type="button"
               aria-label="前のスライド"
-              onClick={() => go(active - 1)}
+              onClick={(e) => go(active - 1, e)}
               className="group absolute left-0 top-1/2 z-10 -translate-y-1/2 px-4 py-6"
             >
               <svg width="22" height="40" viewBox="0 0 22 40" fill="none" aria-hidden
@@ -133,7 +141,7 @@ export function HeroBulkHomme({ variant }: SharedPreviewProps) {
             <button
               type="button"
               aria-label="次のスライド"
-              onClick={() => go(active + 1)}
+              onClick={(e) => go(active + 1, e)}
               className="group absolute right-0 top-1/2 z-10 -translate-y-1/2 px-4 py-6"
             >
               <svg width="22" height="40" viewBox="0 0 22 40" fill="none" aria-hidden
@@ -163,7 +171,7 @@ export function HeroBulkHomme({ variant }: SharedPreviewProps) {
               key={i}
               type="button"
               aria-label={`スライド ${i + 1}`}
-              onClick={() => go(i)}
+              onClick={(e) => go(i, e)}
               className={`rounded-full transition ${card ? "h-1 w-1" : "h-2.5 w-2.5"} ${
                 i === active ? "" : "opacity-100"
               }`}
