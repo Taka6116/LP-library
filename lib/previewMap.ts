@@ -35,6 +35,7 @@ import { ProofLogos } from "@/components/previews/ProofLogos";
 import { PricingThreePlans } from "@/components/previews/PricingThreePlans";
 import { PricingCustom } from "@/components/previews/PricingCustom";
 import { PricingComparison } from "@/components/previews/PricingComparison";
+import { PricingSearchWrite } from "@/components/previews/PricingSearchWrite";
 import { FaqAccordion } from "@/components/previews/FaqAccordion";
 import { FaqObjection } from "@/components/previews/FaqObjection";
 import { FaqTwoColumn } from "@/components/previews/FaqTwoColumn";
@@ -93,6 +94,7 @@ export const previewMap: Record<
   PricingThreePlans,
   PricingCustom,
   PricingComparison,
+  PricingSearchWrite,
   FaqAccordion,
   FaqObjection,
   FaqTwoColumn,

@@ -390,6 +390,15 @@ export const sectionCategories: SectionCategory[] = [
         componentType: "PricingComparison",
         recommendedFor: ["プラン差が複雑な商材", "SaaS"],
       },
+      {
+        id: "pricing-searchwrite",
+        categoryId: "pricing",
+        title: "選べる3つのプラン（SEARCH WRITE）",
+        description: "カラーヘッダー3カラム＋仕様行（契約期間・ユーザー数・サイト数）＋機能/サービスリストで差分を提示",
+        tags: ["3プラン", "カラーヘッダー", "実セクション", "SaaS", "SEO"],
+        componentType: "PricingSearchWrite",
+        recommendedFor: ["SaaSプロダクト", "プランごとに対象顧客が異なる商材", "BtoB LP"],
+      },
     ],
   },
   {
