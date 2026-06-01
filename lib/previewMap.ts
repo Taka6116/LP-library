@@ -41,6 +41,7 @@ import { FaqTwoColumn } from "@/components/previews/FaqTwoColumn";
 import { CtaFinal } from "@/components/previews/CtaFinal";
 import { CtaSoft } from "@/components/previews/CtaSoft";
 import { CtaSplit } from "@/components/previews/CtaSplit";
+import { CtaKakeaiThreeCards } from "@/components/previews/CtaKakeaiThreeCards";
 // Sansan活用ガイド の実セクション
 import { HeroSansanGuide } from "@/components/previews/HeroSansanGuide";
 import { HookSelectorThreeQuestions } from "@/components/previews/HookSelectorThreeQuestions";
@@ -96,6 +97,7 @@ export const previewMap: Record<
   CtaFinal,
   CtaSoft,
   CtaSplit,
+  CtaKakeaiThreeCards,
   HeroSansanGuide,
   HookSelectorThreeQuestions,
   SolutionKatsuyoThreeCol,

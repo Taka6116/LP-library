@@ -436,6 +436,15 @@ export const sectionCategories: SectionCategory[] = [
     description: "最終的なコンバージョンへ導く行動喚起セクション",
     sections: [
       {
+        id: "cta-kakeai-three-cards",
+        categoryId: "cta",
+        title: "Kakeai 3カード CTA",
+        description: "Seminar / Download / Case の3導線を鮮やかな色面と実写素材で並べるKakeai型CTA。",
+        tags: ["Kakeai", "3カード", "資料DL", "実セクション"],
+        componentType: "CtaKakeaiThreeCards",
+        recommendedFor: ["BtoB SaaS", "コンテンツ導線を並列に見せたいLP", "セミナー・資料・事例の回遊導線"],
+      },
+      {
         id: "cta-sansan-help",
         categoryId: "cta",
         title: "ヘルプ・サポート誘導CTA",
