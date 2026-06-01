@@ -39,29 +39,27 @@ export function CtaKakeaiThreeCards({ variant }: SharedPreviewProps) {
   const card = isCard(variant);
 
   return (
-    <section className="w-full bg-white px-5 py-10 text-[#050b2c] sm:px-8 lg:px-10">
-      <div className="mx-auto w-full max-w-[1480px]">
+    <section className="w-full bg-white px-3 pb-16 pt-0 text-[#050b2c]">
+      <div className="w-full">
         {!card && (
-          <div className="mb-10 bg-[#f8f2df] px-6 py-16 sm:py-20">
-            <div className="mx-auto h-px max-w-5xl bg-[#050b2c]/28" />
-          </div>
+          <div className="mb-10 h-[47px] bg-[#f8f2df]" />
         )}
 
-        <div className="grid gap-4 lg:grid-cols-3 xl:gap-5">
+        <div className="grid gap-4 lg:grid-cols-3">
           {ctaItems.map((item) => (
             <article
               key={item.title}
-              className={`relative flex min-h-[290px] overflow-hidden ${item.bg} px-8 py-9 sm:min-h-[320px] sm:px-10 sm:py-10 lg:min-h-[348px]`}
+              className={`relative isolate flex min-h-[340px] overflow-hidden ${item.bg} px-8 py-10 sm:min-h-[390px] sm:px-12 sm:py-12 lg:min-h-[436px]`}
             >
               <div className="relative z-10 flex min-h-full w-full flex-col">
                 <div>
-                  <h2 className="text-[42px] font-bold leading-none tracking-normal sm:text-[48px] lg:text-[44px] xl:text-[52px]">
+                  <h2 className="text-[42px] font-bold leading-none tracking-normal sm:text-[48px] xl:text-[52px]">
                     {item.title}
                   </h2>
                   <p className="mt-2 text-base font-bold leading-none tracking-normal">
                     {item.label}
                   </p>
-                  <p className="mt-6 max-w-[31rem] text-[15px] font-bold leading-8 tracking-normal sm:text-base">
+                  <p className="mt-6 max-w-[33rem] text-[15px] font-bold leading-8 tracking-normal sm:text-base">
                     {item.description}
                   </p>
                 </div>
@@ -81,7 +79,7 @@ export function CtaKakeaiThreeCards({ variant }: SharedPreviewProps) {
                 src={asset(item.image)}
                 alt=""
                 loading="lazy"
-                className={`pointer-events-none absolute bottom-7 right-8 z-0 object-contain ${item.imageClass}`}
+                className={`pointer-events-none absolute bottom-8 right-8 z-0 object-contain sm:right-12 ${item.imageClass}`}
               />
             </article>
           ))}
