@@ -9,8 +9,6 @@ import { asset } from "@/lib/asset";
 //   [HERO] blue gradient — left: hero.webp full-height | right: copy + CTA×2
 //   [BAR]  award badge (large) | yellow strip full-width
 
-const BLUE_L = "#1535b5";
-const BLUE_R = "#2d6df0";
 const YELLOW = "#ffd600";
 const EN_GRN = "#009a44";
 
@@ -22,7 +20,7 @@ export function HeroAshiato({ variant }: SharedPreviewProps) {
     return (
       <section
         className="relative w-full overflow-hidden font-sans"
-        style={{ background: `linear-gradient(110deg, ${BLUE_L} 0%, #1d4fd8 50%, ${BLUE_R} 100%)`, fontFamily: "'Noto Sans JP', sans-serif" }}
+        style={{ background: `linear-gradient(112deg, #2247c9 0%, #2a57db 48%, #3a73f2 100%)`, fontFamily: "'Noto Sans JP', sans-serif" }}
       >
         {/* Swoosh */}
         <div aria-hidden className="pointer-events-none absolute" style={{ left: "26%", top: 0, bottom: 0, width: "55%", background: "rgba(255,255,255,0.04)", borderRadius: "0 0 60% 40% / 0 0 100% 80%", transform: "rotate(-8deg) translateX(-10%)" }} />
@@ -56,12 +54,20 @@ export function HeroAshiato({ variant }: SharedPreviewProps) {
           </div>
         </div>
 
-        {/* Bottom bar */}
-        <div className="relative z-10 flex items-center gap-2 px-2 py-1.5" style={{ background: "rgba(0,0,0,0.25)" }}>
+        {/* Bottom award row — on blue bg */}
+        <div className="relative z-10 flex items-center gap-1 px-3 pb-2 pt-0.5">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={asset("/ashiato/award.webp")} alt="BOXIL SaaS AWARD" className="h-8 w-auto flex-shrink-0 object-contain" />
-          <span className="text-[6px] text-white/50">※</span>
-          <span className="flex flex-1 items-center justify-center rounded-full py-0.5 text-[6.5px] font-bold text-slate-900" style={{ background: YELLOW }}>
+          <img src={asset("/ashiato/award.webp")} alt="BOXIL SaaS AWARD" className="relative z-10 h-9 w-auto flex-shrink-0 object-contain" style={{ marginRight: -4 }} />
+          <span className="text-[6px] text-white/60">※</span>
+          <span
+            className="flex flex-1 items-center justify-center py-1 text-[6.5px] font-bold text-slate-900"
+            style={{
+              background: YELLOW,
+              clipPath: "polygon(0 0, 100% 0, calc(100% - 7px) 50%, 100% 100%, 0 100%, 7px 50%)",
+              paddingLeft: 12,
+              paddingRight: 12,
+            }}
+          >
             リリース3周年で導入企業 5000社突破！
           </span>
         </div>
@@ -85,16 +91,19 @@ export function HeroAshiato({ variant }: SharedPreviewProps) {
           >
             en
           </span>
-          <span className="text-xl font-black tracking-wide" style={{ color: "#1a1a1a" }}>
+          <span className="text-xl font-black tracking-wide" style={{ color: "#13348f" }}>
             ASHIATO
           </span>
         </div>
 
-        {/* Links */}
-        <div className="flex items-center gap-6 text-sm font-medium text-slate-700">
-          {["メリット", "料金", "導入事例", "バックグラウンドチェック", "お役立ち情報 ∨", "ログイン"].map((t) => (
+        {/* Links — pipe separators between first group */}
+        <div className="flex items-center gap-5 text-sm font-bold text-slate-700">
+          {["メリット", "料金", "導入事例", "バックグラウンドチェック"].map((t) => (
             <span key={t} className="cursor-pointer hover:text-blue-700">{t}</span>
           ))}
+          <span className="text-slate-300">|</span>
+          <span className="flex cursor-pointer items-center gap-1 hover:text-blue-700">お役立ち情報 <span className="text-[10px]">∨</span></span>
+          <span className="flex cursor-pointer items-center gap-1 hover:text-blue-700"><span aria-hidden>👤</span>ログイン</span>
         </div>
 
         {/* CTA */}
@@ -108,24 +117,42 @@ export function HeroAshiato({ variant }: SharedPreviewProps) {
         </div>
       </nav>
 
-      {/* ══ HERO BODY — blue gradient ══ */}
+      {/* ══ HERO BODY — bright blue gradient ══ */}
       <div
         className="relative overflow-hidden"
         style={{
-          background: `linear-gradient(110deg, ${BLUE_L} 0%, #1a48d4 40%, ${BLUE_R} 100%)`,
-          minHeight: 520,
+          background: `linear-gradient(112deg, #2247c9 0%, #2a57db 48%, #3a73f2 100%)`,
+          minHeight: 540,
         }}
       >
-        {/* Decorative swoosh */}
+        {/* Decorative lighter-blue swoosh wave behind illustration */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute"
+          style={{
+            left: "8%",
+            top: "20%",
+            width: "62%",
+            height: "70%",
+            background: "rgba(120,165,255,0.22)",
+            borderRadius: "44% 56% 60% 40% / 48% 42% 58% 52%",
+            filter: "blur(2px)",
+            transform: "rotate(-6deg)",
+          }}
+        />
+        {/* subtle dot texture on right */}
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
           style={{
-            background: "radial-gradient(ellipse 70% 90% at 38% 60%, rgba(255,255,255,0.06) 0%, transparent 70%)",
+            background: "radial-gradient(rgba(255,255,255,0.08) 1px, transparent 1.5px)",
+            backgroundSize: "14px 14px",
+            maskImage: "linear-gradient(105deg, transparent 55%, black 100%)",
+            WebkitMaskImage: "linear-gradient(105deg, transparent 55%, black 100%)",
           }}
         />
 
-        <div className="relative z-10 mx-auto flex max-w-[1200px] items-stretch">
+        <div className="relative z-10 mx-auto flex max-w-[1200px] items-stretch pb-20">
 
           {/* LEFT — illustration, bottom-aligned */}
           <div className="flex w-[54%] flex-shrink-0 items-end justify-center pb-0">
@@ -207,28 +234,34 @@ export function HeroAshiato({ variant }: SharedPreviewProps) {
             </div>
           </div>
         </div>
-      </div>
 
-      {/* ══ BOTTOM AWARD BAR ══ */}
-      <div
-        className="flex items-center gap-3 px-8 py-2"
-        style={{ background: "rgba(10,20,80,0.85)" }}
-      >
-        {/* Award badge — large */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={asset("/ashiato/award.webp")}
-          alt="BOXIL SaaS AWARD 2025 専門1位 BOXILセクション"
-          className="h-[72px] w-auto flex-shrink-0 object-contain"
-        />
-        <span className="mr-1 text-sm font-bold" style={{ color: YELLOW }}>※</span>
+        {/* ══ BOTTOM AWARD ROW — sits directly on blue background ══ */}
+        <div className="absolute bottom-5 left-0 right-0 z-20">
+          <div className="mx-auto flex max-w-[1200px] items-center pl-[31%] pr-2">
+            {/* Award badge — large, overlaps ribbon left edge */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={asset("/ashiato/award.webp")}
+              alt="BOXIL SaaS AWARD 2025 部門1位 BOXILセクション"
+              className="relative z-10 h-[88px] w-auto flex-shrink-0 object-contain drop-shadow-md"
+              style={{ marginRight: -10 }}
+            />
+            <span className="mx-2 text-sm font-bold text-white/70">※</span>
 
-        {/* Yellow strip — spans remaining width */}
-        <div
-          className="flex flex-1 items-center justify-center rounded-full py-3 text-base font-bold text-slate-900"
-          style={{ background: YELLOW }}
-        >
-          リリース3周年で導入企業 5000社突破！
+            {/* Yellow RIBBON banner — fishtail notched ends */}
+            <div
+              className="flex flex-1 items-center justify-center py-3 text-base font-bold text-slate-900"
+              style={{
+                background: YELLOW,
+                clipPath:
+                  "polygon(0 0, 100% 0, calc(100% - 16px) 50%, 100% 100%, 0 100%, 16px 50%)",
+                paddingLeft: 28,
+                paddingRight: 28,
+              }}
+            >
+              リリース3周年で導入企業 5000社突破！
+            </div>
+          </div>
         </div>
       </div>
     </section>
