@@ -87,13 +87,7 @@ export default function Page() {
       />
 
       {mode === "library" ? (
-        <main
-          className={
-            activeCategoryId === "cta"
-              ? "mx-auto max-w-none px-3 py-6 sm:px-3 sm:py-8"
-              : "mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8"
-          }
-        >
+        <main className="mx-auto max-w-none px-3 py-6 sm:px-3 sm:py-8">
           <CategoryTabs
             categories={sortedCategories}
             activeCategoryId={activeCategoryId}
