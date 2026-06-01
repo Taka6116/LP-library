@@ -291,6 +291,15 @@ export const sectionCategories: SectionCategory[] = [
         componentType: "ProcessTimeline",
         recommendedFor: ["導入期間が読める商材", "BtoB"],
       },
+      {
+        id: "process-worker-flow",
+        categoryId: "process",
+        title: "副業人材活用までの流れ（シューマツワーカー）",
+        description: "吹き出し＋最短5日アピール＋円形画像4ステップ横並びで、副業人材導入のフローを提示",
+        tags: ["ステップ", "横並び", "実セクション", "人材"],
+        componentType: "ProcessWorkerFlow",
+        recommendedFor: ["人材紹介・マッチングサービス", "副業・フリーランス活用", "BtoB LP"],
+      },
     ],
   },
   {

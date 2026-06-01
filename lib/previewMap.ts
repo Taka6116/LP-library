@@ -9,6 +9,7 @@ import { HeroHerpTrust } from "@/components/previews/HeroHerpTrust";
 import { HeroDmmAiCamp } from "@/components/previews/HeroDmmAiCamp";
 import { ProcessKurapuroSteps } from "@/components/previews/ProcessKurapuroSteps";
 import { ProcessThirtyMinSteps } from "@/components/previews/ProcessThirtyMinSteps";
+import { ProcessWorkerFlow } from "@/components/previews/ProcessWorkerFlow";
 import { BenefitMaxhubFeature } from "@/components/previews/BenefitMaxhubFeature";
 import { HookThirtyMinService } from "@/components/previews/HookThirtyMinService";
 import { HookDesknetsFeatures } from "@/components/previews/HookDesknetsFeatures";
@@ -63,6 +64,7 @@ export const previewMap: Record<
   HeroDmmAiCamp,
   ProcessKurapuroSteps,
   ProcessThirtyMinSteps,
+  ProcessWorkerFlow,
   BenefitMaxhubFeature,
   HookThirtyMinService,
   HookDesknetsFeatures,
