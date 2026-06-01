@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect, useRef } from "react";
 import type { SectionCategory, SelectedSections } from "@/types/section";
 import { getSection } from "@/data/sectionLibrary";
 import { getPreviewComponent } from "@/lib/previewMap";
@@ -19,18 +20,69 @@ export function GeneratedLPPreview({
   onChangeCategory,
   onRemove,
 }: Props) {
-  // Only selected categories, ordered by category.order — this is the LP.
-  const ordered = categories.filter((c) => selected[c.id]);
+  // ---- Drag-and-drop order state ----
+  // orderedIds tracks the current display order as an array of categoryIds.
+  // When selected changes, new items are appended (sorted by category.order);
+  // removed items are filtered out.
+  const [orderedIds, setOrderedIds] = useState<string[]>([]);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const dragItem = useRef<string | null>(null);
 
+  // Sync orderedIds with selected (add new, remove deselected)
+  useEffect(() => {
+    const selectedIds = Object.keys(selected);
+    setOrderedIds((prev) => {
+      const kept = prev.filter((id) => selectedIds.includes(id));
+      const added = selectedIds
+        .filter((id) => !prev.includes(id))
+        .sort((a, b) => {
+          const orderA = categories.find((c) => c.id === a)?.order ?? 999;
+          const orderB = categories.find((c) => c.id === b)?.order ?? 999;
+          return orderA - orderB;
+        });
+      return [...kept, ...added];
+    });
+  }, [selected, categories]);
+
+  // Build the ordered category list from orderedIds
+  const ordered = orderedIds
+    .map((id) => categories.find((c) => c.id === id))
+    .filter((c): c is SectionCategory => !!c);
+
+  // ---- Drag handlers ----
+  function handleDragStart(categoryId: string) {
+    dragItem.current = categoryId;
+    setDraggingId(categoryId);
+  }
+
+  function handleDragEnter(targetId: string) {
+    if (!dragItem.current || dragItem.current === targetId) return;
+    setOrderedIds((prev) => {
+      const from = prev.indexOf(dragItem.current!);
+      const to = prev.indexOf(targetId);
+      if (from === -1 || to === -1) return prev;
+      const next = [...prev];
+      next.splice(from, 1);
+      next.splice(to, 0, dragItem.current!);
+      return next;
+    });
+  }
+
+  function handleDragEnd() {
+    dragItem.current = null;
+    setDraggingId(null);
+  }
+
+  // ---- Export handlers ----
   function handleDownloadHtml() {
-    const origin =
-      typeof window !== "undefined" ? window.location.origin : "";
-    const html = buildLpHtml(categories, selected, origin);
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    // Pass ordered category list to export so HTML respects drag order
+    const html = buildLpHtml(ordered, selected, origin);
     downloadTextFile("generated-lp.html", html, "text/html;charset=utf-8");
   }
 
   function handleDownloadMarkdown() {
-    const md = buildLpMarkdown(categories, selected);
+    const md = buildLpMarkdown(ordered, selected);
     downloadTextFile("generated-lp.md", md, "text/markdown;charset=utf-8");
   }
 
@@ -52,7 +104,7 @@ export function GeneratedLPPreview({
   return (
     <div className="animate-fadeInSlow">
       <div className="mx-auto max-w-5xl px-3 py-6 sm:px-6 sm:py-8">
-        {/* ダウンロードツールバー（グラス） */}
+        {/* ---- ツールバー ---- */}
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/60 bg-white/60 px-4 py-3 shadow-soft backdrop-blur-xl">
           <div className="flex items-center gap-2">
             <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-500 text-xs text-white shadow-sm">
@@ -64,6 +116,15 @@ export function GeneratedLPPreview({
                 {ordered.length} sections
               </span>
             </p>
+            {/* ドラッグヒント */}
+            <span className="hidden items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] text-slate-500 sm:inline-flex">
+              <svg width="10" height="12" viewBox="0 0 12 14" fill="currentColor" className="text-slate-400" aria-hidden>
+                <circle cx="3" cy="2" r="1.2" /><circle cx="9" cy="2" r="1.2" />
+                <circle cx="3" cy="7" r="1.2" /><circle cx="9" cy="7" r="1.2" />
+                <circle cx="3" cy="12" r="1.2" /><circle cx="9" cy="12" r="1.2" />
+              </svg>
+              ドラッグで順番を入れ替えできます
+            </span>
           </div>
           <div className="flex items-center gap-2">
             <button
@@ -86,8 +147,9 @@ export function GeneratedLPPreview({
           </div>
         </div>
 
-        {/* Browser-chrome-like frame so it reads as a real page */}
+        {/* ---- ブラウザフレーム ---- */}
         <div className="overflow-hidden rounded-3xl border border-white/60 bg-white shadow-card">
+          {/* Chrome-like chrome bar */}
           <div className="flex items-center gap-1.5 border-b border-slate-100 bg-slate-50 px-4 py-2.5">
             <span className="h-3 w-3 rounded-full bg-rose-300" />
             <span className="h-3 w-3 rounded-full bg-amber-300" />
@@ -111,6 +173,10 @@ export function GeneratedLPPreview({
                   index={i}
                   onChange={() => onChangeCategory(cat.id)}
                   onRemove={() => onRemove(cat.id)}
+                  onDragStart={() => handleDragStart(cat.id)}
+                  onDragEnter={() => handleDragEnter(cat.id)}
+                  onDragEnd={handleDragEnd}
+                  isDragging={draggingId === cat.id}
                 >
                   {Preview ? (
                     <Preview variant="full" />

@@ -42,6 +42,8 @@ import { CtaFinal } from "@/components/previews/CtaFinal";
 import { CtaSoft } from "@/components/previews/CtaSoft";
 import { CtaSplit } from "@/components/previews/CtaSplit";
 import { CtaKakeaiThreeCards } from "@/components/previews/CtaKakeaiThreeCards";
+// Infographic セクション
+import { InfographicSurveySkurilre } from "@/components/previews/InfographicSurveySkurilre";
 // Sansan活用ガイド の実セクション
 import { HeroSansanGuide } from "@/components/previews/HeroSansanGuide";
 import { HookSelectorThreeQuestions } from "@/components/previews/HookSelectorThreeQuestions";
@@ -104,6 +106,7 @@ export const previewMap: Record<
   ProofSansanCases,
   ProofSansanCommunity,
   CtaSansanHelp,
+  InfographicSurveySkurilre,
 };
 
 export function getPreviewComponent(componentType: string) {

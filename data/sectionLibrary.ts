@@ -482,6 +482,24 @@ export const sectionCategories: SectionCategory[] = [
       },
     ],
   },
+  {
+    id: "infographic",
+    label: "Infographic",
+    labelJa: "インフォグラフィック",
+    order: 99,
+    description: "アンケート結果・統計データ・調査レポートをビジュアルで伝えるセクション",
+    sections: [
+      {
+        id: "infographic-survey-suku",
+        categoryId: "infographic",
+        title: "保護者アンケート結果（スクリレ）",
+        description: "水色背景 + 95%統計カード＋ランキング3位カード＋円グラフ（84%参加意向）を2カラムで展示",
+        tags: ["アンケート", "円グラフ", "統計", "実セクション", "EdTech"],
+        componentType: "InfographicSurveySkurilre",
+        recommendedFor: ["教育系サービス", "保護者向けLP", "アンケート結果訴求", "実績・信頼補強"],
+      },
+    ],
+  },
 ];
 
 // Convenience lookups derived from the source data.
