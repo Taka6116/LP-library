@@ -76,6 +76,15 @@ export const sectionCategories: SectionCategory[] = [
         recommendedFor: ["汎用LP", "課題が複数ある商材"],
       },
       {
+        id: "problem-uniforce-task",
+        categoryId: "problem",
+        title: "TASK SITUATION 課題マトリクス（Uniforce）",
+        description: "人物イラスト＋角丸ティールパネル内に2×2の課題カード（ティールヘッダー＋●3項目）。対象別に課題を整理",
+        tags: ["課題整理", "2×2グリッド", "ティール", "実セクション", "BtoB"],
+        componentType: "ProblemUniforceTask",
+        recommendedFor: ["IPO・士業・コンサル系", "対象セグメント別に課題提示したいLP", "経営層向けBtoB"],
+      },
+      {
         id: "problem-before-state",
         categoryId: "problem",
         title: "Before State Problem",
