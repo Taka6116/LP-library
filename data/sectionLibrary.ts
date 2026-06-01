@@ -48,6 +48,15 @@ export const sectionCategories: SectionCategory[] = [
         componentType: "HeroAshiato",
         recommendedFor: ["HRTech・採用系SaaS", "明るい青系LP", "イラスト訴求型BtoB"],
       },
+      {
+        id: "hero-bulk-homme",
+        categoryId: "hero",
+        title: "KVカルーセル（BULK HOMME）",
+        description: "白ヘッダー（ロゴ/ナビ/カート）+ 自動切替フルワイドKVカルーセル。矢印・ドット操作付き、5秒オートスライド",
+        tags: ["カルーセル", "EC", "D2C", "自動スライド", "実セクション"],
+        componentType: "HeroBulkHomme",
+        recommendedFor: ["D2C・コスメEC", "新商品訴求", "ブランドサイトのトップFV"],
+      },
     ],
   },
   {
