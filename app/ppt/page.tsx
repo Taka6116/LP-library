@@ -4,7 +4,14 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import JSZip from "jszip";
 import { getSlideRefs, buildPptxSubset, PPTX_MIME } from "@/lib/pptx/subset";
-import { saveDeck, loadDeck, clearDeck } from "@/lib/pptx/deckStore";
+import {
+  listDecks,
+  getDeckBuf,
+  addDeck,
+  updateDeck,
+  removeDeck,
+  type DeckMeta,
+} from "@/lib/pptx/deckStore";
 
 type Status = "idle" | "loading" | "ready" | "error";
 
@@ -13,6 +20,9 @@ const THUMB_W = 300;
 const THUMB_H = Math.round((THUMB_W * 9) / 16);
 
 export default function PptStudioPage() {
+  const [decks, setDecks] = useState<DeckMeta[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
+
   const [status, setStatus] = useState<Status>("idle");
   const [fileName, setFileName] = useState("");
   const [slideCount, setSlideCount] = useState(0);
@@ -24,14 +34,15 @@ export default function PptStudioPage() {
   const [zoom, setZoom] = useState<number | null>(null);
   const [zoomLoading, setZoomLoading] = useState(false);
 
-  const zoomHostRef = useRef<HTMLDivElement | null>(null);
-
   const bufRef = useRef<ArrayBuffer | null>(null);
   const offscreenRef = useRef<HTMLDivElement | null>(null);
+  const zoomHostRef = useRef<HTMLDivElement | null>(null);
   const cellRefs = useRef<(HTMLDivElement | null)[]>([]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const previewerRef = useRef<any>(null);
   const renderTokenRef = useRef(0);
+  const decksRef = useRef<DeckMeta[]>([]);
+  decksRef.current = decks;
 
   const resetRender = useCallback(() => {
     cellRefs.current = [];
@@ -46,7 +57,7 @@ export default function PptStudioPage() {
     if (offscreenRef.current) offscreenRef.current.innerHTML = "";
   }, []);
 
-  // Load a deck from an in-memory buffer: parse slide count → effect renders.
+  // Load a deck buffer into the viewer: parse count → effect renders.
   const loadFromBuffer = useCallback(
     async (buf: ArrayBuffer, name: string) => {
       resetRender();
@@ -60,57 +71,85 @@ export default function PptStudioPage() {
         const refs = await getSlideRefs(zip);
         if (refs.length === 0) {
           setStatus("error");
-          setErrorMsg("スライドが見つかりませんでした。.pptx ファイルかご確認ください。");
-          return;
+          setErrorMsg("スライドが見つかりませんでした。");
+          return 0;
         }
         setSlideCount(refs.length);
+        return refs.length;
       } catch (e) {
         console.error(e);
         setStatus("error");
         setErrorMsg("読み込みに失敗しました。ファイル形式をご確認ください。");
+        return 0;
       }
     },
     [resetRender],
   );
 
+  // Import a NEW deck (adds to the library, does not replace existing ones).
   const handleFile = useCallback(
     async (file: File) => {
       if (!/\.pptx$/i.test(file.name)) {
-        setStatus("error");
         setErrorMsg(".pptx ファイルを選択してください。");
         return;
       }
       const buf = await file.arrayBuffer();
-      await loadFromBuffer(buf, file.name);
-      // persist locally so it survives reload / navigation
+      // parse count first (for the deck metadata)
+      let count = 0;
       try {
-        await saveDeck(file.name, buf.slice(0));
+        const zip = await JSZip.loadAsync(buf.slice(0));
+        count = (await getSlideRefs(zip)).length;
+      } catch {
+        /* handled below */
+      }
+      if (count === 0) {
+        setErrorMsg("スライドが見つかりませんでした。.pptx をご確認ください。");
+        return;
+      }
+      try {
+        const meta = await addDeck(file.name, buf.slice(0), count);
+        setDecks((prev) => [...prev, meta]);
+        setActiveId(meta.id);
+        await loadFromBuffer(buf, file.name);
       } catch (e) {
-        console.warn("deck persist failed", e);
+        console.error(e);
+        setErrorMsg("保存に失敗しました。");
       }
     },
     [loadFromBuffer],
   );
 
-  // Restore a previously imported deck on mount.
+  // Restore decks on mount.
   useEffect(() => {
     (async () => {
       try {
-        const stored = await loadDeck();
-        if (stored?.buf) {
-          await loadFromBuffer(stored.buf, stored.name);
-        }
+        const list = await listDecks();
+        setDecks(list);
+        if (list.length > 0) setActiveId(list[list.length - 1].id);
       } catch (e) {
         console.warn("deck restore failed", e);
       } finally {
         setRestoring(false);
       }
     })();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Render all slides (list mode) once cells exist, then mount each rendered
-  // node into its grid cell.
+  // When the active deck changes, load its buffer from storage and render.
+  useEffect(() => {
+    if (!activeId) return;
+    let cancelled = false;
+    (async () => {
+      const meta = decksRef.current.find((d) => d.id === activeId);
+      const buf = await getDeckBuf(activeId);
+      if (cancelled || !buf) return;
+      await loadFromBuffer(buf, meta?.name ?? "deck.pptx");
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeId, loadFromBuffer]);
+
+  // Render all slides of the active deck (list mode), then mount each node.
   useEffect(() => {
     if (status !== "loading" || slideCount === 0 || !bufRef.current) return;
     const token = ++renderTokenRef.current;
@@ -130,7 +169,7 @@ export default function PptStudioPage() {
         previewerRef.current = previewer;
 
         await previewer.preview(bufRef.current!.slice(0));
-        if (token !== renderTokenRef.current) return; // superseded
+        if (token !== renderTokenRef.current) return;
 
         const nodes = host.querySelectorAll<HTMLElement>(
           ".pptx-preview-slide-wrapper",
@@ -170,21 +209,6 @@ export default function PptStudioPage() {
 
   const clearAll = useCallback(() => setSelected(new Set()), []);
 
-  const startOver = useCallback(async () => {
-    resetRender();
-    bufRef.current = null;
-    setSelected(new Set());
-    setSlideCount(0);
-    setFileName("");
-    setErrorMsg("");
-    setStatus("idle");
-    try {
-      await clearDeck();
-    } catch {
-      /* noop */
-    }
-  }, [resetRender]);
-
   const download = useCallback(async () => {
     if (!bufRef.current || selected.size === 0) return;
     setBusy(true);
@@ -208,9 +232,9 @@ export default function PptStudioPage() {
     }
   }, [selected, fileName]);
 
-  // Remove the selected slides from the working deck (keep the rest).
+  // Remove selected slides from the ACTIVE deck (keep the rest), persist.
   const deleteSelected = useCallback(async () => {
-    if (!bufRef.current || selected.size === 0) return;
+    if (!bufRef.current || !activeId || selected.size === 0) return;
     if (selected.size >= slideCount) {
       setErrorMsg("すべてのスライドは削除できません。1枚以上残してください。");
       return;
@@ -222,19 +246,47 @@ export default function PptStudioPage() {
       );
       const blob = await buildPptxSubset(bufRef.current.slice(0), keep);
       const newBuf = await blob.arrayBuffer();
+      await updateDeck(activeId, { buf: newBuf.slice(0), slideCount: keep.length });
+      setDecks((prev) =>
+        prev.map((d) =>
+          d.id === activeId ? { ...d, slideCount: keep.length } : d,
+        ),
+      );
       await loadFromBuffer(newBuf, fileName);
-      try {
-        await saveDeck(fileName, newBuf.slice(0));
-      } catch (e) {
-        console.warn("deck persist failed", e);
-      }
     } catch (e) {
       console.error(e);
       setErrorMsg("削除の処理に失敗しました。");
     } finally {
       setBusy(false);
     }
-  }, [selected, slideCount, fileName, loadFromBuffer]);
+  }, [selected, slideCount, fileName, activeId, loadFromBuffer]);
+
+  // Remove an entire deck from the library.
+  const deleteDeck = useCallback(
+    async (id: string) => {
+      try {
+        await removeDeck(id);
+      } catch {
+        /* noop */
+      }
+      const remaining = decksRef.current.filter((d) => d.id !== id);
+      setDecks(remaining);
+      if (activeId === id) {
+        if (remaining.length > 0) {
+          setActiveId(remaining[remaining.length - 1].id);
+        } else {
+          resetRender();
+          bufRef.current = null;
+          setActiveId(null);
+          setSlideCount(0);
+          setFileName("");
+          setSelected(new Set());
+          setStatus("idle");
+        }
+      }
+    },
+    [activeId, resetRender],
+  );
 
   const onDrop = useCallback(
     (e: React.DragEvent) => {
@@ -246,14 +298,13 @@ export default function PptStudioPage() {
     [handleFile],
   );
 
-  // Render a single slide large inside the zoom modal.
+  // Zoom modal: render a single slide large.
   useEffect(() => {
     if (zoom === null || !bufRef.current) return;
     let cancelled = false;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let pv: any = null;
     setZoomLoading(true);
-
     (async () => {
       try {
         const { init } = await import("pptx-preview");
@@ -282,7 +333,6 @@ export default function PptStudioPage() {
         if (!cancelled) setZoomLoading(false);
       }
     })();
-
     return () => {
       cancelled = true;
       if (pv) {
@@ -295,7 +345,6 @@ export default function PptStudioPage() {
     };
   }, [zoom]);
 
-  // Close zoom on Escape; arrow keys navigate slides.
   useEffect(() => {
     if (zoom === null) return;
     const onKey = (e: KeyboardEvent) => {
@@ -307,8 +356,20 @@ export default function PptStudioPage() {
     return () => window.removeEventListener("keydown", onKey);
   }, [zoom, slideCount]);
 
+  const hasDecks = decks.length > 0;
+
   return (
-    <div className="relative min-h-screen">
+    <div
+      className="relative min-h-screen"
+      onDragOver={(e) => {
+        if (hasDecks) {
+          e.preventDefault();
+          if (!dragOver) setDragOver(true);
+        }
+      }}
+      onDragLeave={() => hasDecks && setDragOver(false)}
+      onDrop={hasDecks ? onDrop : undefined}
+    >
       {/* Background */}
       <div
         aria-hidden
@@ -388,8 +449,8 @@ export default function PptStudioPage() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        {/* Importer (idle / error / loading without slides yet) */}
-        {status !== "ready" && !(status === "loading" && slideCount > 0) && (
+        {/* Empty state importer */}
+        {!hasDecks && (
           <div className="mx-auto max-w-2xl">
             <label
               onDragOver={(e) => {
@@ -407,7 +468,7 @@ export default function PptStudioPage() {
               onDrop={onDrop}
               className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed px-8 py-16 text-center backdrop-blur transition ${
                 dragOver
-                  ? "border-violet-500 bg-violet-50/80 scale-[1.01]"
+                  ? "border-violet-500 bg-violet-50/80"
                   : "border-violet-300 bg-white/70 hover:border-violet-400 hover:bg-white"
               }`}
             >
@@ -415,13 +476,7 @@ export default function PptStudioPage() {
                 ⤓
               </span>
               <span className="text-lg font-bold text-slate-800">
-                {restoring
-                  ? "復元中…"
-                  : status === "loading"
-                    ? "読み込み中…"
-                    : dragOver
-                      ? "ここにドロップ"
-                      : "PowerPoint ファイルを選択"}
+                {restoring ? "復元中…" : dragOver ? "ここにドロップ" : "PowerPoint ファイルを選択"}
               </span>
               <span className="text-sm text-slate-500">
                 .pptx をクリックで選択（またはドラッグ＆ドロップ）
@@ -437,7 +492,7 @@ export default function PptStudioPage() {
                 }}
               />
             </label>
-            {status === "error" && (
+            {errorMsg && (
               <p className="mt-4 rounded-xl bg-rose-50 px-4 py-3 text-center text-sm font-medium text-rose-600">
                 {errorMsg}
               </p>
@@ -445,9 +500,64 @@ export default function PptStudioPage() {
           </div>
         )}
 
-        {/* Slide grid */}
-        {(status === "ready" || (status === "loading" && slideCount > 0)) && (
+        {/* Deck switcher + grid */}
+        {hasDecks && (
           <>
+            {/* Deck chips */}
+            <div className="mb-5 flex flex-wrap items-center gap-2">
+              {decks.map((d) => {
+                const isActive = d.id === activeId;
+                return (
+                  <div
+                    key={d.id}
+                    className={`group/chip flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition ${
+                      isActive
+                        ? "border-violet-400 bg-white text-violet-700 shadow-sm ring-1 ring-violet-200"
+                        : "border-slate-200 bg-white/70 text-slate-600 hover:border-violet-300 hover:text-violet-700"
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => setActiveId(d.id)}
+                      className="flex items-center gap-2"
+                      title={d.name}
+                    >
+                      <span className="grid h-4 w-4 place-items-center rounded bg-gradient-to-br from-orange-500 to-amber-500 text-[8px] font-black text-white">
+                        P
+                      </span>
+                      <span className="max-w-[160px] truncate font-semibold">{d.name}</span>
+                      <span className="text-xs text-slate-400">{d.slideCount}</span>
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`${d.name} を削除`}
+                      onClick={() => deleteDeck(d.id)}
+                      className="grid h-4 w-4 place-items-center rounded-full text-slate-300 transition hover:bg-rose-100 hover:text-rose-600"
+                      title="このファイルを削除"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                );
+              })}
+
+              {/* Add new deck */}
+              <label className="flex cursor-pointer items-center gap-1.5 rounded-full border border-dashed border-violet-300 bg-white/60 px-3 py-1.5 text-sm font-semibold text-violet-600 transition hover:border-violet-400 hover:bg-white">
+                ＋ ファイルを追加
+                <input
+                  type="file"
+                  accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                  className="hidden"
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    if (f) handleFile(f);
+                    e.target.value = "";
+                  }}
+                />
+              </label>
+            </div>
+
+            {/* Active deck header */}
             <div className="mb-4 flex items-center justify-between">
               <p className="text-sm font-semibold text-slate-700">
                 <span className="text-slate-900">{fileName}</span>
@@ -456,13 +566,11 @@ export default function PptStudioPage() {
                   <span className="ml-2 text-violet-500">描画中…</span>
                 )}
               </p>
-              <button
-                type="button"
-                onClick={startOver}
-                className="text-xs font-semibold text-slate-500 underline-offset-2 hover:text-slate-800 hover:underline"
-              >
-                別のファイルを読み込む
-              </button>
+              {dragOver && (
+                <span className="text-xs font-semibold text-violet-600">
+                  ドロップで新しいファイルを追加
+                </span>
+              )}
             </div>
 
             {errorMsg && (
@@ -472,7 +580,7 @@ export default function PptStudioPage() {
             )}
 
             <div
-              key={fileName + "::" + slideCount}
+              key={activeId + "::" + slideCount}
               className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
             >
               {Array.from({ length: slideCount }, (_, i) => {
@@ -513,7 +621,7 @@ export default function PptStudioPage() {
                     >
                       ✓
                     </span>
-                    {/* Expand / zoom button (top-right) — appears on hover or when selected */}
+                    {/* Expand */}
                     <button
                       type="button"
                       aria-label={`スライド ${i + 1} を拡大表示`}
@@ -529,7 +637,7 @@ export default function PptStudioPage() {
                         <path d="M9 3H3v6M3 3l7 7M15 21h6v-6M21 21l-7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     </button>
-                    {/* Slide number */}
+                    {/* Number */}
                     <span className="absolute bottom-1.5 right-2 rounded bg-slate-900/70 px-1.5 py-0.5 text-[10px] font-bold text-white">
                       {i + 1}
                     </span>
@@ -541,13 +649,12 @@ export default function PptStudioPage() {
         )}
       </main>
 
-      {/* Zoom modal — large view of a single slide */}
+      {/* Zoom modal */}
       {zoom !== null && (
         <div
           className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/75 p-4 backdrop-blur-sm"
           onClick={() => setZoom(null)}
         >
-          {/* Top bar */}
           <div
             className="mb-3 flex w-full max-w-[1100px] items-center justify-between text-white"
             onClick={(e) => e.stopPropagation()}
@@ -565,12 +672,10 @@ export default function PptStudioPage() {
             </button>
           </div>
 
-          {/* Slide stage */}
           <div
             className="relative flex items-center justify-center"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Prev */}
             <button
               type="button"
               aria-label="前のスライド"
@@ -592,7 +697,6 @@ export default function PptStudioPage() {
               )}
             </div>
 
-            {/* Next */}
             <button
               type="button"
               aria-label="次のスライド"
@@ -606,13 +710,11 @@ export default function PptStudioPage() {
             </button>
           </div>
 
-          <p className="mt-3 text-xs text-white/50">
-            ← → で移動 / Esc で閉じる
-          </p>
+          <p className="mt-3 text-xs text-white/50">← → で移動 / Esc で閉じる</p>
         </div>
       )}
 
-      {/* Offscreen full render target (kept in DOM but visually hidden) */}
+      {/* Offscreen full render target */}
       <div
         ref={offscreenRef}
         aria-hidden
