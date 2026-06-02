@@ -1,0 +1,135 @@
+// Brand/theme swap for the Generated LP.
+//
+// Generic sections (built on _shared tokens) use Tailwind utility classes like
+// `bg-accent`, `text-sansan-600`, `bg-accent-soft`, etc. We remap those to CSS
+// variables, scoped under a [data-lp-theme] container, so a single picker can
+// re-skin the whole LP. The same CSS is injected into the HTML export so the
+// downloaded file carries the chosen brand.
+
+export type LpThemeId =
+  | "default"
+  | "blue"
+  | "teal"
+  | "orange"
+  | "purple"
+  | "navy"
+  | "rose";
+
+export type LpTheme = {
+  id: LpThemeId;
+  name: string;
+  accent: string; // main brand color
+  soft: string; // light tint (backgrounds)
+};
+
+export const LP_THEMES: LpTheme[] = [
+  { id: "default", name: "デフォルト", accent: "#004e98", soft: "#e9f0f8" },
+  { id: "blue", name: "ブルー", accent: "#1d4ed8", soft: "#e6edfd" },
+  { id: "teal", name: "ティール", accent: "#0f9b8e", soft: "#e2f6f3" },
+  { id: "orange", name: "オレンジ", accent: "#ea580c", soft: "#fdece1" },
+  { id: "purple", name: "パープル", accent: "#7c3aed", soft: "#f0e9fd" },
+  { id: "navy", name: "ネイビー", accent: "#0f2a52", soft: "#e6ebf2" },
+  { id: "rose", name: "ローズ", accent: "#e11d6b", soft: "#fde4ee" },
+];
+
+export type LpFontId = "default" | "mincho" | "maru" | "gothic";
+
+export type LpFont = { id: LpFontId; name: string; stack: string };
+
+const SANS_FALLBACK =
+  '"Noto Sans JP","Hiragino Kaku Gothic ProN","Hiragino Sans",Meiryo,sans-serif';
+
+export const LP_FONTS: LpFont[] = [
+  { id: "default", name: "標準", stack: SANS_FALLBACK },
+  {
+    id: "gothic",
+    name: "ゴシック",
+    stack: '"Hiragino Kaku Gothic ProN","Yu Gothic","Meiryo",sans-serif',
+  },
+  {
+    id: "mincho",
+    name: "明朝",
+    stack: '"Hiragino Mincho ProN","Yu Mincho","YuMincho",serif',
+  },
+  {
+    id: "maru",
+    name: "丸ゴシック",
+    stack: '"Hiragino Maru Gothic ProN","Rounded Mplus 1c",sans-serif',
+  },
+];
+
+export type ThemeSelection = { themeId: LpThemeId; fontId: LpFontId };
+
+export function getTheme(id: LpThemeId): LpTheme {
+  return LP_THEMES.find((t) => t.id === id) ?? LP_THEMES[0];
+}
+
+export function getFont(id: LpFontId): LpFont {
+  return LP_FONTS.find((f) => f.id === id) ?? LP_FONTS[0];
+}
+
+export function isThemed(sel: ThemeSelection): boolean {
+  return sel.themeId !== "default" || sel.fontId !== "default";
+}
+
+/** Inline CSS-variable style for the themed container. */
+export function themeStyle(sel: ThemeSelection): Record<string, string> {
+  const t = getTheme(sel.themeId);
+  const f = getFont(sel.fontId);
+  const style: Record<string, string> = {};
+  if (sel.themeId !== "default") {
+    style["--lp-accent"] = t.accent;
+    style["--lp-accent-soft"] = t.soft;
+  }
+  if (sel.fontId !== "default") {
+    style["--lp-font"] = f.stack;
+  }
+  return style;
+}
+
+// CSS that remaps the brand utility classes within a [data-lp-theme] scope.
+// Reused by both the in-app preview (<style> tag) and the HTML export.
+export const LP_THEME_CSS = `
+[data-lp-theme] .text-accent,
+[data-lp-theme] .text-accent-ink,
+[data-lp-theme] .text-sansan-500,
+[data-lp-theme] .text-sansan-600,
+[data-lp-theme] .text-sansan-700{color:var(--lp-accent,#004e98)!important}
+[data-lp-theme] .bg-accent,
+[data-lp-theme] .bg-accent-ink,
+[data-lp-theme] .bg-sansan-500,
+[data-lp-theme] .bg-sansan-600,
+[data-lp-theme] .bg-sansan-700{background-color:var(--lp-accent,#004e98)!important}
+[data-lp-theme] .border-accent,
+[data-lp-theme] .border-sansan-300,
+[data-lp-theme] .border-sansan-400{border-color:var(--lp-accent,#004e98)!important}
+[data-lp-theme] .bg-accent-soft,
+[data-lp-theme] .bg-sansan-50,
+[data-lp-theme] .bg-sansan-100{background-color:var(--lp-accent-soft,#e9f0f8)!important}
+[data-lp-theme] .ring-sansan-200{--tw-ring-color:var(--lp-accent-soft,#e9f0f8)!important}
+[data-lp-theme] .font-sans,
+[data-lp-theme] .font-lato{font-family:var(--lp-font,${SANS_FALLBACK})!important}
+`.trim();
+
+// ---- persistence (sticky brand preference) ----
+const KEY = "lp-theme-pref";
+
+export function loadThemePref(): ThemeSelection {
+  if (typeof window === "undefined") return { themeId: "default", fontId: "default" };
+  try {
+    const s = localStorage.getItem(KEY);
+    if (s) return JSON.parse(s) as ThemeSelection;
+  } catch {
+    /* noop */
+  }
+  return { themeId: "default", fontId: "default" };
+}
+
+export function saveThemePref(sel: ThemeSelection): void {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.setItem(KEY, JSON.stringify(sel));
+  } catch {
+    /* noop */
+  }
+}

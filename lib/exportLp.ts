@@ -3,6 +3,12 @@ import { renderToStaticMarkup } from "react-dom/server";
 import type { SectionCategory, SelectedSections } from "@/types/section";
 import { getSection } from "@/data/sectionLibrary";
 import { getPreviewComponent } from "./previewMap";
+import {
+  LP_THEME_CSS,
+  themeStyle,
+  isThemed,
+  type ThemeSelection,
+} from "./lpTheme";
 
 // 生成LP（選択セクションをカテゴリ順に連結）を「単体で開けるコード」として書き出す。
 // - HTML: Tailwind(Play CDN) + 自前テーマトークン + 各セクションの静的HTML
@@ -48,8 +54,17 @@ export function buildLpHtml(
   categories: SectionCategory[],
   selected: SelectedSections,
   origin: string,
+  theme?: ThemeSelection,
 ): string {
   const items = orderedSelected(categories, selected);
+
+  // Brand theme: data attribute + CSS variables on <body>.
+  const themed = theme && isThemed(theme);
+  const bodyAttrs = themed
+    ? ` data-lp-theme style="${Object.entries(themeStyle(theme!))
+        .map(([k, v]) => `${k}:${v}`)
+        .join(";")}"`
+    : "";
 
   const body = items
     .map(({ section }) => {
@@ -81,9 +96,10 @@ export function buildLpHtml(
   :root { --font-lato: 'Lato','Helvetica Neue',Arial,sans-serif; }
   html, body { background:#ffffff; color:#1a1a1a; -webkit-font-smoothing:antialiased; }
   body { font-family:"Helvetica Neue",Arial,"Hiragino Kaku Gothic ProN","Hiragino Sans",Meiryo,sans-serif; letter-spacing:0.01em; margin:0; }
+${LP_THEME_CSS}
 </style>
 </head>
-<body>
+<body${bodyAttrs}>
 ${absolutized}
 </body>
 </html>

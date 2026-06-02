@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, type CSSProperties } from "react";
 import type { SectionCategory, SelectedSections } from "@/types/section";
 import { getSection } from "@/data/sectionLibrary";
 import { getPreviewComponent } from "@/lib/previewMap";
@@ -11,6 +11,16 @@ import {
   removeComposition,
   type LpComposition,
 } from "@/lib/lpCompositions";
+import {
+  LP_THEMES,
+  LP_FONTS,
+  LP_THEME_CSS,
+  themeStyle,
+  isThemed,
+  loadThemePref,
+  saveThemePref,
+  type ThemeSelection,
+} from "@/lib/lpTheme";
 import { GeneratedSectionWrapper } from "./GeneratedSectionWrapper";
 
 type Props = {
@@ -41,6 +51,21 @@ export function GeneratedLPPreview({
   useEffect(() => {
     setComps(listCompositions());
   }, []);
+
+  // ---- Brand theme ----
+  const [theme, setTheme] = useState<ThemeSelection>({
+    themeId: "default",
+    fontId: "default",
+  });
+  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+  useEffect(() => {
+    setTheme(loadThemePref());
+  }, []);
+  function updateTheme(next: ThemeSelection) {
+    setTheme(next);
+    saveThemePref(next);
+  }
+  const themed = isThemed(theme);
 
   function handleSaveComposition() {
     const name = window.prompt("この構成に名前を付けて保存します：", "");
@@ -84,8 +109,8 @@ export function GeneratedLPPreview({
   // ---- Export handlers ----
   function handleDownloadHtml() {
     const origin = typeof window !== "undefined" ? window.location.origin : "";
-    // Pass ordered category list to export so HTML respects drag order
-    const html = buildLpHtml(ordered, selected, origin);
+    // Pass ordered list + theme so the HTML respects drag order and brand.
+    const html = buildLpHtml(ordered, selected, origin, theme);
     downloadTextFile("generated-lp.html", html, "text/html;charset=utf-8");
   }
 
@@ -147,6 +172,8 @@ export function GeneratedLPPreview({
 
   return (
     <div className="animate-fadeInSlow">
+      {/* Theme remap CSS (scoped to [data-lp-theme]) */}
+      <style dangerouslySetInnerHTML={{ __html: LP_THEME_CSS }} />
       <div className="mx-auto max-w-5xl px-3 py-6 sm:px-6 sm:py-8">
         {/* ---- ツールバー ---- */}
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/60 bg-white/60 px-4 py-3 shadow-soft backdrop-blur-xl">
@@ -244,6 +271,101 @@ export function GeneratedLPPreview({
               )}
             </div>
 
+            {/* テーマ（ブランド差し替え） */}
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setThemeMenuOpen((v) => !v)}
+                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-2 text-sm font-bold backdrop-blur transition ${
+                  themed
+                    ? "border-violet-300 bg-violet-50 text-violet-700"
+                    : "border-slate-200 bg-white/70 text-slate-700 hover:border-violet-300 hover:text-violet-700"
+                }`}
+                title="色・フォントを一括変更"
+              >
+                <span
+                  className="h-3.5 w-3.5 rounded-full ring-1 ring-black/10"
+                  style={{
+                    background:
+                      LP_THEMES.find((t) => t.id === theme.themeId)?.accent ??
+                      "#004e98",
+                  }}
+                />
+                テーマ
+                <span className="text-[10px]">▾</span>
+              </button>
+              {themeMenuOpen && (
+                <>
+                  <div
+                    className="fixed inset-0 z-30"
+                    onClick={() => setThemeMenuOpen(false)}
+                    aria-hidden
+                  />
+                  <div className="absolute right-0 z-40 mt-1 w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-xl">
+                    <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                      アクセントカラー
+                    </p>
+                    <div className="mb-3 flex flex-wrap gap-1.5">
+                      {LP_THEMES.map((t) => (
+                        <button
+                          key={t.id}
+                          type="button"
+                          onClick={() => updateTheme({ ...theme, themeId: t.id })}
+                          title={t.name}
+                          className={`grid h-7 w-7 place-items-center rounded-full ring-2 transition ${
+                            theme.themeId === t.id
+                              ? "ring-violet-500"
+                              : "ring-transparent hover:ring-slate-300"
+                          }`}
+                        >
+                          <span
+                            className="h-5 w-5 rounded-full ring-1 ring-black/10"
+                            style={{
+                              background:
+                                t.id === "default"
+                                  ? "conic-gradient(#004e98,#0f9b8e,#ea580c,#7c3aed,#004e98)"
+                                  : t.accent,
+                            }}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                      フォント
+                    </p>
+                    <div className="grid grid-cols-2 gap-1.5">
+                      {LP_FONTS.map((f) => (
+                        <button
+                          key={f.id}
+                          type="button"
+                          onClick={() => updateTheme({ ...theme, fontId: f.id })}
+                          className={`rounded-lg border px-2 py-1.5 text-xs font-semibold transition ${
+                            theme.fontId === f.id
+                              ? "border-violet-400 bg-violet-50 text-violet-700"
+                              : "border-slate-200 text-slate-600 hover:border-slate-300"
+                          }`}
+                          style={{ fontFamily: f.stack }}
+                        >
+                          {f.name}
+                        </button>
+                      ))}
+                    </div>
+                    {themed && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          updateTheme({ themeId: "default", fontId: "default" })
+                        }
+                        className="mt-3 w-full rounded-lg border border-slate-200 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-50"
+                      >
+                        リセット
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+
             <button
               type="button"
               onClick={handleDownloadHtml}
@@ -265,7 +387,11 @@ export function GeneratedLPPreview({
         </div>
 
         {/* ---- ブラウザフレーム ---- */}
-        <div className="overflow-hidden rounded-3xl border border-white/60 bg-white shadow-card">
+        <div
+          className="overflow-hidden rounded-3xl border border-white/60 bg-white shadow-card"
+          {...(themed ? { "data-lp-theme": "" } : {})}
+          style={themed ? (themeStyle(theme) as CSSProperties) : undefined}
+        >
           {/* Chrome-like chrome bar */}
           <div className="flex items-center gap-1.5 border-b border-slate-100 bg-slate-50 px-4 py-2.5">
             <span className="h-3 w-3 rounded-full bg-rose-300" />
