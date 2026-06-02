@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import type { BuilderMode } from "@/types/section";
 import { ModeToggle } from "./ModeToggle";
 
@@ -33,6 +34,16 @@ export function BuilderHeader({
           className="pointer-events-none absolute -right-10 -top-16 h-32 w-40 rounded-full bg-violet-300/30 blur-2xl"
         />
         <div className="flex items-center gap-3">
+          {/* PPT — separate tool for extracting reference slides */}
+          <Link
+            href="/ppt"
+            className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/70 bg-gradient-to-br from-orange-500 to-amber-500 px-3 py-1.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110"
+          >
+            <span className="grid h-4 w-4 place-items-center rounded bg-white/25 text-[10px]">
+              P
+            </span>
+            PPT
+          </Link>
           <div>
             <h1 className="text-base font-bold leading-tight text-slate-900 sm:text-lg">
               LP Builder Library
