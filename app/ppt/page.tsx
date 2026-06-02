@@ -21,6 +21,10 @@ export default function PptStudioPage() {
   const [busy, setBusy] = useState(false);
   const [dragOver, setDragOver] = useState(false);
   const [restoring, setRestoring] = useState(true);
+  const [zoom, setZoom] = useState<number | null>(null);
+  const [zoomLoading, setZoomLoading] = useState(false);
+
+  const zoomHostRef = useRef<HTMLDivElement | null>(null);
 
   const bufRef = useRef<ArrayBuffer | null>(null);
   const offscreenRef = useRef<HTMLDivElement | null>(null);
@@ -242,6 +246,67 @@ export default function PptStudioPage() {
     [handleFile],
   );
 
+  // Render a single slide large inside the zoom modal.
+  useEffect(() => {
+    if (zoom === null || !bufRef.current) return;
+    let cancelled = false;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let pv: any = null;
+    setZoomLoading(true);
+
+    (async () => {
+      try {
+        const { init } = await import("pptx-preview");
+        const blob = await buildPptxSubset(bufRef.current!.slice(0), [zoom]);
+        const sbuf = await blob.arrayBuffer();
+        if (cancelled) return;
+        const host = zoomHostRef.current;
+        if (!host) return;
+        host.innerHTML = "";
+        const vw = typeof window !== "undefined" ? window.innerWidth : 1000;
+        const vh = typeof window !== "undefined" ? window.innerHeight : 700;
+        const W = Math.min(Math.floor(vw * 0.86), Math.floor(((vh - 140) * 16) / 9), 1100);
+        pv = init(host, { mode: "list", width: W, height: Math.round((W * 9) / 16) });
+        await pv.preview(sbuf);
+        if (cancelled) {
+          try {
+            pv.destroy();
+          } catch {
+            /* noop */
+          }
+          return;
+        }
+        setZoomLoading(false);
+      } catch (e) {
+        console.error(e);
+        if (!cancelled) setZoomLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+      if (pv) {
+        try {
+          pv.destroy();
+        } catch {
+          /* noop */
+        }
+      }
+    };
+  }, [zoom]);
+
+  // Close zoom on Escape; arrow keys navigate slides.
+  useEffect(() => {
+    if (zoom === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setZoom(null);
+      else if (e.key === "ArrowRight") setZoom((z) => (z === null ? z : Math.min(slideCount - 1, z + 1)));
+      else if (e.key === "ArrowLeft") setZoom((z) => (z === null ? z : Math.max(0, z - 1)));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [zoom, slideCount]);
+
   return (
     <div className="relative min-h-screen">
       {/* Background */}
@@ -413,11 +478,19 @@ export default function PptStudioPage() {
               {Array.from({ length: slideCount }, (_, i) => {
                 const isSel = selected.has(i);
                 return (
-                  <button
+                  <div
                     key={i}
-                    type="button"
+                    role="button"
+                    tabIndex={0}
+                    aria-pressed={isSel}
                     onClick={() => toggle(i)}
-                    className={`group relative overflow-hidden rounded-xl border-2 bg-white text-left transition ${
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggle(i);
+                      }
+                    }}
+                    className={`group relative cursor-pointer overflow-hidden rounded-xl border-2 bg-white text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 ${
                       isSel
                         ? "border-violet-500 ring-2 ring-violet-200"
                         : "border-slate-200 hover:border-violet-300"
@@ -430,6 +503,7 @@ export default function PptStudioPage() {
                       className="flex items-center justify-center bg-slate-50"
                       style={{ width: "100%", height: THUMB_H, overflow: "hidden" }}
                     />
+                    {/* Checkbox */}
                     <span
                       className={`absolute left-2 top-2 grid h-6 w-6 place-items-center rounded-md border-2 text-xs font-bold transition ${
                         isSel
@@ -439,16 +513,104 @@ export default function PptStudioPage() {
                     >
                       ✓
                     </span>
+                    {/* Expand / zoom button (top-right) — appears on hover or when selected */}
+                    <button
+                      type="button"
+                      aria-label={`スライド ${i + 1} を拡大表示`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setZoom(i);
+                      }}
+                      className={`absolute right-2 top-2 grid h-7 w-7 place-items-center rounded-md bg-slate-900/70 text-white shadow-sm backdrop-blur-sm transition hover:bg-slate-900 ${
+                        isSel ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+                      }`}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                        <path d="M9 3H3v6M3 3l7 7M15 21h6v-6M21 21l-7-7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </button>
+                    {/* Slide number */}
                     <span className="absolute bottom-1.5 right-2 rounded bg-slate-900/70 px-1.5 py-0.5 text-[10px] font-bold text-white">
                       {i + 1}
                     </span>
-                  </button>
+                  </div>
                 );
               })}
             </div>
           </>
         )}
       </main>
+
+      {/* Zoom modal — large view of a single slide */}
+      {zoom !== null && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-slate-900/75 p-4 backdrop-blur-sm"
+          onClick={() => setZoom(null)}
+        >
+          {/* Top bar */}
+          <div
+            className="mb-3 flex w-full max-w-[1100px] items-center justify-between text-white"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span className="text-sm font-semibold">
+              スライド {zoom + 1} <span className="text-white/50">/ {slideCount}</span>
+            </span>
+            <button
+              type="button"
+              aria-label="閉じる"
+              onClick={() => setZoom(null)}
+              className="grid h-9 w-9 place-items-center rounded-full bg-white/15 text-xl text-white transition hover:bg-white/25"
+            >
+              ✕
+            </button>
+          </div>
+
+          {/* Slide stage */}
+          <div
+            className="relative flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Prev */}
+            <button
+              type="button"
+              aria-label="前のスライド"
+              disabled={zoom <= 0}
+              onClick={() => setZoom((z) => (z === null ? z : Math.max(0, z - 1)))}
+              className="absolute left-0 z-10 -translate-x-[120%] rounded-full bg-white/15 p-3 text-white transition hover:bg-white/30 disabled:opacity-30"
+            >
+              <svg width="18" height="30" viewBox="0 0 22 40" fill="none" aria-hidden>
+                <path d="M18 4 L5 20 L18 36" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+
+            <div className="overflow-hidden rounded-xl bg-white shadow-2xl">
+              <div ref={zoomHostRef} className="flex items-center justify-center" />
+              {zoomLoading && (
+                <div className="grid place-items-center px-16 py-20 text-sm text-slate-400">
+                  読み込み中…
+                </div>
+              )}
+            </div>
+
+            {/* Next */}
+            <button
+              type="button"
+              aria-label="次のスライド"
+              disabled={zoom >= slideCount - 1}
+              onClick={() => setZoom((z) => (z === null ? z : Math.min(slideCount - 1, z + 1)))}
+              className="absolute right-0 z-10 translate-x-[120%] rounded-full bg-white/15 p-3 text-white transition hover:bg-white/30 disabled:opacity-30"
+            >
+              <svg width="18" height="30" viewBox="0 0 22 40" fill="none" aria-hidden>
+                <path d="M4 4 L17 20 L4 36" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          </div>
+
+          <p className="mt-3 text-xs text-white/50">
+            ← → で移動 / Esc で閉じる
+          </p>
+        </div>
+      )}
 
       {/* Offscreen full render target (kept in DOM but visually hidden) */}
       <div
