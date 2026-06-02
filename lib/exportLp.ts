@@ -6,6 +6,7 @@ import { getPreviewComponent } from "./previewMap";
 import {
   LP_THEME_CSS,
   themeStyle,
+  hueFilter,
   isThemed,
   type ThemeSelection,
 } from "./lpTheme";
@@ -58,12 +59,15 @@ export function buildLpHtml(
 ): string {
   const items = orderedSelected(categories, selected);
 
-  // Brand theme: data attribute + CSS variables on <body>.
+  // Brand theme: data attribute + CSS variables (+ optional hue filter) on <body>.
   const themed = theme && isThemed(theme);
+  const styleProps = themed
+    ? Object.entries(themeStyle(theme!)).map(([k, v]) => `${k}:${v}`)
+    : [];
+  const hf = theme && hueFilter(theme);
+  if (hf) styleProps.push(`filter:${hf}`);
   const bodyAttrs = themed
-    ? ` data-lp-theme style="${Object.entries(themeStyle(theme!))
-        .map(([k, v]) => `${k}:${v}`)
-        .join(";")}"`
+    ? ` data-lp-theme style="${styleProps.join(";")}"`
     : "";
 
   const body = items

@@ -58,7 +58,19 @@ export const LP_FONTS: LpFont[] = [
   },
 ];
 
-export type ThemeSelection = { themeId: LpThemeId; fontId: LpFontId };
+export type ThemeSelection = {
+  themeId: LpThemeId;
+  fontId: LpFontId;
+  /** whole-LP hue rotation in degrees (0 = off). Recolors EVERYTHING incl.
+   * real sections + images. */
+  hue: number;
+};
+
+export const DEFAULT_THEME: ThemeSelection = {
+  themeId: "default",
+  fontId: "default",
+  hue: 0,
+};
 
 export function getTheme(id: LpThemeId): LpTheme {
   return LP_THEMES.find((t) => t.id === id) ?? LP_THEMES[0];
@@ -69,7 +81,13 @@ export function getFont(id: LpFontId): LpFont {
 }
 
 export function isThemed(sel: ThemeSelection): boolean {
-  return sel.themeId !== "default" || sel.fontId !== "default";
+  return sel.themeId !== "default" || sel.fontId !== "default" || (sel.hue ?? 0) !== 0;
+}
+
+/** CSS filter string for the whole-LP hue shift (or undefined when off). */
+export function hueFilter(sel: ThemeSelection): string | undefined {
+  const h = sel.hue ?? 0;
+  return h === 0 ? undefined : `hue-rotate(${h}deg)`;
 }
 
 /** Inline CSS-variable style for the themed container. */
@@ -92,21 +110,47 @@ export function themeStyle(sel: ThemeSelection): Record<string, string> {
 export const LP_THEME_CSS = `
 [data-lp-theme] .text-accent,
 [data-lp-theme] .text-accent-ink,
+[data-lp-theme] .text-accent-ring,
+[data-lp-theme] .text-sansan-400,
 [data-lp-theme] .text-sansan-500,
 [data-lp-theme] .text-sansan-600,
-[data-lp-theme] .text-sansan-700{color:var(--lp-accent,#004e98)!important}
+[data-lp-theme] .text-sansan-700,
+[data-lp-theme] .text-sansan-800,
+[data-lp-theme] .text-sansan-900{color:var(--lp-accent,#004e98)!important}
 [data-lp-theme] .bg-accent,
 [data-lp-theme] .bg-accent-ink,
+[data-lp-theme] .bg-accent-ring,
+[data-lp-theme] .bg-sansan-400,
 [data-lp-theme] .bg-sansan-500,
 [data-lp-theme] .bg-sansan-600,
-[data-lp-theme] .bg-sansan-700{background-color:var(--lp-accent,#004e98)!important}
+[data-lp-theme] .bg-sansan-700,
+[data-lp-theme] .bg-sansan-800,
+[data-lp-theme] .bg-sansan-900{background-color:var(--lp-accent,#004e98)!important}
 [data-lp-theme] .border-accent,
+[data-lp-theme] .border-accent-ring,
 [data-lp-theme] .border-sansan-300,
-[data-lp-theme] .border-sansan-400{border-color:var(--lp-accent,#004e98)!important}
+[data-lp-theme] .border-sansan-400,
+[data-lp-theme] .border-sansan-500,
+[data-lp-theme] .border-sansan-600{border-color:var(--lp-accent,#004e98)!important}
 [data-lp-theme] .bg-accent-soft,
 [data-lp-theme] .bg-sansan-50,
-[data-lp-theme] .bg-sansan-100{background-color:var(--lp-accent-soft,#e9f0f8)!important}
-[data-lp-theme] .ring-sansan-200{--tw-ring-color:var(--lp-accent-soft,#e9f0f8)!important}
+[data-lp-theme] .bg-sansan-100,
+[data-lp-theme] .bg-sansan-200{background-color:var(--lp-accent-soft,#e9f0f8)!important}
+[data-lp-theme] .text-accent-soft{color:var(--lp-accent-soft,#e9f0f8)!important}
+[data-lp-theme] .ring-accent,
+[data-lp-theme] .ring-sansan-200,
+[data-lp-theme] .ring-sansan-300{--tw-ring-color:var(--lp-accent,#004e98)!important}
+[data-lp-theme] .from-accent,
+[data-lp-theme] .from-sansan-500,
+[data-lp-theme] .from-sansan-600,
+[data-lp-theme] .from-sansan-700{--tw-gradient-from:var(--lp-accent,#004e98) var(--tw-gradient-from-position)!important;--tw-gradient-to:rgb(0 0 0 / 0) var(--tw-gradient-to-position)!important;--tw-gradient-stops:var(--tw-gradient-from),var(--tw-gradient-to)!important}
+[data-lp-theme] .to-accent,
+[data-lp-theme] .to-sansan-500,
+[data-lp-theme] .to-sansan-600,
+[data-lp-theme] .to-sansan-700{--tw-gradient-to:var(--lp-accent,#004e98) var(--tw-gradient-to-position)!important}
+[data-lp-theme] .via-accent,
+[data-lp-theme] .via-sansan-500,
+[data-lp-theme] .via-sansan-600{--tw-gradient-to:rgb(0 0 0 / 0) var(--tw-gradient-to-position)!important;--tw-gradient-stops:var(--tw-gradient-from),var(--lp-accent,#004e98) var(--tw-gradient-via-position),var(--tw-gradient-to)!important}
 [data-lp-theme] .font-sans,
 [data-lp-theme] .font-lato{font-family:var(--lp-font,${SANS_FALLBACK})!important}
 `.trim();
@@ -115,14 +159,14 @@ export const LP_THEME_CSS = `
 const KEY = "lp-theme-pref";
 
 export function loadThemePref(): ThemeSelection {
-  if (typeof window === "undefined") return { themeId: "default", fontId: "default" };
+  if (typeof window === "undefined") return { ...DEFAULT_THEME };
   try {
     const s = localStorage.getItem(KEY);
-    if (s) return JSON.parse(s) as ThemeSelection;
+    if (s) return { ...DEFAULT_THEME, ...(JSON.parse(s) as Partial<ThemeSelection>) };
   } catch {
     /* noop */
   }
-  return { themeId: "default", fontId: "default" };
+  return { ...DEFAULT_THEME };
 }
 
 export function saveThemePref(sel: ThemeSelection): void {

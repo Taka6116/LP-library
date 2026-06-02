@@ -15,7 +15,9 @@ import {
   LP_THEMES,
   LP_FONTS,
   LP_THEME_CSS,
+  DEFAULT_THEME,
   themeStyle,
+  hueFilter,
   isThemed,
   loadThemePref,
   saveThemePref,
@@ -53,10 +55,7 @@ export function GeneratedLPPreview({
   }, []);
 
   // ---- Brand theme ----
-  const [theme, setTheme] = useState<ThemeSelection>({
-    themeId: "default",
-    fontId: "default",
-  });
+  const [theme, setTheme] = useState<ThemeSelection>(DEFAULT_THEME);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   useEffect(() => {
     setTheme(loadThemePref());
@@ -350,12 +349,42 @@ export function GeneratedLPPreview({
                         </button>
                       ))}
                     </div>
+                    {/* 全体カラーシフト（実セクション・画像も含めて色を回す） */}
+                    <div className="mt-3 border-t border-slate-100 pt-3">
+                      <div className="mb-1 flex items-center justify-between">
+                        <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
+                          全体カラーシフト
+                        </p>
+                        <span className="text-[11px] font-semibold text-slate-500">
+                          {theme.hue}°
+                        </span>
+                      </div>
+                      <input
+                        type="range"
+                        min={0}
+                        max={360}
+                        step={5}
+                        value={theme.hue}
+                        onChange={(e) =>
+                          updateTheme({ ...theme, hue: Number(e.target.value) })
+                        }
+                        className="w-full accent-violet-600"
+                        style={{
+                          background:
+                            "linear-gradient(90deg,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)",
+                          borderRadius: 999,
+                          height: 6,
+                        }}
+                      />
+                      <p className="mt-1 text-[10px] leading-snug text-slate-400">
+                        実セクション・画像も含めてLP全体の色相を回します。
+                      </p>
+                    </div>
+
                     {themed && (
                       <button
                         type="button"
-                        onClick={() =>
-                          updateTheme({ themeId: "default", fontId: "default" })
-                        }
+                        onClick={() => updateTheme(DEFAULT_THEME)}
                         className="mt-3 w-full rounded-lg border border-slate-200 py-1.5 text-xs font-semibold text-slate-500 transition hover:bg-slate-50"
                       >
                         リセット
@@ -402,7 +431,8 @@ export function GeneratedLPPreview({
             </span>
           </div>
 
-          <div>
+          {/* Sections — whole-LP hue shift applied here (affects images too) */}
+          <div style={hueFilter(theme) ? { filter: hueFilter(theme) } : undefined}>
             {ordered.map((cat, i) => {
               const section = getSection(cat.id, selected[cat.id]);
               const Preview = section
