@@ -5,6 +5,8 @@ import type { SectionCategory, SelectedSections } from "@/types/section";
 import { getSection } from "@/data/sectionLibrary";
 import { getPreviewComponent } from "@/lib/previewMap";
 import { buildLpHtml, buildLpMarkdown, downloadTextFile } from "@/lib/exportLp";
+import { buildLpReact } from "@/lib/exportReact";
+import { extractCopy, type CopyGroup } from "@/lib/extractCopy";
 import {
   listCompositions,
   saveComposition,
@@ -126,6 +128,26 @@ export function GeneratedLPPreview({
     downloadTextFile("generated-lp.md", md, "text/markdown;charset=utf-8");
   }
 
+  function handleDownloadReact() {
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    const code = buildLpReact(ordered, selected, origin);
+    downloadTextFile("GeneratedLP.tsx", code, "text/plain;charset=utf-8");
+  }
+
+  // ---- Copy (snippet) library ----
+  const [copyOpen, setCopyOpen] = useState(false);
+  const [copyGroups, setCopyGroups] = useState<CopyGroup[]>([]);
+  const [copiedText, setCopiedText] = useState<string | null>(null);
+  function handleExtractCopy() {
+    setCopyGroups(extractCopy(ordered, selected));
+    setCopyOpen(true);
+  }
+  function copyToClipboard(text: string) {
+    navigator.clipboard?.writeText(text);
+    setCopiedText(text);
+    window.setTimeout(() => setCopiedText(null), 1200);
+  }
+
   if (ordered.length === 0) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-24 text-center">
@@ -181,6 +203,80 @@ export function GeneratedLPPreview({
     <div className="animate-fadeInSlow">
       {/* Theme remap CSS (scoped to [data-lp-theme]) */}
       <style dangerouslySetInnerHTML={{ __html: LP_THEME_CSS }} />
+
+      {/* コピー（文言）ライブラリ モーダル */}
+      {copyOpen && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm"
+          onClick={() => setCopyOpen(false)}
+        >
+          <div
+            className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5">
+              <h3 className="text-sm font-bold text-slate-800">
+                文言ライブラリ
+                <span className="ml-2 text-xs font-normal text-slate-400">
+                  見出し・CTA を抽出
+                </span>
+              </h3>
+              <button
+                type="button"
+                onClick={() => setCopyOpen(false)}
+                aria-label="閉じる"
+                className="grid h-7 w-7 place-items-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+              >
+                ✕
+              </button>
+            </div>
+            <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
+              {copyGroups.length === 0 && (
+                <p className="py-8 text-center text-sm text-slate-400">
+                  抽出できる文言がありませんでした。
+                </p>
+              )}
+              {copyGroups.map((g, gi) => (
+                <div key={gi}>
+                  <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-violet-500">
+                    {g.category}
+                    <span className="ml-2 font-normal text-slate-400">{g.title}</span>
+                  </p>
+                  <div className="space-y-1.5">
+                    {[...g.headings, ...g.ctas].map((txt, ti) => {
+                      const isCta = ti >= g.headings.length;
+                      return (
+                        <button
+                          key={ti}
+                          type="button"
+                          onClick={() => copyToClipboard(txt)}
+                          className="flex w-full items-center justify-between gap-3 rounded-lg border border-slate-200 px-3 py-2 text-left transition hover:border-violet-300 hover:bg-violet-50/50"
+                        >
+                          <span className="flex items-center gap-2 truncate">
+                            <span
+                              className={`shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold ${
+                                isCta
+                                  ? "bg-amber-100 text-amber-700"
+                                  : "bg-sky-100 text-sky-700"
+                              }`}
+                            >
+                              {isCta ? "CTA" : "見出し"}
+                            </span>
+                            <span className="truncate text-sm text-slate-700">{txt}</span>
+                          </span>
+                          <span className="shrink-0 text-xs font-semibold text-slate-400">
+                            {copiedText === txt ? "✓ コピー" : "コピー"}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
       <div className="mx-auto max-w-5xl px-3 py-6 sm:px-6 sm:py-8">
         {/* ---- ツールバー ---- */}
         <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/60 bg-white/60 px-4 py-3 shadow-soft backdrop-blur-xl">
@@ -437,10 +533,26 @@ export function GeneratedLPPreview({
             </button>
             <button
               type="button"
-              onClick={handleDownloadMarkdown}
-              className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-white/70 px-4 py-2 text-sm font-bold text-violet-700 backdrop-blur transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2"
+              onClick={handleDownloadReact}
+              title="React + Tailwind コンポーネント(.tsx)で書き出し"
+              className="inline-flex items-center gap-1.5 rounded-full border border-sky-200 bg-white/70 px-3 py-2 text-sm font-bold text-sky-700 backdrop-blur transition hover:bg-white"
             >
-              Markdown
+              {"</>"} React
+            </button>
+            <button
+              type="button"
+              onClick={handleExtractCopy}
+              title="見出し・CTAの文言を抽出"
+              className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-white/70 px-3 py-2 text-sm font-bold text-violet-700 backdrop-blur transition hover:bg-white"
+            >
+              文言
+            </button>
+            <button
+              type="button"
+              onClick={handleDownloadMarkdown}
+              className="inline-flex items-center gap-1.5 rounded-full border border-violet-200 bg-white/70 px-3 py-2 text-sm font-bold text-violet-700 backdrop-blur transition hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2"
+            >
+              MD
             </button>
           </div>
         </div>
