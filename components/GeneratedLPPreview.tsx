@@ -54,6 +54,14 @@ export function GeneratedLPPreview({
     setComps(listCompositions());
   }, []);
 
+  // ---- Responsive preview ----
+  const [viewport, setViewport] = useState<"pc" | "tablet" | "mobile">("pc");
+  const VIEWPORT_W: Record<typeof viewport, string> = {
+    pc: "100%",
+    tablet: "820px",
+    mobile: "390px",
+  };
+
   // ---- Brand theme ----
   const [theme, setTheme] = useState<ThemeSelection>(DEFAULT_THEME);
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
@@ -195,6 +203,28 @@ export function GeneratedLPPreview({
               </svg>
               ドラッグで順番を入れ替えできます
             </span>
+            {/* レスポンシブ切替 */}
+            <div className="ml-1 inline-flex items-center rounded-full border border-slate-200 bg-white/70 p-0.5">
+              {([
+                { id: "pc", label: "PC", icon: "🖥" },
+                { id: "tablet", label: "Tablet", icon: "▭" },
+                { id: "mobile", label: "Mobile", icon: "▯" },
+              ] as const).map((v) => (
+                <button
+                  key={v.id}
+                  type="button"
+                  onClick={() => setViewport(v.id)}
+                  title={v.label}
+                  className={`rounded-full px-2.5 py-1 text-xs font-bold transition ${
+                    viewport === v.id
+                      ? "bg-violet-600 text-white shadow-sm"
+                      : "text-slate-500 hover:text-violet-700"
+                  }`}
+                >
+                  {v.label}
+                </button>
+              ))}
+            </div>
           </div>
           <div className="flex items-center gap-2">
             {/* 構成を保存 */}
@@ -431,8 +461,20 @@ export function GeneratedLPPreview({
             </span>
           </div>
 
-          {/* Sections — whole-LP hue shift applied here (affects images too) */}
-          <div style={hueFilter(theme) ? { filter: hueFilter(theme) } : undefined}>
+          {/* Sections — responsive width + whole-LP hue shift */}
+          <div
+            className={viewport !== "pc" ? "bg-slate-100 py-4" : ""}
+            style={hueFilter(theme) ? { filter: hueFilter(theme) } : undefined}
+          >
+            <div
+              className="mx-auto overflow-hidden bg-white transition-all duration-300"
+              style={{
+                maxWidth: VIEWPORT_W[viewport],
+                boxShadow:
+                  viewport !== "pc" ? "0 10px 40px -12px rgba(0,0,0,.25)" : undefined,
+                borderRadius: viewport !== "pc" ? 14 : 0,
+              }}
+            >
             {ordered.map((cat, i) => {
               const section = getSection(cat.id, selected[cat.id]);
               const Preview = section
@@ -461,6 +503,7 @@ export function GeneratedLPPreview({
                 </GeneratedSectionWrapper>
               );
             })}
+            </div>
           </div>
         </div>
       </div>

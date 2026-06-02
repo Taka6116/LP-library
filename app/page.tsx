@@ -12,6 +12,7 @@ import {
   saveWorking,
   type LpComposition,
 } from "@/lib/lpCompositions";
+import { loadBookmarks, saveBookmarks } from "@/lib/bookmarks";
 import { BuilderHeader } from "@/components/BuilderHeader";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { SectionPatternCard } from "@/components/SectionPatternCard";
@@ -114,6 +115,41 @@ export default function Page() {
     setPanelOpen(false);
   }
 
+  // ---- Bookmarks + cross-category search ----
+  const [bookmarks, setBookmarks] = useState<string[]>(() => loadBookmarks());
+  const [query, setQuery] = useState("");
+  const [favOnly, setFavOnly] = useState(false);
+
+  useEffect(() => {
+    saveBookmarks(bookmarks);
+  }, [bookmarks]);
+
+  const toggleBookmark = useCallback((id: string) => {
+    setBookmarks((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    );
+  }, []);
+
+  const q = query.trim().toLowerCase();
+  const isSearching = q.length > 0 || favOnly;
+  const searchResults = sortedCategories
+    .flatMap((c) => c.sections.map((s) => ({ s, c })))
+    .filter(({ s, c }) => {
+      if (favOnly && !bookmarks.includes(s.id)) return false;
+      if (!q) return true;
+      const hay = [
+        s.title,
+        s.description,
+        s.componentType,
+        c.label,
+        c.labelJa,
+        ...s.tags,
+      ]
+        .join(" ")
+        .toLowerCase();
+      return hay.includes(q);
+    });
+
   return (
     <div className="relative min-h-screen">
       {/* 背景: 淡いVioletグラデーション + ブロブ（グラスモーフィズムの下地） */}
@@ -137,44 +173,123 @@ export default function Page() {
       {mode === "library" ? (
         <main
           className={
-            activeCategoryId === "cta"
+            activeCategoryId === "cta" && !isSearching
               ? "mx-auto max-w-none px-3 py-6 sm:px-3 sm:py-8"
               : "mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8"
           }
         >
-          <CategoryTabs
-            categories={sortedCategories}
-            activeCategoryId={activeCategoryId}
-            selected={selected}
-            onSelectCategory={setActiveCategoryId}
-          />
-
-          {activeCategory && (
-            <div key={activeCategory.id} className="mt-6 animate-fadeIn space-y-4">
-              <div className="flex items-baseline gap-2">
-                <h2 className="text-lg font-bold text-slate-900">
-                  {activeCategory.label}
-                </h2>
-                <span className="text-sm text-slate-400">
-                  {activeCategory.labelJa}
-                </span>
-              </div>
-              <p className="text-sm text-slate-500">
-                {activeCategory.description}
-              </p>
-
-              <div className="space-y-8">
-                {activeCategory.sections.map((section) => (
-                  <SectionPatternCard
-                    key={section.id}
-                    section={section}
-                    selected={selected[activeCategory.id] === section.id}
-                    onSelect={handleSelect}
-                    onRemove={handleRemove}
-                  />
-                ))}
-              </div>
+          {/* 横断検索 + お気に入りフィルタ */}
+          <div className="mb-5 flex flex-wrap items-center gap-2">
+            <div className="relative flex-1 min-w-[220px]">
+              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                ⌕
+              </span>
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="全カテゴリから検索（名前・タグ・カテゴリ…）"
+                className="w-full rounded-full border border-slate-200 bg-white/80 py-2 pl-9 pr-4 text-sm text-slate-700 shadow-sm outline-none transition focus:border-violet-300 focus:ring-2 focus:ring-violet-200"
+              />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  aria-label="検索をクリア"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                >
+                  ✕
+                </button>
+              )}
             </div>
+            <button
+              type="button"
+              onClick={() => setFavOnly((v) => !v)}
+              className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-bold transition ${
+                favOnly
+                  ? "border-amber-300 bg-amber-50 text-amber-600"
+                  : "border-slate-200 bg-white/80 text-slate-600 hover:border-amber-300 hover:text-amber-600"
+              }`}
+            >
+              {favOnly ? "★" : "☆"} お気に入り
+              <span className="text-xs font-normal text-slate-400">
+                {bookmarks.length}
+              </span>
+            </button>
+          </div>
+
+          {isSearching ? (
+            /* ---- 横断検索結果 ---- */
+            <div className="animate-fadeIn space-y-4">
+              <p className="text-sm font-semibold text-slate-600">
+                {favOnly ? "お気に入り" : "検索結果"}
+                <span className="ml-2 text-slate-400">{searchResults.length} 件</span>
+              </p>
+              {searchResults.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 px-6 py-16 text-center text-sm text-slate-400">
+                  {favOnly
+                    ? "お気に入りはまだありません。各セクションの ☆ を押すと追加できます。"
+                    : "一致するセクションがありません。"}
+                </div>
+              ) : (
+                <div className="space-y-8">
+                  {searchResults.map(({ s, c }) => (
+                    <div key={s.id}>
+                      <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-violet-500">
+                        {c.label} · {c.labelJa}
+                      </div>
+                      <SectionPatternCard
+                        section={s}
+                        selected={selected[c.id] === s.id}
+                        bookmarked={bookmarks.includes(s.id)}
+                        onSelect={handleSelect}
+                        onRemove={handleRemove}
+                        onToggleBookmark={toggleBookmark}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : (
+            <>
+              <CategoryTabs
+                categories={sortedCategories}
+                activeCategoryId={activeCategoryId}
+                selected={selected}
+                onSelectCategory={setActiveCategoryId}
+              />
+
+              {activeCategory && (
+                <div key={activeCategory.id} className="mt-6 animate-fadeIn space-y-4">
+                  <div className="flex items-baseline gap-2">
+                    <h2 className="text-lg font-bold text-slate-900">
+                      {activeCategory.label}
+                    </h2>
+                    <span className="text-sm text-slate-400">
+                      {activeCategory.labelJa}
+                    </span>
+                  </div>
+                  <p className="text-sm text-slate-500">
+                    {activeCategory.description}
+                  </p>
+
+                  <div className="space-y-8">
+                    {activeCategory.sections.map((section) => (
+                      <SectionPatternCard
+                        key={section.id}
+                        section={section}
+                        selected={selected[activeCategory.id] === section.id}
+                        bookmarked={bookmarks.includes(section.id)}
+                        onSelect={handleSelect}
+                        onRemove={handleRemove}
+                        onToggleBookmark={toggleBookmark}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </main>
       ) : (
