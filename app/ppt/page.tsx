@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import JSZip from "jszip";
 import { getSlideRefs, buildPptxSubset, PPTX_MIME } from "@/lib/pptx/subset";
+import { saveDeck, loadDeck, clearDeck } from "@/lib/pptx/deckStore";
 
 type Status = "idle" | "loading" | "ready" | "error";
 
@@ -18,6 +19,8 @@ export default function PptStudioPage() {
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [errorMsg, setErrorMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
+  const [restoring, setRestoring] = useState(true);
 
   const bufRef = useRef<ArrayBuffer | null>(null);
   const offscreenRef = useRef<HTMLDivElement | null>(null);
@@ -26,10 +29,7 @@ export default function PptStudioPage() {
   const previewerRef = useRef<any>(null);
   const renderTokenRef = useRef(0);
 
-  const reset = useCallback(() => {
-    setSelected(new Set());
-    setSlideCount(0);
-    setErrorMsg("");
+  const resetRender = useCallback(() => {
     cellRefs.current = [];
     if (previewerRef.current) {
       try {
@@ -42,15 +42,16 @@ export default function PptStudioPage() {
     if (offscreenRef.current) offscreenRef.current.innerHTML = "";
   }, []);
 
-  const handleFile = useCallback(
-    async (file: File) => {
-      reset();
+  // Load a deck from an in-memory buffer: parse slide count → effect renders.
+  const loadFromBuffer = useCallback(
+    async (buf: ArrayBuffer, name: string) => {
+      resetRender();
+      setSelected(new Set());
+      setErrorMsg("");
       setStatus("loading");
-      setFileName(file.name);
+      setFileName(name);
+      bufRef.current = buf;
       try {
-        const buf = await file.arrayBuffer();
-        bufRef.current = buf;
-        // parse slide order/count (own copy)
         const zip = await JSZip.loadAsync(buf.slice(0));
         const refs = await getSlideRefs(zip);
         if (refs.length === 0) {
@@ -59,15 +60,50 @@ export default function PptStudioPage() {
           return;
         }
         setSlideCount(refs.length);
-        // render happens in the effect below once cells are mounted
       } catch (e) {
         console.error(e);
         setStatus("error");
         setErrorMsg("読み込みに失敗しました。ファイル形式をご確認ください。");
       }
     },
-    [reset],
+    [resetRender],
   );
+
+  const handleFile = useCallback(
+    async (file: File) => {
+      if (!/\.pptx$/i.test(file.name)) {
+        setStatus("error");
+        setErrorMsg(".pptx ファイルを選択してください。");
+        return;
+      }
+      const buf = await file.arrayBuffer();
+      await loadFromBuffer(buf, file.name);
+      // persist locally so it survives reload / navigation
+      try {
+        await saveDeck(file.name, buf.slice(0));
+      } catch (e) {
+        console.warn("deck persist failed", e);
+      }
+    },
+    [loadFromBuffer],
+  );
+
+  // Restore a previously imported deck on mount.
+  useEffect(() => {
+    (async () => {
+      try {
+        const stored = await loadDeck();
+        if (stored?.buf) {
+          await loadFromBuffer(stored.buf, stored.name);
+        }
+      } catch (e) {
+        console.warn("deck restore failed", e);
+      } finally {
+        setRestoring(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Render all slides (list mode) once cells exist, then mount each rendered
   // node into its grid cell.
@@ -90,7 +126,7 @@ export default function PptStudioPage() {
         previewerRef.current = previewer;
 
         await previewer.preview(bufRef.current!.slice(0));
-        if (token !== renderTokenRef.current) return; // superseded by a newer file
+        if (token !== renderTokenRef.current) return; // superseded
 
         const nodes = host.querySelectorAll<HTMLElement>(
           ".pptx-preview-slide-wrapper",
@@ -130,6 +166,21 @@ export default function PptStudioPage() {
 
   const clearAll = useCallback(() => setSelected(new Set()), []);
 
+  const startOver = useCallback(async () => {
+    resetRender();
+    bufRef.current = null;
+    setSelected(new Set());
+    setSlideCount(0);
+    setFileName("");
+    setErrorMsg("");
+    setStatus("idle");
+    try {
+      await clearDeck();
+    } catch {
+      /* noop */
+    }
+  }, [resetRender]);
+
   const download = useCallback(async () => {
     if (!bufRef.current || selected.size === 0) return;
     setBusy(true);
@@ -137,9 +188,7 @@ export default function PptStudioPage() {
       const idx = [...selected].sort((a, b) => a - b);
       const blob = await buildPptxSubset(bufRef.current.slice(0), idx);
       const base = fileName.replace(/\.pptx$/i, "") || "slides";
-      const url = URL.createObjectURL(
-        new Blob([blob], { type: PPTX_MIME }),
-      );
+      const url = URL.createObjectURL(new Blob([blob], { type: PPTX_MIME }));
       const a = document.createElement("a");
       a.href = url;
       a.download = `${base}-selected-${idx.length}.pptx`;
@@ -154,6 +203,44 @@ export default function PptStudioPage() {
       setBusy(false);
     }
   }, [selected, fileName]);
+
+  // Remove the selected slides from the working deck (keep the rest).
+  const deleteSelected = useCallback(async () => {
+    if (!bufRef.current || selected.size === 0) return;
+    if (selected.size >= slideCount) {
+      setErrorMsg("すべてのスライドは削除できません。1枚以上残してください。");
+      return;
+    }
+    setBusy(true);
+    try {
+      const keep = Array.from({ length: slideCount }, (_, i) => i).filter(
+        (i) => !selected.has(i),
+      );
+      const blob = await buildPptxSubset(bufRef.current.slice(0), keep);
+      const newBuf = await blob.arrayBuffer();
+      await loadFromBuffer(newBuf, fileName);
+      try {
+        await saveDeck(fileName, newBuf.slice(0));
+      } catch (e) {
+        console.warn("deck persist failed", e);
+      }
+    } catch (e) {
+      console.error(e);
+      setErrorMsg("削除の処理に失敗しました。");
+    } finally {
+      setBusy(false);
+    }
+  }, [selected, slideCount, fileName, loadFromBuffer]);
+
+  const onDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault();
+      setDragOver(false);
+      const f = e.dataTransfer.files?.[0];
+      if (f) handleFile(f);
+    },
+    [handleFile],
+  );
 
   return (
     <div className="relative min-h-screen">
@@ -190,7 +277,7 @@ export default function PptStudioPage() {
           </div>
 
           {status === "ready" && (
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <span className="hidden text-xs text-slate-500 sm:inline">
                 {selected.size} / {slideCount} 選択中
               </span>
@@ -203,12 +290,24 @@ export default function PptStudioPage() {
               </button>
               <button
                 type="button"
+                onClick={deleteSelected}
+                disabled={selected.size === 0 || selected.size >= slideCount || busy}
+                className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-white/70 px-3 py-2 text-sm font-bold text-rose-600 transition hover:border-rose-300 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40"
+                title="選択したスライドを削除"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M4 7h16M9 7V4h6v3m-7 0v13h8V7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                選択を削除
+              </button>
+              <button
+                type="button"
                 onClick={download}
                 disabled={selected.size === 0 || busy}
                 className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-violet-500/30 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {busy ? (
-                  "生成中…"
+                  "処理中…"
                 ) : (
                   <>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -224,17 +323,40 @@ export default function PptStudioPage() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        {/* Importer (idle / error) */}
-        {status !== "ready" && (
+        {/* Importer (idle / error / loading without slides yet) */}
+        {status !== "ready" && !(status === "loading" && slideCount > 0) && (
           <div className="mx-auto max-w-2xl">
             <label
-              className="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed border-violet-300 bg-white/70 px-8 py-16 text-center backdrop-blur transition hover:border-violet-400 hover:bg-white"
+              onDragOver={(e) => {
+                e.preventDefault();
+                if (!dragOver) setDragOver(true);
+              }}
+              onDragEnter={(e) => {
+                e.preventDefault();
+                setDragOver(true);
+              }}
+              onDragLeave={(e) => {
+                e.preventDefault();
+                setDragOver(false);
+              }}
+              onDrop={onDrop}
+              className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed px-8 py-16 text-center backdrop-blur transition ${
+                dragOver
+                  ? "border-violet-500 bg-violet-50/80 scale-[1.01]"
+                  : "border-violet-300 bg-white/70 hover:border-violet-400 hover:bg-white"
+              }`}
             >
               <span className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 text-2xl text-white shadow">
                 ⤓
               </span>
               <span className="text-lg font-bold text-slate-800">
-                {status === "loading" ? "読み込み中…" : "PowerPoint ファイルを選択"}
+                {restoring
+                  ? "復元中…"
+                  : status === "loading"
+                    ? "読み込み中…"
+                    : dragOver
+                      ? "ここにドロップ"
+                      : "PowerPoint ファイルを選択"}
               </span>
               <span className="text-sm text-slate-500">
                 .pptx をクリックで選択（またはドラッグ＆ドロップ）
@@ -255,11 +377,6 @@ export default function PptStudioPage() {
                 {errorMsg}
               </p>
             )}
-            {status === "loading" && (
-              <p className="mt-4 text-center text-sm text-slate-500">
-                スライドを描画しています。枚数が多い場合は少し時間がかかります。
-              </p>
-            )}
           </div>
         )}
 
@@ -270,22 +387,27 @@ export default function PptStudioPage() {
               <p className="text-sm font-semibold text-slate-700">
                 <span className="text-slate-900">{fileName}</span>
                 <span className="ml-2 text-slate-400">{slideCount} スライド</span>
+                {status === "loading" && (
+                  <span className="ml-2 text-violet-500">描画中…</span>
+                )}
               </p>
               <button
                 type="button"
-                onClick={() => {
-                  reset();
-                  setStatus("idle");
-                  setFileName("");
-                }}
+                onClick={startOver}
                 className="text-xs font-semibold text-slate-500 underline-offset-2 hover:text-slate-800 hover:underline"
               >
                 別のファイルを読み込む
               </button>
             </div>
 
+            {errorMsg && (
+              <p className="mb-4 rounded-xl bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-600">
+                {errorMsg}
+              </p>
+            )}
+
             <div
-              key={fileName}
+              key={fileName + "::" + slideCount}
               className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4"
             >
               {Array.from({ length: slideCount }, (_, i) => {
@@ -301,7 +423,6 @@ export default function PptStudioPage() {
                         : "border-slate-200 hover:border-violet-300"
                     }`}
                   >
-                    {/* Slide render mount */}
                     <div
                       ref={(el) => {
                         cellRefs.current[i] = el;
@@ -309,7 +430,6 @@ export default function PptStudioPage() {
                       className="flex items-center justify-center bg-slate-50"
                       style={{ width: "100%", height: THUMB_H, overflow: "hidden" }}
                     />
-                    {/* Checkbox */}
                     <span
                       className={`absolute left-2 top-2 grid h-6 w-6 place-items-center rounded-md border-2 text-xs font-bold transition ${
                         isSel
@@ -319,7 +439,6 @@ export default function PptStudioPage() {
                     >
                       ✓
                     </span>
-                    {/* Slide number */}
                     <span className="absolute bottom-1.5 right-2 rounded bg-slate-900/70 px-1.5 py-0.5 text-[10px] font-bold text-white">
                       {i + 1}
                     </span>
