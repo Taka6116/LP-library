@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import Link from "next/link";
 import JSZip from "jszip";
 import { getSlideRefs, buildPptxSubset, PPTX_MIME } from "@/lib/pptx/subset";
+import { buildMergedPptx } from "@/lib/pptx/merge";
 import {
   listDecks,
   getDeckBuf,
@@ -33,6 +34,8 @@ export default function PptStudioPage() {
   const [restoring, setRestoring] = useState(true);
   const [zoom, setZoom] = useState<number | null>(null);
   const [zoomLoading, setZoomLoading] = useState(false);
+  // Cross-deck merge cart: deckId -> slide indices
+  const [cart, setCart] = useState<Record<string, number[]>>({});
 
   const bufRef = useRef<ArrayBuffer | null>(null);
   const offscreenRef = useRef<HTMLDivElement | null>(null);
@@ -232,6 +235,48 @@ export default function PptStudioPage() {
     }
   }, [selected, fileName]);
 
+  // ---- Cross-deck merge cart ----
+  const addToCart = useCallback(() => {
+    if (!activeId || selected.size === 0) return;
+    setCart((prev) => {
+      const cur = new Set(prev[activeId] ?? []);
+      selected.forEach((i) => cur.add(i));
+      return { ...prev, [activeId]: [...cur].sort((a, b) => a - b) };
+    });
+    setSelected(new Set());
+  }, [activeId, selected]);
+
+  const clearCart = useCallback(() => setCart({}), []);
+
+  const cartTotal = Object.values(cart).reduce((n, a) => n + a.length, 0);
+
+  const mergeDownload = useCallback(async () => {
+    const entries = Object.entries(cart).filter(([, a]) => a.length > 0);
+    if (entries.length === 0) return;
+    setBusy(true);
+    try {
+      const decksSel = [];
+      for (const [id, indices] of entries) {
+        const buf = await getDeckBuf(id);
+        if (buf) decksSel.push({ buf, indices });
+      }
+      const blob = await buildMergedPptx(decksSel);
+      const url = URL.createObjectURL(new Blob([blob], { type: PPTX_MIME }));
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `merged-${cartTotal}slides.pptx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error(e);
+      setErrorMsg("合成に失敗しました。スライドの組み合わせをご確認ください。");
+    } finally {
+      setBusy(false);
+    }
+  }, [cart, cartTotal]);
+
   // Remove selected slides from the ACTIVE deck (keep the rest), persist.
   const deleteSelected = useCallback(async () => {
     if (!bufRef.current || !activeId || selected.size === 0) return;
@@ -271,6 +316,11 @@ export default function PptStudioPage() {
       }
       const remaining = decksRef.current.filter((d) => d.id !== id);
       setDecks(remaining);
+      setCart((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
       if (activeId === id) {
         if (remaining.length > 0) {
           setActiveId(remaining[remaining.length - 1].id);
@@ -428,6 +478,18 @@ export default function PptStudioPage() {
               </button>
               <button
                 type="button"
+                onClick={addToCart}
+                disabled={selected.size === 0 || busy}
+                className="inline-flex items-center gap-1.5 rounded-full border border-violet-300 bg-violet-50 px-3 py-2 text-sm font-bold text-violet-700 transition hover:bg-violet-100 disabled:cursor-not-allowed disabled:opacity-40"
+                title="他ファイルのスライドと合成するためカートに追加"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
+                  <path d="M6 6h15l-1.5 9h-12L6 6zM6 6L5 3H2m4 17a1 1 0 100 2 1 1 0 000-2zm12 0a1 1 0 100 2 1 1 0 000-2z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+                カートに追加
+              </button>
+              <button
+                type="button"
                 onClick={download}
                 disabled={selected.size === 0 || busy}
                 className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-violet-500/30 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
@@ -503,6 +565,48 @@ export default function PptStudioPage() {
         {/* Deck switcher + grid */}
         {hasDecks && (
           <>
+            {/* Cross-deck merge cart */}
+            {cartTotal > 0 && (
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-violet-200 bg-violet-50/70 px-4 py-3">
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="font-bold text-violet-800">
+                    🛒 合成カート：{cartTotal}枚
+                  </span>
+                  <span className="text-violet-500">
+                    （
+                    {Object.entries(cart)
+                      .filter(([, a]) => a.length > 0)
+                      .map(([id, a]) => {
+                        const nm = decks.find((d) => d.id === id)?.name ?? "?";
+                        return `${nm.replace(/\.pptx$/i, "")} ${a.length}`;
+                      })
+                      .join(" / ")}
+                    ）
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={clearCart}
+                    className="rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-slate-300"
+                  >
+                    空にする
+                  </button>
+                  <button
+                    type="button"
+                    onClick={mergeDownload}
+                    disabled={busy}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-violet-500/30 transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+                      <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                    {busy ? "合成中…" : "合成してDL（.pptx）"}
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Deck chips */}
             <div className="mb-5 flex flex-wrap items-center gap-2">
               {decks.map((d) => {
