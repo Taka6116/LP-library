@@ -1,12 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type {
   BuilderMode,
   SectionPattern,
   SelectedSections,
 } from "@/types/section";
 import { sortedCategories } from "@/data/sectionLibrary";
+import {
+  loadWorking,
+  saveWorking,
+  type LpComposition,
+} from "@/lib/lpCompositions";
 import { BuilderHeader } from "@/components/BuilderHeader";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { SectionPatternCard } from "@/components/SectionPatternCard";
@@ -29,7 +34,13 @@ export default function Page() {
   const [activeCategoryId, setActiveCategoryId] = useState<string>(
     sortedCategories[0]?.id ?? "hero",
   );
-  const [selected, setSelected] = useState<SelectedSections>({});
+  // 作業状態（選択 + 並び順）は localStorage から復元して初期化。
+  const [selected, setSelected] = useState<SelectedSections>(
+    () => loadWorking()?.selected ?? {},
+  );
+  const [order, setOrder] = useState<string[]>(
+    () => loadWorking()?.order ?? [],
+  );
   // 「選択済みセクション」はレイアウトを圧迫しないよう、右からのスライドオーバーで表示。
   const [panelOpen, setPanelOpen] = useState(false);
 
@@ -37,6 +48,31 @@ export default function Page() {
   const activeCategory =
     sortedCategories.find((c) => c.id === activeCategoryId) ??
     sortedCategories[0];
+
+  // 並び順を選択状態と同期（新規は category.order で末尾追加、解除分は除去）。
+  useEffect(() => {
+    setOrder((prev) => {
+      const ids = Object.keys(selected);
+      const kept = prev.filter((id) => ids.includes(id));
+      const added = ids
+        .filter((id) => !prev.includes(id))
+        .sort((a, b) => {
+          const oa = sortedCategories.find((c) => c.id === a)?.order ?? 999;
+          const ob = sortedCategories.find((c) => c.id === b)?.order ?? 999;
+          return oa - ob;
+        });
+      const next = [...kept, ...added];
+      if (next.length === prev.length && next.every((v, i) => v === prev[i])) {
+        return prev;
+      }
+      return next;
+    });
+  }, [selected]);
+
+  // 作業状態を自動保存（リロードしても消えない）。
+  useEffect(() => {
+    saveWorking({ selected, order });
+  }, [selected, order]);
 
   function handleSelect(section: SectionPattern) {
     // 同カテゴリ内では1つだけ。別を選べば上書き。
@@ -53,7 +89,19 @@ export default function Page() {
 
   function handleReset() {
     setSelected({});
+    setOrder([]);
   }
+
+  const handleReorder = useCallback((nextOrder: string[]) => {
+    setOrder(nextOrder);
+  }, []);
+
+  const handleLoadComposition = useCallback((comp: LpComposition) => {
+    setSelected(comp.selected);
+    setOrder(comp.order);
+    setMode("preview");
+    setPanelOpen(false);
+  }, []);
 
   function handleJumpToCategory(categoryId: string) {
     setActiveCategoryId(categoryId);
@@ -134,8 +182,11 @@ export default function Page() {
           <GeneratedLPPreview
             categories={sortedCategories}
             selected={selected}
+            order={order}
+            onReorder={handleReorder}
             onChangeCategory={handleJumpToCategory}
             onRemove={handleRemove}
+            onLoadComposition={handleLoadComposition}
           />
         </main>
       )}
