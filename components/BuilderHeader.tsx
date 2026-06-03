@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { BuilderMode } from "@/types/section";
 import { ModeToggle } from "./ModeToggle";
+import { useDark } from "./ThemeProvider";
 
 type Props = {
   mode: BuilderMode;
@@ -19,10 +20,11 @@ export function BuilderHeader({
   onReset,
   onOpenSelected,
 }: Props) {
+  const { dark, toggle } = useDark();
   return (
     <header className="sticky top-0 z-40 px-3 pt-3 sm:px-4">
-      {/* 立体的なグラスバー: 半透明 + ブラー + ハイライト枠 + Violet系の落ち影 */}
-      <div className="relative mx-auto flex max-w-7xl flex-col gap-3 overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-b from-white/85 to-white/55 px-4 py-3 shadow-[0_12px_34px_-12px_rgba(76,29,149,0.35)] ring-1 ring-inset ring-white/60 backdrop-blur-xl sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:py-4">
+      {/* 立体的なグラスバー */}
+      <div className="relative mx-auto flex max-w-7xl flex-col gap-3 overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-b from-white/85 to-white/55 px-4 py-3 shadow-[0_12px_34px_-12px_rgba(76,29,149,0.35)] ring-1 ring-inset ring-white/60 backdrop-blur-xl dark:border-slate-700/60 dark:from-slate-900/90 dark:to-slate-900/70 dark:shadow-[0_12px_34px_-12px_rgba(0,0,0,0.5)] dark:ring-slate-700/40 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:py-4">
         {/* 上端の光沢ハイライト */}
         <span
           aria-hidden
@@ -35,16 +37,22 @@ export function BuilderHeader({
         />
         <div className="flex items-center gap-3">
           <div>
-            <h1 className="text-base font-bold leading-tight text-slate-900 sm:text-lg">
+            <Link href="/" className="text-base font-bold leading-tight text-slate-900 hover:text-violet-700 dark:text-white dark:hover:text-violet-400 sm:text-lg">
               LP Builder Library
-            </h1>
-            <p className="text-xs text-slate-500">
+            </Link>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
               Select sections. Generate reusable landing pages.
             </p>
           </div>
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {/* Dark mode toggle */}
+          <button type="button" onClick={toggle}
+            aria-label={dark ? "ライトモードに切替" : "ダークモードに切替"}
+            className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white/60 text-sm transition hover:border-violet-300 hover:bg-violet-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-500">
+            {dark ? "☀️" : "🌙"}
+          </button>
           {/* Brand Kit — shared brand tokens for all modules */}
           <Link
             href="/brand"

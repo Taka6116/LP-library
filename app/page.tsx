@@ -1,349 +1,242 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
-import type {
-  BuilderMode,
-  SectionPattern,
-  SelectedSections,
-} from "@/types/section";
-import { sortedCategories } from "@/data/sectionLibrary";
-import {
-  loadWorking,
-  saveWorking,
-  type LpComposition,
-} from "@/lib/lpCompositions";
-import { loadBookmarks, saveBookmarks } from "@/lib/bookmarks";
-import { BuilderHeader } from "@/components/BuilderHeader";
-import { CategoryTabs } from "@/components/CategoryTabs";
-import { SectionPatternCard } from "@/components/SectionPatternCard";
-import { SelectedSectionsPanel } from "@/components/SelectedSectionsPanel";
-import { GeneratedLPPreview } from "@/components/GeneratedLPPreview";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { useDark } from "@/components/ThemeProvider";
+import { listCompositions } from "@/lib/lpCompositions";
+import { loadBookmarks } from "@/lib/bookmarks";
+import { loadCopy, loadSwipe } from "@/lib/swipe/store";
+import { listDecks } from "@/lib/pptx/deckStore";
+import { loadBrand } from "@/lib/brand/store";
 
-// 開発確認用の初期選択サンプル（必要なときだけ有効化）:
-// const initialSelectedSections: SelectedSections = {
-//   hero: "hero-problem-first",
-//   problem: "problem-hidden-cost",
-//   solution: "solution-three-pillars",
-//   benefit: "benefit-kpi-grid",
-//   cta: "cta-final",
-// };
+const MODULES = [
+  {
+    href: "/library",
+    icon: "🧱",
+    name: "LP Library",
+    nameJa: "LPライブラリ",
+    desc: "セクションを組み合わせてLP・資料の構成を作る",
+    gradient: "from-violet-600 to-fuchsia-500",
+    border: "border-violet-200 dark:border-violet-800",
+    bg: "bg-violet-50 dark:bg-violet-950/30",
+  },
+  {
+    href: "/ppt",
+    icon: "📊",
+    name: "PPT Studio",
+    nameJa: "スライド抽出",
+    desc: "複数デッキからスライドを選んで合成・書き出し",
+    gradient: "from-orange-500 to-amber-500",
+    border: "border-orange-200 dark:border-orange-800",
+    bg: "bg-orange-50 dark:bg-orange-950/30",
+  },
+  {
+    href: "/swipe",
+    icon: "◆",
+    name: "Swipe Bank",
+    nameJa: "参考・文言",
+    desc: "参考URL・スクショ・コピースニペットを貯める",
+    gradient: "from-rose-500 to-pink-500",
+    border: "border-rose-200 dark:border-rose-800",
+    bg: "bg-rose-50 dark:bg-rose-950/30",
+  },
+  {
+    href: "/email",
+    icon: "✉",
+    name: "Mail Builder",
+    nameJa: "メール作成",
+    desc: "ブロックを組み合わせてHTMLメールを書き出し",
+    gradient: "from-emerald-500 to-teal-500",
+    border: "border-emerald-200 dark:border-emerald-800",
+    bg: "bg-emerald-50 dark:bg-emerald-950/30",
+  },
+  {
+    href: "/social",
+    icon: "↻",
+    name: "Social Repurpose",
+    nameJa: "SNS展開",
+    desc: "1本の内容をX・LinkedIn・Instagramに最適化",
+    gradient: "from-sky-500 to-cyan-500",
+    border: "border-sky-200 dark:border-sky-800",
+    bg: "bg-sky-50 dark:bg-sky-950/30",
+  },
+  {
+    href: "/brand",
+    icon: "🎨",
+    name: "Brand Kit",
+    nameJa: "ブランド設定",
+    desc: "色・フォント・トーンを1か所で定義し全体に適用",
+    gradient: "from-violet-600 to-indigo-500",
+    border: "border-indigo-200 dark:border-indigo-800",
+    bg: "bg-indigo-50 dark:bg-indigo-950/30",
+  },
+] as const;
 
-export default function Page() {
-  // 状態は今は useState。将来 Zustand などへ移行しやすいよう、
-  // 操作はすべて下記のハンドラ経由に集約している。
-  const [mode, setMode] = useState<BuilderMode>("library");
-  const [activeCategoryId, setActiveCategoryId] = useState<string>(
-    sortedCategories[0]?.id ?? "hero",
-  );
-  // 作業状態（選択 + 並び順）は localStorage から復元して初期化。
-  const [selected, setSelected] = useState<SelectedSections>(
-    () => loadWorking()?.selected ?? {},
-  );
-  const [order, setOrder] = useState<string[]>(
-    () => loadWorking()?.order ?? [],
-  );
-  // 「選択済みセクション」はレイアウトを圧迫しないよう、右からのスライドオーバーで表示。
-  const [panelOpen, setPanelOpen] = useState(false);
+type Stats = {
+  compositions: number;
+  bookmarks: number;
+  copyBank: number;
+  pptDecks: number;
+  swipes: number;
+  brandName: string;
+};
 
-  const selectedCount = Object.keys(selected).length;
-  const activeCategory =
-    sortedCategories.find((c) => c.id === activeCategoryId) ??
-    sortedCategories[0];
+export default function DashboardPage() {
+  const { dark, toggle } = useDark();
+  const [stats, setStats] = useState<Stats>({
+    compositions: 0,
+    bookmarks: 0,
+    copyBank: 0,
+    pptDecks: 0,
+    swipes: 0,
+    brandName: "",
+  });
+  const [recentComps, setRecentComps] = useState<{ name: string; sections: number }[]>([]);
 
-  // 並び順を選択状態と同期（新規は category.order で末尾追加、解除分は除去）。
   useEffect(() => {
-    setOrder((prev) => {
-      const ids = Object.keys(selected);
-      const kept = prev.filter((id) => ids.includes(id));
-      const added = ids
-        .filter((id) => !prev.includes(id))
-        .sort((a, b) => {
-          const oa = sortedCategories.find((c) => c.id === a)?.order ?? 999;
-          const ob = sortedCategories.find((c) => c.id === b)?.order ?? 999;
-          return oa - ob;
-        });
-      const next = [...kept, ...added];
-      if (next.length === prev.length && next.every((v, i) => v === prev[i])) {
-        return prev;
-      }
-      return next;
+    const comps = listCompositions();
+    const bm = loadBookmarks();
+    const cp = loadCopy();
+    const brand = loadBrand();
+    setStats({
+      compositions: comps.length,
+      bookmarks: bm.length,
+      copyBank: cp.length,
+      pptDecks: 0,
+      swipes: 0,
+      brandName: brand.companyName !== "Your Company" ? brand.companyName : "",
     });
-  }, [selected]);
-
-  // 作業状態を自動保存（リロードしても消えない）。
-  useEffect(() => {
-    saveWorking({ selected, order });
-  }, [selected, order]);
-
-  function handleSelect(section: SectionPattern) {
-    // 同カテゴリ内では1つだけ。別を選べば上書き。
-    setSelected((prev) => ({ ...prev, [section.categoryId]: section.id }));
-  }
-
-  function handleRemove(categoryId: string) {
-    setSelected((prev) => {
-      const next = { ...prev };
-      delete next[categoryId];
-      return next;
-    });
-  }
-
-  function handleReset() {
-    setSelected({});
-    setOrder([]);
-  }
-
-  const handleReorder = useCallback((nextOrder: string[]) => {
-    setOrder(nextOrder);
-  }, []);
-
-  const handleLoadComposition = useCallback((comp: LpComposition) => {
-    setSelected(comp.selected);
-    setOrder(comp.order);
-    setMode("preview");
-    setPanelOpen(false);
-  }, []);
-
-  function handleJumpToCategory(categoryId: string) {
-    setActiveCategoryId(categoryId);
-    setMode("library");
-    setPanelOpen(false);
-  }
-
-  function handleGeneratePreview() {
-    setMode("preview");
-    setPanelOpen(false);
-  }
-
-  // ---- Bookmarks + cross-category search ----
-  const [bookmarks, setBookmarks] = useState<string[]>(() => loadBookmarks());
-  const [query, setQuery] = useState("");
-  const [favOnly, setFavOnly] = useState(false);
-
-  useEffect(() => {
-    saveBookmarks(bookmarks);
-  }, [bookmarks]);
-
-  const toggleBookmark = useCallback((id: string) => {
-    setBookmarks((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    setRecentComps(
+      comps.slice(0, 3).map(c => ({
+        name: c.name,
+        sections: Object.keys(c.selected).length,
+      }))
     );
+    // IndexedDB calls (async)
+    listDecks().then(d => setStats(s => ({ ...s, pptDecks: d.length }))).catch(() => {});
+    loadSwipe().then(sw => setStats(s => ({ ...s, swipes: sw.length }))).catch(() => {});
   }, []);
-
-  const q = query.trim().toLowerCase();
-  const isSearching = q.length > 0 || favOnly;
-  const searchResults = sortedCategories
-    .flatMap((c) => c.sections.map((s) => ({ s, c })))
-    .filter(({ s, c }) => {
-      if (favOnly && !bookmarks.includes(s.id)) return false;
-      if (!q) return true;
-      const hay = [
-        s.title,
-        s.description,
-        s.componentType,
-        c.label,
-        c.labelJa,
-        ...s.tags,
-      ]
-        .join(" ")
-        .toLowerCase();
-      return hay.includes(q);
-    });
 
   return (
-    <div className="relative min-h-screen">
-      {/* 背景: 淡いVioletグラデーション + ブロブ（グラスモーフィズムの下地） */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-violet-50 via-white to-fuchsia-50"
-      >
-        <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-violet-300/30 blur-3xl" />
-        <div className="absolute right-0 top-40 h-80 w-80 rounded-full bg-fuchsia-300/25 blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-indigo-300/20 blur-3xl" />
+    <div className="relative min-h-screen dark:bg-slate-950">
+      {/* Background blobs */}
+      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute -left-24 top-10 h-96 w-96 rounded-full bg-violet-400/15 blur-3xl dark:bg-violet-600/10" />
+        <div className="absolute right-0 top-40 h-96 w-96 rounded-full bg-fuchsia-400/10 blur-3xl dark:bg-fuchsia-600/8" />
+        <div className="absolute bottom-20 left-1/3 h-80 w-80 rounded-full bg-indigo-400/10 blur-3xl dark:bg-indigo-600/8" />
+        <div className="absolute inset-0 bg-gradient-to-b from-violet-50/80 via-white/60 to-fuchsia-50/80 dark:from-slate-950 dark:via-slate-950/95 dark:to-slate-950" />
       </div>
 
-      <BuilderHeader
-        mode={mode}
-        onModeChange={setMode}
-        selectedCount={selectedCount}
-        onReset={handleReset}
-        onOpenSelected={() => setPanelOpen(true)}
-      />
-
-      {mode === "library" ? (
-        <main
-          className={
-            activeCategoryId === "cta" && !isSearching
-              ? "mx-auto max-w-none px-3 py-6 sm:px-3 sm:py-8"
-              : "mx-auto max-w-6xl px-4 py-6 sm:px-6 sm:py-8"
-          }
-        >
-          {/* 横断検索 + お気に入りフィルタ */}
-          <div className="mb-5 flex flex-wrap items-center gap-2">
-            <div className="relative flex-1 min-w-[220px]">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                ⌕
-              </span>
-              <input
-                type="text"
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder="全カテゴリから検索（名前・タグ・カテゴリ…）"
-                className="w-full rounded-full border border-slate-200 bg-white/80 py-2 pl-9 pr-4 text-sm text-slate-700 shadow-sm outline-none transition focus:border-violet-300 focus:ring-2 focus:ring-violet-200"
-              />
-              {query && (
-                <button
-                  type="button"
-                  onClick={() => setQuery("")}
-                  aria-label="検索をクリア"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
-                >
-                  ✕
-                </button>
-              )}
+      {/* Top bar */}
+      <header className="sticky top-0 z-40 px-4 pt-4">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 rounded-2xl border border-white/60 bg-white/70 px-5 py-3 shadow-lg backdrop-blur-xl dark:border-slate-700/60 dark:bg-slate-900/70">
+          <div className="flex items-center gap-3">
+            <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 text-base shadow-md">
+              🛠
             </div>
-            <button
-              type="button"
-              onClick={() => setFavOnly((v) => !v)}
-              className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-bold transition ${
-                favOnly
-                  ? "border-amber-300 bg-amber-50 text-amber-600"
-                  : "border-slate-200 bg-white/80 text-slate-600 hover:border-amber-300 hover:text-amber-600"
-              }`}
-            >
-              {favOnly ? "★" : "☆"} お気に入り
-              <span className="text-xs font-normal text-slate-400">
-                {bookmarks.length}
-              </span>
-            </button>
-          </div>
-
-          {isSearching ? (
-            /* ---- 横断検索結果 ---- */
-            <div className="animate-fadeIn space-y-4">
-              <p className="text-sm font-semibold text-slate-600">
-                {favOnly ? "お気に入り" : "検索結果"}
-                <span className="ml-2 text-slate-400">{searchResults.length} 件</span>
+            <div>
+              <h1 className="text-sm font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-base">
+                Marketer's Studio
+              </h1>
+              <p className="text-[10px] text-slate-400 dark:text-slate-500">
+                {stats.brandName ? `${stats.brandName} のワークスペース` : "マーケ制作の母艦"}
               </p>
-              {searchResults.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 px-6 py-16 text-center text-sm text-slate-400">
-                  {favOnly
-                    ? "お気に入りはまだありません。各セクションの ☆ を押すと追加できます。"
-                    : "一致するセクションがありません。"}
-                </div>
-              ) : (
-                <div className="space-y-8">
-                  {searchResults.map(({ s, c }) => (
-                    <div key={s.id}>
-                      <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-violet-500">
-                        {c.label} · {c.labelJa}
-                      </div>
-                      <SectionPatternCard
-                        section={s}
-                        selected={selected[c.id] === s.id}
-                        bookmarked={bookmarks.includes(s.id)}
-                        onSelect={handleSelect}
-                        onRemove={handleRemove}
-                        onToggleBookmark={toggleBookmark}
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
-          ) : (
-            <>
-              <CategoryTabs
-                categories={sortedCategories}
-                activeCategoryId={activeCategoryId}
-                selected={selected}
-                onSelectCategory={setActiveCategoryId}
-              />
-
-              {activeCategory && (
-                <div key={activeCategory.id} className="mt-6 animate-fadeIn space-y-4">
-                  <div className="flex items-baseline gap-2">
-                    <h2 className="text-lg font-bold text-slate-900">
-                      {activeCategory.label}
-                    </h2>
-                    <span className="text-sm text-slate-400">
-                      {activeCategory.labelJa}
-                    </span>
-                  </div>
-                  <p className="text-sm text-slate-500">
-                    {activeCategory.description}
-                  </p>
-
-                  <div className="space-y-8">
-                    {activeCategory.sections.map((section) => (
-                      <SectionPatternCard
-                        key={section.id}
-                        section={section}
-                        selected={selected[activeCategory.id] === section.id}
-                        bookmarked={bookmarks.includes(section.id)}
-                        onSelect={handleSelect}
-                        onRemove={handleRemove}
-                        onToggleBookmark={toggleBookmark}
-                      />
-                    ))}
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </main>
-      ) : (
-        <main>
-          <GeneratedLPPreview
-            categories={sortedCategories}
-            selected={selected}
-            order={order}
-            onReorder={handleReorder}
-            onChangeCategory={handleJumpToCategory}
-            onRemove={handleRemove}
-            onLoadComposition={handleLoadComposition}
-          />
-        </main>
-      )}
-
-      {/* 選択済みセクション: 右からのスライドオーバー（本文幅を圧迫しない） */}
-      {panelOpen && (
-        <div className="fixed inset-0 z-50">
-          <div
-            className="absolute inset-0 bg-slate-900/30 backdrop-blur-[1px] animate-fadeInSlow"
-            onClick={() => setPanelOpen(false)}
-            aria-hidden
-          />
-          <aside className="absolute right-0 top-0 flex h-full w-full max-w-sm flex-col border-l border-white/50 bg-white/80 shadow-2xl backdrop-blur-xl">
-            <div className="flex items-center justify-between border-b border-white/60 px-5 py-4">
-              <span className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-700">
-                Selected Sections
-                <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 px-2 text-xs font-semibold text-white">
-                  {selectedCount}
-                </span>
-              </span>
-              <button
-                type="button"
-                onClick={() => setPanelOpen(false)}
-                aria-label="閉じる"
-                className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
-              >
-                ✕
-              </button>
-            </div>
-            <div className="flex-1 overflow-y-auto p-5">
-              <SelectedSectionsPanel
-                categories={sortedCategories}
-                selected={selected}
-                onGeneratePreview={handleGeneratePreview}
-                onReset={handleReset}
-                onJumpToCategory={handleJumpToCategory}
-                onRemove={handleRemove}
-              />
-            </div>
-          </aside>
+          </div>
+          <button
+            type="button"
+            onClick={toggle}
+            aria-label={dark ? "ライトモードに切替" : "ダークモードに切替"}
+            className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white/60 text-lg transition hover:border-violet-300 hover:bg-violet-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-500"
+          >
+            {dark ? "☀️" : "🌙"}
+          </button>
         </div>
-      )}
+      </header>
+
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+        {/* Hero */}
+        <div className="mb-10 text-center">
+          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
+            今日は何を作りますか？
+          </h2>
+          <p className="mt-2 text-base text-slate-500 dark:text-slate-400">
+            LP・PPT・メール・SNS投稿——マーケ制作を一か所で。
+          </p>
+        </div>
+
+        {/* Stats */}
+        <div className="mb-10 grid grid-cols-2 gap-3 sm:grid-cols-5">
+          {[
+            { label: "LP構成", value: stats.compositions, href: "/library" },
+            { label: "お気に入り", value: stats.bookmarks, href: "/library" },
+            { label: "コピーバンク", value: stats.copyBank, href: "/swipe" },
+            { label: "PPTデッキ", value: stats.pptDecks, href: "/ppt" },
+            { label: "スワイプ", value: stats.swipes, href: "/swipe" },
+          ].map(s => (
+            <Link key={s.label} href={s.href}
+              className="flex flex-col items-center rounded-2xl border border-slate-200/80 bg-white/60 px-3 py-4 text-center backdrop-blur transition hover:border-violet-200 hover:bg-white dark:border-slate-700/60 dark:bg-slate-800/60 dark:hover:border-violet-600">
+              <span className="text-2xl font-extrabold text-violet-600 dark:text-violet-400">
+                {s.value}
+              </span>
+              <span className="mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
+                {s.label}
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        {/* Module grid */}
+        <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {MODULES.map(m => (
+            <Link key={m.href} href={m.href}
+              className={`group flex items-start gap-4 rounded-2xl border p-5 backdrop-blur transition hover:shadow-md ${m.bg} ${m.border}`}>
+              <div className={`grid h-12 w-12 flex-shrink-0 place-items-center rounded-xl bg-gradient-to-br text-2xl shadow-sm ${m.gradient}`}>
+                {m.icon}
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-baseline gap-2">
+                  <p className="font-bold text-slate-900 dark:text-white">{m.name}</p>
+                  <span className="text-xs text-slate-400 dark:text-slate-500">{m.nameJa}</span>
+                </div>
+                <p className="mt-1 text-sm leading-snug text-slate-500 dark:text-slate-400">{m.desc}</p>
+              </div>
+              <span className="ml-auto shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-slate-500 dark:text-slate-600 dark:group-hover:text-slate-300">
+                →
+              </span>
+            </Link>
+          ))}
+        </div>
+
+        {/* Recent LP compositions */}
+        {recentComps.length > 0 && (
+          <div>
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
+                最近のLP構成
+              </p>
+              <Link href="/library"
+                className="text-xs font-semibold text-violet-600 hover:underline dark:text-violet-400">
+                すべて見る →
+              </Link>
+            </div>
+            <div className="grid gap-2 sm:grid-cols-3">
+              {recentComps.map(c => (
+                <Link key={c.name} href="/library"
+                  className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white/70 px-4 py-3 text-sm transition hover:border-violet-200 hover:bg-white dark:border-slate-700 dark:bg-slate-800/70 dark:hover:border-violet-600">
+                  <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-500 text-[10px] text-white">
+                    LP
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-slate-800 dark:text-slate-200">{c.name}</p>
+                    <p className="text-xs text-slate-400">{c.sections} sections</p>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+      </main>
     </div>
   );
 }
