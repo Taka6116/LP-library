@@ -65,6 +65,22 @@ export function BuilderHeader({
             </span>
             Swipe
           </Link>
+          {/* Mail — HTML email builder */}
+          <Link
+            href="/email"
+            className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/70 bg-gradient-to-br from-emerald-500 to-teal-500 px-3 py-1.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110"
+          >
+            <span className="text-[11px]">✉</span>
+            Mail
+          </Link>
+          {/* Social — repurpose to SNS posts */}
+          <Link
+            href="/social"
+            className="inline-flex items-center gap-1.5 rounded-full border border-sky-300/70 bg-gradient-to-br from-sky-500 to-cyan-500 px-3 py-1.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110"
+          >
+            <span className="text-[11px]">↻</span>
+            Social
+          </Link>
           <ModeToggle mode={mode} onChange={onModeChange} />
           <button
             type="button"
