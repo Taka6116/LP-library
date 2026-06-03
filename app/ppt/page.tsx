@@ -46,6 +46,8 @@ export default function PptStudioPage() {
   const renderTokenRef = useRef(0);
   const decksRef = useRef<DeckMeta[]>([]);
   decksRef.current = decks;
+  // Cache rendered slide markup per deck → instant re-display on switch.
+  const renderCacheRef = useRef<Map<string, string[]>>(new Map());
 
   const resetRender = useCallback(() => {
     cellRefs.current = [];
@@ -152,40 +154,55 @@ export default function PptStudioPage() {
     };
   }, [activeId, loadFromBuffer]);
 
-  // Render all slides of the active deck (list mode), then mount each node.
+  // Render the active deck's slides — cached per deck for instant re-display.
   useEffect(() => {
-    if (status !== "loading" || slideCount === 0 || !bufRef.current) return;
+    if (status !== "loading" || slideCount === 0 || !bufRef.current || !activeId) return;
     const token = ++renderTokenRef.current;
+    const deckId = activeId;
 
     (async () => {
       try {
+        // 1) Let the skeleton grid paint before any heavy work.
+        await new Promise((r) => requestAnimationFrame(() => r(null)));
+        if (token !== renderTokenRef.current) return;
+
+        // 2) Cache hit → fill cells instantly, no re-parse/re-render.
+        const cached = renderCacheRef.current.get(deckId);
+        if (cached && cached.length === slideCount) {
+          for (let i = 0; i < slideCount; i++) {
+            const cell = cellRefs.current[i];
+            if (cell) cell.innerHTML = cached[i] ?? "";
+          }
+          setStatus("ready");
+          return;
+        }
+
+        // 3) First render of this deck.
         const { init } = await import("pptx-preview");
         const host = offscreenRef.current;
         if (!host) return;
         host.innerHTML = "";
-
-        const previewer = init(host, {
-          mode: "list",
-          width: THUMB_W,
-          height: THUMB_H,
-        });
+        const previewer = init(host, { mode: "list", width: THUMB_W, height: THUMB_H });
         previewerRef.current = previewer;
 
         await previewer.preview(bufRef.current!.slice(0));
         if (token !== renderTokenRef.current) return;
 
-        const nodes = host.querySelectorAll<HTMLElement>(
-          ".pptx-preview-slide-wrapper",
-        );
+        const nodes = host.querySelectorAll<HTMLElement>(".pptx-preview-slide-wrapper");
+        const cacheArr: string[] = [];
         for (let i = 0; i < slideCount; i++) {
           const cell = cellRefs.current[i];
           const node = nodes[i];
+          if (node) {
+            node.style.margin = "0";
+            cacheArr[i] = node.outerHTML;
+          }
           if (cell && node) {
             cell.innerHTML = "";
-            node.style.margin = "0";
             cell.appendChild(node);
           }
         }
+        renderCacheRef.current.set(deckId, cacheArr);
         setStatus("ready");
       } catch (e) {
         console.error(e);
@@ -195,7 +212,7 @@ export default function PptStudioPage() {
         }
       }
     })();
-  }, [status, slideCount]);
+  }, [status, slideCount, activeId]);
 
   const toggle = useCallback((i: number) => {
     setSelected((prev) => {
@@ -292,6 +309,7 @@ export default function PptStudioPage() {
       const blob = await buildPptxSubset(bufRef.current.slice(0), keep);
       const newBuf = await blob.arrayBuffer();
       await updateDeck(activeId, { buf: newBuf.slice(0), slideCount: keep.length });
+      renderCacheRef.current.delete(activeId); // content changed → invalidate
       setDecks((prev) =>
         prev.map((d) =>
           d.id === activeId ? { ...d, slideCount: keep.length } : d,
@@ -314,6 +332,7 @@ export default function PptStudioPage() {
       } catch {
         /* noop */
       }
+      renderCacheRef.current.delete(id);
       const remaining = decksRef.current.filter((d) => d.id !== id);
       setDecks(remaining);
       setCart((prev) => {
@@ -715,6 +734,13 @@ export default function PptStudioPage() {
                       className="flex items-center justify-center bg-slate-50"
                       style={{ width: "100%", height: THUMB_H, overflow: "hidden" }}
                     />
+                    {/* Skeleton overlay while rendering (sibling — never touched by the JS that fills the cell) */}
+                    {status === "loading" && (
+                      <div
+                        className="pointer-events-none absolute inset-0 animate-pulse bg-gradient-to-br from-slate-100 via-slate-200 to-slate-100"
+                        style={{ height: THUMB_H }}
+                      />
+                    )}
                     {/* Checkbox */}
                     <span
                       className={`absolute left-2 top-2 grid h-6 w-6 place-items-center rounded-md border-2 text-xs font-bold transition ${
