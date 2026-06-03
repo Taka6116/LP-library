@@ -8,233 +8,131 @@ import { loadBookmarks } from "@/lib/bookmarks";
 import { loadCopy, loadSwipe } from "@/lib/swipe/store";
 import { listDecks } from "@/lib/pptx/deckStore";
 import { loadBrand } from "@/lib/brand/store";
+import {
+  IconLayers, IconPresentation, IconBookmark, IconMail, IconRepeat,
+  IconPalette, IconSun, IconMoon, IconArrowRight, IconTool,
+} from "@/components/icons";
 
 const MODULES = [
-  {
-    href: "/library",
-    icon: "🧱",
-    name: "LP Library",
-    nameJa: "LPライブラリ",
-    desc: "セクションを組み合わせてLP・資料の構成を作る",
-    gradient: "from-violet-600 to-fuchsia-500",
-    border: "border-violet-200 dark:border-violet-800",
-    bg: "bg-violet-50 dark:bg-violet-950/30",
-  },
-  {
-    href: "/ppt",
-    icon: "📊",
-    name: "PPT Studio",
-    nameJa: "スライド抽出",
-    desc: "複数デッキからスライドを選んで合成・書き出し",
-    gradient: "from-orange-500 to-amber-500",
-    border: "border-orange-200 dark:border-orange-800",
-    bg: "bg-orange-50 dark:bg-orange-950/30",
-  },
-  {
-    href: "/swipe",
-    icon: "◆",
-    name: "Swipe Bank",
-    nameJa: "参考・文言",
-    desc: "参考URL・スクショ・コピースニペットを貯める",
-    gradient: "from-rose-500 to-pink-500",
-    border: "border-rose-200 dark:border-rose-800",
-    bg: "bg-rose-50 dark:bg-rose-950/30",
-  },
-  {
-    href: "/email",
-    icon: "✉",
-    name: "Mail Builder",
-    nameJa: "メール作成",
-    desc: "ブロックを組み合わせてHTMLメールを書き出し",
-    gradient: "from-emerald-500 to-teal-500",
-    border: "border-emerald-200 dark:border-emerald-800",
-    bg: "bg-emerald-50 dark:bg-emerald-950/30",
-  },
-  {
-    href: "/social",
-    icon: "↻",
-    name: "Social Repurpose",
-    nameJa: "SNS展開",
-    desc: "1本の内容をX・LinkedIn・Instagramに最適化",
-    gradient: "from-sky-500 to-cyan-500",
-    border: "border-sky-200 dark:border-sky-800",
-    bg: "bg-sky-50 dark:bg-sky-950/30",
-  },
-  {
-    href: "/brand",
-    icon: "🎨",
-    name: "Brand Kit",
-    nameJa: "ブランド設定",
-    desc: "色・フォント・トーンを1か所で定義し全体に適用",
-    gradient: "from-violet-600 to-indigo-500",
-    border: "border-indigo-200 dark:border-indigo-800",
-    bg: "bg-indigo-50 dark:bg-indigo-950/30",
-  },
+  { href: "/library", Icon: IconLayers,       name: "LP Library",   nameJa: "セクションを組み合わせてLP・資料の構成を作る", tint: "text-indigo-600 dark:text-indigo-400", tintBg: "bg-indigo-50 dark:bg-indigo-500/10" },
+  { href: "/ppt",     Icon: IconPresentation, name: "PPT Studio",   nameJa: "複数デッキからスライドを選んで合成・書き出し", tint: "text-amber-600 dark:text-amber-400",   tintBg: "bg-amber-50 dark:bg-amber-500/10" },
+  { href: "/swipe",   Icon: IconBookmark,     name: "Swipe Bank",   nameJa: "参考URL・スクショ・コピースニペットを貯める", tint: "text-rose-600 dark:text-rose-400",     tintBg: "bg-rose-50 dark:bg-rose-500/10" },
+  { href: "/email",   Icon: IconMail,         name: "Mail Builder", nameJa: "ブロックを組み合わせてHTMLメールを書き出し", tint: "text-emerald-600 dark:text-emerald-400", tintBg: "bg-emerald-50 dark:bg-emerald-500/10" },
+  { href: "/social",  Icon: IconRepeat,       name: "Social",       nameJa: "1本の内容をX・LinkedIn・Instagramに最適化", tint: "text-sky-600 dark:text-sky-400",       tintBg: "bg-sky-50 dark:bg-sky-500/10" },
+  { href: "/brand",   Icon: IconPalette,      name: "Brand Kit",    nameJa: "色・フォント・トーンを定義し全体に適用",     tint: "text-violet-600 dark:text-violet-400", tintBg: "bg-violet-50 dark:bg-violet-500/10" },
 ] as const;
-
-type Stats = {
-  compositions: number;
-  bookmarks: number;
-  copyBank: number;
-  pptDecks: number;
-  swipes: number;
-  brandName: string;
-};
 
 export default function DashboardPage() {
   const { dark, toggle } = useDark();
-  const [stats, setStats] = useState<Stats>({
-    compositions: 0,
-    bookmarks: 0,
-    copyBank: 0,
-    pptDecks: 0,
-    swipes: 0,
-    brandName: "",
-  });
-  const [recentComps, setRecentComps] = useState<{ name: string; sections: number }[]>([]);
+  const [stats, setStats] = useState({ compositions: 0, bookmarks: 0, copyBank: 0, pptDecks: 0, swipes: 0 });
+  const [brandName, setBrandName] = useState("");
+  const [recent, setRecent] = useState<{ name: string; sections: number }[]>([]);
 
   useEffect(() => {
     const comps = listCompositions();
-    const bm = loadBookmarks();
-    const cp = loadCopy();
     const brand = loadBrand();
-    setStats({
-      compositions: comps.length,
-      bookmarks: bm.length,
-      copyBank: cp.length,
-      pptDecks: 0,
-      swipes: 0,
-      brandName: brand.companyName !== "Your Company" ? brand.companyName : "",
-    });
-    setRecentComps(
-      comps.slice(0, 3).map(c => ({
-        name: c.name,
-        sections: Object.keys(c.selected).length,
-      }))
-    );
-    // IndexedDB calls (async)
+    setStats(s => ({ ...s, compositions: comps.length, bookmarks: loadBookmarks().length, copyBank: loadCopy().length }));
+    setBrandName(brand.companyName !== "Your Company" ? brand.companyName : "");
+    setRecent(comps.slice(0, 4).map(c => ({ name: c.name, sections: Object.keys(c.selected).length })));
     listDecks().then(d => setStats(s => ({ ...s, pptDecks: d.length }))).catch(() => {});
     loadSwipe().then(sw => setStats(s => ({ ...s, swipes: sw.length }))).catch(() => {});
   }, []);
 
-  return (
-    <div className="relative min-h-screen dark:bg-slate-950">
-      {/* Background blobs */}
-      <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -left-24 top-10 h-96 w-96 rounded-full bg-violet-400/15 blur-3xl dark:bg-violet-600/10" />
-        <div className="absolute right-0 top-40 h-96 w-96 rounded-full bg-fuchsia-400/10 blur-3xl dark:bg-fuchsia-600/8" />
-        <div className="absolute bottom-20 left-1/3 h-80 w-80 rounded-full bg-indigo-400/10 blur-3xl dark:bg-indigo-600/8" />
-        <div className="absolute inset-0 bg-gradient-to-b from-violet-50/80 via-white/60 to-fuchsia-50/80 dark:from-slate-950 dark:via-slate-950/95 dark:to-slate-950" />
-      </div>
+  const STATS = [
+    { label: "LP構成", value: stats.compositions, href: "/library" },
+    { label: "お気に入り", value: stats.bookmarks, href: "/library" },
+    { label: "コピー", value: stats.copyBank, href: "/swipe" },
+    { label: "PPTデッキ", value: stats.pptDecks, href: "/ppt" },
+    { label: "スワイプ", value: stats.swipes, href: "/swipe" },
+  ];
 
-      {/* Top bar */}
-      <header className="sticky top-0 z-40 px-4 pt-4">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 rounded-2xl border border-white/60 bg-white/70 px-5 py-3 shadow-lg backdrop-blur-xl dark:border-slate-700/60 dark:bg-slate-900/70">
-          <div className="flex items-center gap-3">
-            <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-500 text-base shadow-md">
-              🛠
+  return (
+    <div className="min-h-dvh bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
+      {/* Top bar — thin, sticky, hairline border */}
+      <header className="sticky top-0 z-40 border-b border-zinc-200/80 bg-zinc-50/80 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/80">
+        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-5 sm:px-6">
+          <div className="flex items-center gap-2.5">
+            <div className="grid h-7 w-7 place-items-center rounded-md bg-zinc-900 text-white dark:bg-white dark:text-zinc-900">
+              <IconTool className="h-4 w-4" />
             </div>
-            <div>
-              <h1 className="text-sm font-extrabold leading-tight tracking-tight text-slate-900 dark:text-white sm:text-base">
-                Marketer's Studio
-              </h1>
-              <p className="text-[10px] text-slate-400 dark:text-slate-500">
-                {stats.brandName ? `${stats.brandName} のワークスペース` : "マーケ制作の母艦"}
-              </p>
-            </div>
+            <span className="text-[15px] font-semibold tracking-tight">Marketer&apos;s Studio</span>
+            {brandName && (
+              <span className="hidden rounded-md border border-zinc-200 px-2 py-0.5 text-xs text-zinc-500 dark:border-zinc-700 dark:text-zinc-400 sm:inline">
+                {brandName}
+              </span>
+            )}
           </div>
-          <button
-            type="button"
-            onClick={toggle}
+          <button type="button" onClick={toggle}
             aria-label={dark ? "ライトモードに切替" : "ダークモードに切替"}
-            className="grid h-9 w-9 place-items-center rounded-xl border border-slate-200 bg-white/60 text-lg transition hover:border-violet-300 hover:bg-violet-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-500"
-          >
-            {dark ? "☀️" : "🌙"}
+            className="grid h-8 w-8 place-items-center rounded-md text-zinc-500 transition hover:bg-zinc-200/60 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50">
+            {dark ? <IconSun className="h-[18px] w-[18px]" /> : <IconMoon className="h-[18px] w-[18px]" />}
           </button>
         </div>
       </header>
 
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        {/* Hero */}
-        <div className="mb-10 text-center">
-          <h2 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white sm:text-4xl">
-            今日は何を作りますか？
-          </h2>
-          <p className="mt-2 text-base text-slate-500 dark:text-slate-400">
-            LP・PPT・メール・SNS投稿——マーケ制作を一か所で。
+      <main className="mx-auto max-w-6xl px-5 py-10 sm:px-6 sm:py-14">
+        {/* Heading — left aligned, restrained */}
+        <div className="mb-10">
+          <p className="mb-1.5 text-sm font-medium text-zinc-400 dark:text-zinc-500">ワークスペース</p>
+          <h1 className="text-2xl font-semibold tracking-tight sm:text-3xl">今日は何を作りますか？</h1>
+          <p className="mt-2 max-w-xl text-[15px] leading-relaxed text-zinc-500 dark:text-zinc-400">
+            LP・スライド・メール・SNS投稿——マーケティング制作を一つのワークスペースで。
           </p>
         </div>
 
-        {/* Stats */}
-        <div className="mb-10 grid grid-cols-2 gap-3 sm:grid-cols-5">
-          {[
-            { label: "LP構成", value: stats.compositions, href: "/library" },
-            { label: "お気に入り", value: stats.bookmarks, href: "/library" },
-            { label: "コピーバンク", value: stats.copyBank, href: "/swipe" },
-            { label: "PPTデッキ", value: stats.pptDecks, href: "/ppt" },
-            { label: "スワイプ", value: stats.swipes, href: "/swipe" },
-          ].map(s => (
+        {/* Stats — compact, hairline-separated inline */}
+        <div className="mb-10 flex flex-wrap items-stretch divide-x divide-zinc-200 overflow-hidden rounded-xl border border-zinc-200 bg-white dark:divide-zinc-800 dark:border-zinc-800 dark:bg-zinc-900">
+          {STATS.map(s => (
             <Link key={s.label} href={s.href}
-              className="flex flex-col items-center rounded-2xl border border-slate-200/80 bg-white/60 px-3 py-4 text-center backdrop-blur transition hover:border-violet-200 hover:bg-white dark:border-slate-700/60 dark:bg-slate-800/60 dark:hover:border-violet-600">
-              <span className="text-2xl font-extrabold text-violet-600 dark:text-violet-400">
-                {s.value}
-              </span>
-              <span className="mt-0.5 text-[11px] font-medium text-slate-500 dark:text-slate-400">
-                {s.label}
-              </span>
+              className="group flex flex-1 flex-col gap-0.5 px-5 py-4 transition hover:bg-zinc-50 dark:hover:bg-zinc-800/50">
+              <span className="font-mono text-xl font-semibold tabular-nums tracking-tight">{s.value}</span>
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">{s.label}</span>
             </Link>
           ))}
         </div>
 
-        {/* Module grid */}
-        <div className="mb-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {MODULES.map(m => (
-            <Link key={m.href} href={m.href}
-              className={`group flex items-start gap-4 rounded-2xl border p-5 backdrop-blur transition hover:shadow-md ${m.bg} ${m.border}`}>
-              <div className={`grid h-12 w-12 flex-shrink-0 place-items-center rounded-xl bg-gradient-to-br text-2xl shadow-sm ${m.gradient}`}>
-                {m.icon}
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-baseline gap-2">
-                  <p className="font-bold text-slate-900 dark:text-white">{m.name}</p>
-                  <span className="text-xs text-slate-400 dark:text-slate-500">{m.nameJa}</span>
+        {/* Modules — refined cards, subtle tinted icon, hairline border */}
+        <h2 className="mb-3 text-sm font-semibold text-zinc-500 dark:text-zinc-400">モジュール</h2>
+        <div className="mb-12 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {MODULES.map(({ href, Icon, name, nameJa, tint, tintBg }) => (
+            <Link key={href} href={href}
+              className="group relative flex flex-col gap-3 rounded-xl border border-zinc-200 bg-white p-5 transition hover:border-zinc-300 hover:shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_24px_-12px_rgba(0,0,0,0.12)] dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
+              <div className="flex items-center justify-between">
+                <div className={`grid h-10 w-10 place-items-center rounded-lg ${tintBg} ${tint}`}>
+                  <Icon className="h-[22px] w-[22px]" />
                 </div>
-                <p className="mt-1 text-sm leading-snug text-slate-500 dark:text-slate-400">{m.desc}</p>
+                <IconArrowRight className="h-4 w-4 text-zinc-300 transition group-hover:translate-x-0.5 group-hover:text-zinc-500 dark:text-zinc-700 dark:group-hover:text-zinc-400" />
               </div>
-              <span className="ml-auto shrink-0 text-slate-300 transition group-hover:translate-x-0.5 group-hover:text-slate-500 dark:text-slate-600 dark:group-hover:text-slate-300">
-                →
-              </span>
+              <div>
+                <p className="font-semibold tracking-tight">{name}</p>
+                <p className="mt-1 text-[13px] leading-relaxed text-zinc-500 dark:text-zinc-400">{nameJa}</p>
+              </div>
             </Link>
           ))}
         </div>
 
-        {/* Recent LP compositions */}
-        {recentComps.length > 0 && (
-          <div>
+        {/* Recent */}
+        {recent.length > 0 && (
+          <>
             <div className="mb-3 flex items-center justify-between">
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                最近のLP構成
-              </p>
-              <Link href="/library"
-                className="text-xs font-semibold text-violet-600 hover:underline dark:text-violet-400">
-                すべて見る →
+              <h2 className="text-sm font-semibold text-zinc-500 dark:text-zinc-400">最近のLP構成</h2>
+              <Link href="/library" className="text-xs font-medium text-indigo-600 hover:text-indigo-700 dark:text-indigo-400">
+                すべて見る
               </Link>
             </div>
-            <div className="grid gap-2 sm:grid-cols-3">
-              {recentComps.map(c => (
-                <Link key={c.name} href="/library"
-                  className="flex items-center gap-3 rounded-xl border border-slate-200 bg-white/70 px-4 py-3 text-sm transition hover:border-violet-200 hover:bg-white dark:border-slate-700 dark:bg-slate-800/70 dark:hover:border-violet-600">
-                  <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-500 text-[10px] text-white">
-                    LP
-                  </span>
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold text-slate-800 dark:text-slate-200">{c.name}</p>
-                    <p className="text-xs text-slate-400">{c.sections} sections</p>
+            <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+              {recent.map((c, i) => (
+                <Link key={c.name + i} href="/library"
+                  className={`flex items-center gap-3 px-5 py-3 transition hover:bg-zinc-50 dark:hover:bg-zinc-800/50 ${i > 0 ? "border-t border-zinc-100 dark:border-zinc-800" : ""}`}>
+                  <div className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-50 text-indigo-600 dark:bg-indigo-500/10 dark:text-indigo-400">
+                    <IconLayers className="h-4 w-4" />
                   </div>
+                  <span className="flex-1 truncate text-sm font-medium">{c.name}</span>
+                  <span className="font-mono text-xs tabular-nums text-zinc-400">{c.sections} sections</span>
                 </Link>
               ))}
             </div>
-          </div>
+          </>
         )}
       </main>
     </div>
