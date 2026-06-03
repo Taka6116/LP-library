@@ -30,12 +30,15 @@ export const DEFAULT_FIELDS: EmailFields = {
 };
 
 export const EMAIL_BLOCKS: { id: string; label: string }[] = [
-  { id: "header", label: "ロゴヘッダー" },
-  { id: "hero", label: "ヒーロー（見出し＋本文＋CTA）" },
-  { id: "body", label: "本文ブロック" },
-  { id: "button", label: "ボタン CTA" },
-  { id: "divider", label: "区切り線" },
-  { id: "footer", label: "フッター（配信停止）" },
+  { id: "header",    label: "ロゴヘッダー" },
+  { id: "hero",      label: "ヒーロー（見出し＋本文＋CTA）" },
+  { id: "body",      label: "本文ブロック" },
+  { id: "highlight", label: "ハイライトボックス（引用・強調）" },
+  { id: "feature2",  label: "2カラム特徴紹介" },
+  { id: "numlist",   label: "番号付きリスト" },
+  { id: "button",    label: "ボタン CTA" },
+  { id: "divider",   label: "区切り線" },
+  { id: "footer",    label: "フッター（配信停止）" },
 ];
 
 const esc = (s: string) =>
@@ -71,6 +74,43 @@ export function renderBlock(id: string, f: EmailFields): string {
       return `<tr><td style="padding:20px 32px;text-align:center">${button(f)}</td></tr>`;
     case "divider":
       return `<tr><td style="padding:8px 32px"><div style="height:1px;background:#e5e7eb"></div></td></tr>`;
+    case "highlight":
+      return `<tr><td style="padding:8px 32px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          <tr><td style="padding:18px 22px;border-left:4px solid ${f.brandColor};background:#f8f9ff;border-radius:0 8px 8px 0">
+            <p style="margin:0;font-family:${FONT};font-size:15px;line-height:1.8;color:#1a1a1a;font-style:italic">${nl2br(f.bodyText2)}</p>
+          </td></tr>
+        </table>
+      </td></tr>`;
+    case "feature2":
+      return `<tr><td style="padding:16px 32px">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          <tr>
+            <td width="48%" style="padding:16px;background:#f8f9ff;border-radius:10px;vertical-align:top">
+              <p style="margin:0 0 8px;font-family:${FONT};font-size:15px;font-weight:700;color:${f.brandColor}">✓ 特徴 1</p>
+              <p style="margin:0;font-family:${FONT};font-size:13px;line-height:1.7;color:#444">${nl2br(f.bodyText)}</p>
+            </td>
+            <td width="4%"></td>
+            <td width="48%" style="padding:16px;background:#f8f9ff;border-radius:10px;vertical-align:top">
+              <p style="margin:0 0 8px;font-family:${FONT};font-size:15px;font-weight:700;color:${f.brandColor}">✓ 特徴 2</p>
+              <p style="margin:0;font-family:${FONT};font-size:13px;line-height:1.7;color:#444">${nl2br(f.bodyText2)}</p>
+            </td>
+          </tr>
+        </table>
+      </td></tr>`;
+    case "numlist":
+      return `<tr><td style="padding:16px 32px">
+        ${f.bodyText.split("\n").filter(Boolean).map((line, i) =>
+          `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:10px">
+            <tr>
+              <td width="32" style="vertical-align:top;padding-top:2px">
+                <span style="display:inline-block;width:26px;height:26px;border-radius:50%;background:${f.brandColor};text-align:center;font-family:${FONT};font-size:13px;font-weight:700;color:#fff;line-height:26px">${i+1}</span>
+              </td>
+              <td style="font-family:${FONT};font-size:14px;line-height:1.7;color:#333;padding-left:10px">${esc(line)}</td>
+            </tr>
+          </table>`
+        ).join("")}
+      </td></tr>`;
     case "footer":
       return `<tr><td style="padding:28px 32px;background:#f6f7f9;text-align:center">
         <p style="margin:0 0 8px;font-family:${FONT};font-size:12px;line-height:1.7;color:#888">${nl2br(f.footerNote)}</p>

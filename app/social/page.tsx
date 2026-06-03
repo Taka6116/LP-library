@@ -2,8 +2,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { PLATFORMS, type RepurposeInput } from "@/lib/social/repurpose";
+import { PLATFORMS, type RepurposeInput, type ToneMode } from "@/lib/social/repurpose";
 import { addCopyItem } from "@/lib/swipe/store";
+import { loadBrand, TONE_LABELS } from "@/lib/brand/store";
 
 function parseTags(s: string): string[] {
   return [...new Set(s.split(/[,、\s]+/).map((t) => t.replace(/^#/, "").trim()).filter(Boolean))];
@@ -15,15 +16,21 @@ export default function SocialPage() {
   const [url, setUrl] = useState("");
   const [hashtagsStr, setHashtagsStr] = useState("");
   const [emoji, setEmoji] = useState(false);
+  const [tone, setTone] = useState<ToneMode>("formal");
+  const [companyName, setCompanyName] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
 
+  function applyBrand() {
+    const b = loadBrand();
+    setTone(b.tone as ToneMode);
+    setCompanyName(b.companyName);
+  }
+
   const input: RepurposeInput = {
-    hook,
-    body,
-    url,
+    hook, body, url,
     hashtags: parseTags(hashtagsStr),
-    emoji,
+    emoji, tone, companyName,
   };
   const ready = body.trim().length > 0 || hook.trim().length > 0;
 
@@ -104,14 +111,38 @@ export default function SocialPage() {
               className="mt-2 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-violet-300"
             />
             <label className="mt-3 flex items-center gap-2 text-sm text-slate-600">
-              <input
-                type="checkbox"
-                checked={emoji}
-                onChange={(e) => setEmoji(e.target.checked)}
-                className="accent-violet-600"
-              />
-              絵文字を許可（プラットフォーム慣習）
+              <input type="checkbox" checked={emoji} onChange={e => setEmoji(e.target.checked)} className="accent-violet-600" />
+              絵文字を許可
             </label>
+
+            {/* Tone + brand */}
+            <div className="mt-4 border-t border-slate-100 pt-4">
+              <div className="mb-2 flex items-center justify-between">
+                <p className="text-xs font-bold text-slate-600">トーン</p>
+                <button type="button" onClick={applyBrand}
+                  className="rounded-full border border-indigo-200 px-2.5 py-1 text-[11px] font-bold text-indigo-700 hover:bg-indigo-50">
+                  🎨 ブランドから取込
+                </button>
+              </div>
+              <div className="grid grid-cols-3 gap-1.5">
+                {(Object.entries(TONE_LABELS) as [ToneMode, string][]).map(([t, label]) => (
+                  <button key={t} type="button" onClick={() => setTone(t)}
+                    className={`rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition ${
+                      tone === t
+                        ? "border-violet-400 bg-violet-50 text-violet-700"
+                        : "border-slate-200 text-slate-500 hover:border-violet-300"
+                    }`}>
+                    {t === "formal" ? "🤝 " : t === "casual" ? "😊 " : "⚡ "}
+                    {label.split("・")[0]}
+                  </button>
+                ))}
+              </div>
+              {companyName && (
+                <p className="mt-2 text-[11px] text-slate-400">
+                  会社名: <strong>{companyName}</strong>（LinkedIn冒頭に使用）
+                </p>
+              )}
+            </div>
           </div>
         </div>
 

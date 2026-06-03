@@ -8,6 +8,7 @@ import {
   buildEmailHtml,
   type EmailFields,
 } from "@/lib/email/blocks";
+import { loadBrand } from "@/lib/brand/store";
 
 const DEFAULT_ORDER = ["header", "hero", "divider", "body", "button", "footer"];
 
@@ -35,6 +36,11 @@ export default function EmailPage() {
       [next[i], next[j]] = [next[j], next[i]];
       return next;
     });
+  }
+
+  function applyBrand() {
+    const b = loadBrand();
+    setFields(f => ({ ...f, brandColor: b.primaryColor, companyName: b.companyName }));
   }
 
   function download() {
@@ -112,6 +118,14 @@ export default function EmailPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={applyBrand}
+              title="ブランドキットから色・会社名を取り込む"
+              className="rounded-full border border-indigo-200 bg-white/70 px-3 py-2 text-sm font-bold text-indigo-700 transition hover:bg-indigo-50"
+            >
+              🎨 ブランド適用
+            </button>
             <button
               type="button"
               onClick={copyHtml}

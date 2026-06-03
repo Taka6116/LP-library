@@ -45,6 +45,14 @@ export function BuilderHeader({
         </div>
 
         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          {/* Brand Kit — shared brand tokens for all modules */}
+          <Link
+            href="/brand"
+            className="inline-flex items-center gap-1.5 rounded-full border border-violet-300/70 bg-gradient-to-br from-violet-600 to-indigo-500 px-3 py-1.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110"
+          >
+            <span className="text-[11px]">🎨</span>
+            Brand
+          </Link>
           {/* PPT — separate tool for extracting reference slides */}
           <Link
             href="/ppt"
