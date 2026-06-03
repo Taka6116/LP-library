@@ -55,6 +55,16 @@ export function BuilderHeader({
             </span>
             PPT
           </Link>
+          {/* Swipe — reference inbox + copy bank */}
+          <Link
+            href="/swipe"
+            className="inline-flex items-center gap-1.5 rounded-full border border-rose-300/70 bg-gradient-to-br from-rose-500 to-pink-500 px-3 py-1.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110"
+          >
+            <span className="grid h-4 w-4 place-items-center rounded bg-white/25 text-[10px]">
+              ◆
+            </span>
+            Swipe
+          </Link>
           <ModeToggle mode={mode} onChange={onModeChange} />
           <button
             type="button"

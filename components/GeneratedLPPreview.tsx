@@ -7,6 +7,7 @@ import { getPreviewComponent } from "@/lib/previewMap";
 import { buildLpHtml, buildLpMarkdown, downloadTextFile } from "@/lib/exportLp";
 import { buildLpReact } from "@/lib/exportReact";
 import { extractCopy, type CopyGroup } from "@/lib/extractCopy";
+import { addCopyItem } from "@/lib/swipe/store";
 import {
   listCompositions,
   saveComposition,
@@ -246,13 +247,11 @@ export function GeneratedLPPreview({
                     {[...g.headings, ...g.ctas].map((txt, ti) => {
                       const isCta = ti >= g.headings.length;
                       return (
-                        <button
+                        <div
                           key={ti}
-                          type="button"
-                          onClick={() => copyToClipboard(txt)}
-                          className="flex w-full items-center justify-between gap-3 rounded-lg border border-slate-200 px-3 py-2 text-left transition hover:border-violet-300 hover:bg-violet-50/50"
+                          className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2 transition hover:border-violet-300"
                         >
-                          <span className="flex items-center gap-2 truncate">
+                          <span className="flex min-w-0 items-center gap-2">
                             <span
                               className={`shrink-0 rounded px-1.5 py-0.5 text-[9px] font-bold ${
                                 isCta
@@ -264,10 +263,26 @@ export function GeneratedLPPreview({
                             </span>
                             <span className="truncate text-sm text-slate-700">{txt}</span>
                           </span>
-                          <span className="shrink-0 text-xs font-semibold text-slate-400">
-                            {copiedText === txt ? "✓ コピー" : "コピー"}
+                          <span className="flex shrink-0 items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                addCopyItem(txt, isCta ? "CTA" : "見出し", [g.title])
+                              }
+                              title="コピーバンクへ保存"
+                              className="rounded-full border border-rose-200 px-2 py-0.5 text-[11px] font-semibold text-rose-600 transition hover:bg-rose-50"
+                            >
+                              ＋バンク
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => copyToClipboard(txt)}
+                              className="text-xs font-semibold text-slate-400 hover:text-violet-700"
+                            >
+                              {copiedText === txt ? "✓" : "コピー"}
+                            </button>
                           </span>
-                        </button>
+                        </div>
                       );
                     })}
                   </div>
