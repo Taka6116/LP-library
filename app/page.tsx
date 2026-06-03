@@ -9,8 +9,10 @@ import { loadCopy, loadSwipe } from "@/lib/swipe/store";
 import { listDecks } from "@/lib/pptx/deckStore";
 import { loadBrand } from "@/lib/brand/store";
 import type { ReactNode } from "react";
+import { AuroraBg } from "@/components/AuroraBg";
+import { glass } from "@/lib/ui/glass";
 import {
-  IconBookmark, IconSun, IconMoon, IconArrowRight, IconTool, IconLayers,
+  IconBookmark, IconSun, IconMoon, IconArrowRight, IconTool, IconLayers, IconSparkles,
 } from "@/components/icons";
 import {
   GmailTile, YahooTile, PowerPointTile, XTile, LinkedInTile,
@@ -65,25 +67,16 @@ const MODULES: {
     nameJa: "色・フォント・トーンを定義し全体に適用",
     icon: <BrandKitTile className="h-11 w-11" />,
   },
+  {
+    href: "/prompts", name: "プロンプト集",
+    nameJa: "カテゴリ別の即使えるマーケ用プロンプト",
+    icon: (
+      <div className="grid h-11 w-11 place-items-center rounded-xl bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white ring-1 ring-inset ring-white/30 shadow-sm">
+        <IconSparkles className="h-[22px] w-[22px]" />
+      </div>
+    ),
+  },
 ];
-
-const LIGHT_BG = `
-  radial-gradient(at 12% 18%, rgba(196,181,253,0.55) 0px, transparent 45%),
-  radial-gradient(at 88% 8%, rgba(147,213,252,0.50) 0px, transparent 42%),
-  radial-gradient(at 72% 72%, rgba(251,207,232,0.50) 0px, transparent 45%),
-  radial-gradient(at 18% 88%, rgba(167,243,208,0.42) 0px, transparent 45%),
-  radial-gradient(at 95% 95%, rgba(253,224,180,0.40) 0px, transparent 40%),
-  #f6f5fb`;
-const DARK_BG = `
-  radial-gradient(at 12% 18%, rgba(99,102,241,0.20) 0px, transparent 45%),
-  radial-gradient(at 88% 8%, rgba(14,165,233,0.16) 0px, transparent 42%),
-  radial-gradient(at 72% 72%, rgba(236,72,153,0.14) 0px, transparent 45%),
-  radial-gradient(at 18% 88%, rgba(16,185,129,0.12) 0px, transparent 45%),
-  #0a0a0f`;
-
-const glass =
-  "border border-white/60 bg-white/45 backdrop-blur-xl shadow-[0_8px_30px_-12px_rgba(76,29,149,0.18)] " +
-  "dark:border-white/10 dark:bg-white/[0.04] dark:shadow-[0_8px_30px_-12px_rgba(0,0,0,0.6)]";
 
 export default function DashboardPage() {
   const { dark, toggle } = useDark();
@@ -111,8 +104,7 @@ export default function DashboardPage() {
 
   return (
     <div className="relative min-h-dvh text-zinc-900 dark:text-zinc-50">
-      {/* Aurora gradient background */}
-      <div aria-hidden className="fixed inset-0 -z-10" style={{ background: dark ? DARK_BG : LIGHT_BG }} />
+      <AuroraBg />
 
       {/* Top bar — glass */}
       <header className="sticky top-0 z-40 border-b border-white/40 bg-white/30 backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.02]">

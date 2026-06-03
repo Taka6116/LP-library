@@ -159,6 +159,27 @@ export const IconStar = ({ className, filled }: IconProps & { filled?: boolean }
   </svg>
 );
 
+export const IconSparkles = ({ className }: IconProps) => (
+  <svg {...base(className)}>
+    <path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6L12 3Z" />
+    <path d="M19 14l.7 1.9L21.5 16.6l-1.8.7L19 19l-.7-1.7-1.8-.7 1.8-.7z" />
+    <path d="M5 14l.6 1.6L7 16.2l-1.4.6L5 18l-.6-1.2L3 16.2l1.4-.6z" />
+  </svg>
+);
+
+export const IconCopy = ({ className }: IconProps) => (
+  <svg {...base(className)}>
+    <rect width="13" height="13" x="9" y="9" rx="2" />
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+  </svg>
+);
+
+export const IconCheck = ({ className }: IconProps) => (
+  <svg {...base(className)}>
+    <path d="M20 6 9 17l-5-5" />
+  </svg>
+);
+
 export const IconTool = ({ className }: IconProps) => (
   <svg {...base(className)}>
     <path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.6 2.6-2-2 2.6-2.6Z" />
