@@ -8,19 +8,64 @@ import { loadBookmarks } from "@/lib/bookmarks";
 import { loadCopy, loadSwipe } from "@/lib/swipe/store";
 import { listDecks } from "@/lib/pptx/deckStore";
 import { loadBrand } from "@/lib/brand/store";
+import type { ReactNode } from "react";
 import {
-  IconLayers, IconPresentation, IconBookmark, IconMail, IconRepeat,
-  IconPalette, IconSun, IconMoon, IconArrowRight, IconTool,
+  IconBookmark, IconSun, IconMoon, IconArrowRight, IconTool, IconLayers,
 } from "@/components/icons";
+import {
+  GmailTile, YahooTile, PowerPointTile, XTile, LinkedInTile,
+  InstagramTile, LpMockTile, BrandKitTile,
+} from "@/components/brandIcons";
 
-const MODULES = [
-  { href: "/library", Icon: IconLayers,       name: "LP Library",   nameJa: "セクションを組み合わせてLP・資料の構成を作る", tint: "text-indigo-600 dark:text-indigo-300", tintBg: "bg-indigo-100/70 dark:bg-indigo-400/15" },
-  { href: "/ppt",     Icon: IconPresentation, name: "PPT Studio",   nameJa: "複数デッキからスライドを選んで合成・書き出し", tint: "text-amber-600 dark:text-amber-300",   tintBg: "bg-amber-100/70 dark:bg-amber-400/15" },
-  { href: "/swipe",   Icon: IconBookmark,     name: "Swipe Bank",   nameJa: "参考URL・スクショ・コピースニペットを貯める", tint: "text-rose-600 dark:text-rose-300",     tintBg: "bg-rose-100/70 dark:bg-rose-400/15" },
-  { href: "/email",   Icon: IconMail,         name: "Mail Builder", nameJa: "ブロックを組み合わせてHTMLメールを書き出し", tint: "text-emerald-600 dark:text-emerald-300", tintBg: "bg-emerald-100/70 dark:bg-emerald-400/15" },
-  { href: "/social",  Icon: IconRepeat,       name: "Social",       nameJa: "1本の内容をX・LinkedIn・Instagramに最適化", tint: "text-sky-600 dark:text-sky-300",       tintBg: "bg-sky-100/70 dark:bg-sky-400/15" },
-  { href: "/brand",   Icon: IconPalette,      name: "Brand Kit",    nameJa: "色・フォント・トーンを定義し全体に適用",     tint: "text-violet-600 dark:text-violet-300", tintBg: "bg-violet-100/70 dark:bg-violet-400/15" },
-] as const;
+const MODULES: {
+  href: string; name: string; nameJa: string; icon: ReactNode;
+}[] = [
+  {
+    href: "/library", name: "LP Library",
+    nameJa: "セクションを組み合わせてLP・資料の構成を作る",
+    icon: <LpMockTile className="h-11 w-11" />,
+  },
+  {
+    href: "/ppt", name: "PPT Studio",
+    nameJa: "複数デッキからスライドを選んで合成・書き出し",
+    icon: <PowerPointTile className="h-11 w-11" />,
+  },
+  {
+    href: "/swipe", name: "Swipe Bank",
+    nameJa: "参考URL・スクショ・コピースニペットを貯める",
+    icon: (
+      <div className="grid h-11 w-11 place-items-center rounded-xl bg-rose-100/70 text-rose-600 ring-1 ring-inset ring-white/40 dark:bg-rose-400/15 dark:text-rose-300 dark:ring-white/5">
+        <IconBookmark className="h-[22px] w-[22px]" />
+      </div>
+    ),
+  },
+  {
+    href: "/email", name: "Mail Builder",
+    nameJa: "Gmail・Yahoo!メール対応のHTMLメールを書き出し",
+    icon: (
+      <div className="flex -space-x-2.5">
+        <GmailTile className="h-10 w-10" />
+        <YahooTile className="h-10 w-10" />
+      </div>
+    ),
+  },
+  {
+    href: "/social", name: "Social",
+    nameJa: "1本の内容をX・LinkedIn・Instagramに最適化",
+    icon: (
+      <div className="flex -space-x-2.5">
+        <XTile className="h-9 w-9" />
+        <LinkedInTile className="h-9 w-9" />
+        <InstagramTile className="h-9 w-9" />
+      </div>
+    ),
+  },
+  {
+    href: "/brand", name: "Brand Kit",
+    nameJa: "色・フォント・トーンを定義し全体に適用",
+    icon: <BrandKitTile className="h-11 w-11" />,
+  },
+];
 
 const LIGHT_BG = `
   radial-gradient(at 12% 18%, rgba(196,181,253,0.55) 0px, transparent 45%),
@@ -114,13 +159,11 @@ export default function DashboardPage() {
         {/* Modules — glass cards with lift */}
         <h2 className="mb-3.5 text-sm font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">モジュール</h2>
         <div className="mb-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {MODULES.map(({ href, Icon, name, nameJa, tint, tintBg }) => (
+          {MODULES.map(({ href, icon, name, nameJa }) => (
             <Link key={href} href={href}
               className={`group relative flex flex-col gap-3.5 rounded-2xl p-5 transition-all duration-200 hover:-translate-y-1 hover:bg-white/65 hover:shadow-[0_18px_44px_-16px_rgba(76,29,149,0.32)] dark:hover:bg-white/[0.07] ${glass}`}>
               <div className="flex items-center justify-between">
-                <div className={`grid h-11 w-11 place-items-center rounded-xl ${tintBg} ${tint} ring-1 ring-inset ring-white/40 dark:ring-white/5`}>
-                  <Icon className="h-[22px] w-[22px]" />
-                </div>
+                {icon}
                 <IconArrowRight className="h-[18px] w-[18px] text-zinc-300 transition group-hover:translate-x-0.5 group-hover:text-zinc-500 dark:text-zinc-600 dark:group-hover:text-zinc-300" />
               </div>
               <div>
