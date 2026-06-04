@@ -12,10 +12,13 @@ import {
 } from "@/lib/prompts/userStore";
 import {
   IconArrowRight, IconSearch, IconSun, IconMoon, IconSparkles,
-  IconCopy, IconCheck, IconPlus, IconTrash, IconX,
+  IconCopy, IconCheck, IconPlus, IconTrash, IconX, IconChevronDown,
 } from "@/components/icons";
 
 type Row = PromptItem & { mine?: boolean };
+
+// Threshold: collapse if prompt exceeds this character count
+const COLLAPSE_THRESHOLD = 160;
 
 // highlight {placeholder} tokens inside a prompt
 function renderPrompt(text: string) {
@@ -27,6 +30,116 @@ function renderPrompt(text: string) {
     ) : (
       <span key={i}>{part}</span>
     ),
+  );
+}
+
+// ---- Prompt card with collapse/expand ----
+function PromptCard({
+  p,
+  copiedId,
+  onCopy,
+  onDelete,
+}: {
+  p: Row;
+  copiedId: string | null;
+  onCopy: (p: { id: string; prompt: string }) => void;
+  onDelete?: (id: string) => void;
+}) {
+  const isLong = p.prompt.length > COLLAPSE_THRESHOLD;
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <div className={`flex flex-col rounded-2xl p-5 ${glass}`}>
+      {/* Header: category / title / actions */}
+      <div className="mb-2 flex items-start justify-between gap-3">
+        <div>
+          <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-indigo-500 dark:text-indigo-300">
+            {p.mine && (
+              <span className="rounded bg-fuchsia-100 px-1.5 py-0.5 text-[10px] font-bold text-fuchsia-700 dark:bg-fuchsia-400/20 dark:text-fuchsia-200">
+                マイ
+              </span>
+            )}
+            {p.category}
+          </span>
+          <h3 className="mt-0.5 text-[15px] font-semibold tracking-tight">{p.title}</h3>
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          {p.mine && onDelete && (
+            <button
+              type="button"
+              onClick={() => onDelete(p.id)}
+              aria-label="削除"
+              className="grid h-8 w-8 place-items-center rounded-lg text-zinc-400 transition hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-500/10"
+            >
+              <IconTrash className="h-4 w-4" />
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => onCopy(p)}
+            className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
+              copiedId === p.id
+                ? "bg-emerald-500 text-white"
+                : "bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
+            }`}
+          >
+            {copiedId === p.id ? <IconCheck className="h-3.5 w-3.5" /> : <IconCopy className="h-3.5 w-3.5" />}
+            {copiedId === p.id ? "コピー済" : "コピー"}
+          </button>
+        </div>
+      </div>
+
+      {/* Prompt body — collapsible */}
+      <div className="relative">
+        <pre
+          className={`whitespace-pre-wrap break-words rounded-xl border border-white/40 bg-white/40 p-3.5 font-sans text-[13px] leading-relaxed text-zinc-700 transition-all dark:border-white/5 dark:bg-black/20 dark:text-zinc-300 ${
+            isLong && !expanded ? "line-clamp-4 overflow-hidden" : ""
+          }`}
+        >
+          {renderPrompt(p.prompt)}
+        </pre>
+
+        {/* Gradient fade + expand button — shown only when collapsed and long */}
+        {isLong && !expanded && (
+          <div className="absolute inset-x-0 bottom-0 flex flex-col items-center rounded-b-xl bg-gradient-to-t from-white/90 to-transparent pb-1 pt-8 dark:from-zinc-900/90">
+            <button
+              type="button"
+              onClick={() => setExpanded(true)}
+              className="inline-flex items-center gap-1 rounded-full border border-white/60 bg-white/80 px-3 py-1 text-[12px] font-bold text-zinc-600 shadow-sm backdrop-blur transition hover:bg-white hover:text-indigo-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:border-white/10 dark:bg-zinc-800/80 dark:text-zinc-300 dark:hover:text-indigo-300"
+            >
+              <IconChevronDown className="h-3.5 w-3.5" />
+              全文を見る
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Collapse button — shown when expanded */}
+      {isLong && expanded && (
+        <button
+          type="button"
+          onClick={() => setExpanded(false)}
+          className="mt-2 inline-flex items-center gap-1 self-center text-[12px] font-semibold text-zinc-400 transition hover:text-zinc-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:hover:text-zinc-200"
+        >
+          <IconChevronDown className="h-3.5 w-3.5 rotate-180 transition" />
+          折りたたむ
+        </button>
+      )}
+
+      {/* Tags */}
+      {p.tags.length > 0 && (
+        <div className="mt-2.5 flex flex-wrap gap-1.5">
+          {p.tags.map((t) => (
+            <span
+              key={t}
+              className="rounded-md bg-white/50 px-2 py-0.5 text-[11px] font-medium text-zinc-500 dark:bg-white/5 dark:text-zinc-400"
+            >
+              #{t}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -250,48 +363,13 @@ export default function PromptsPage() {
         {/* Prompt grid */}
         <div className="grid gap-4 lg:grid-cols-2">
           {results.map((p) => (
-            <div key={p.id} className={`flex flex-col rounded-2xl p-5 ${glass}`}>
-              <div className="mb-2 flex items-start justify-between gap-3">
-                <div>
-                  <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-indigo-500 dark:text-indigo-300">
-                    {p.mine && (
-                      <span className="rounded bg-fuchsia-100 px-1.5 py-0.5 text-[10px] font-bold text-fuchsia-700 dark:bg-fuchsia-400/20 dark:text-fuchsia-200">マイ</span>
-                    )}
-                    {p.category}
-                  </span>
-                  <h3 className="mt-0.5 text-[15px] font-semibold tracking-tight">{p.title}</h3>
-                </div>
-                <div className="flex shrink-0 items-center gap-1.5">
-                  {p.mine && (
-                    <button type="button" onClick={() => deleteMine(p.id)} aria-label="削除"
-                      className="grid h-8 w-8 place-items-center rounded-lg text-zinc-400 transition hover:bg-rose-50 hover:text-rose-500 dark:hover:bg-rose-500/10">
-                      <IconTrash className="h-4 w-4" />
-                    </button>
-                  )}
-                  <button type="button" onClick={() => copy(p)}
-                    className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
-                      copiedId === p.id
-                        ? "bg-emerald-500 text-white"
-                        : "bg-zinc-900 text-white hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200"
-                    }`}>
-                    {copiedId === p.id ? <IconCheck className="h-3.5 w-3.5" /> : <IconCopy className="h-3.5 w-3.5" />}
-                    {copiedId === p.id ? "コピー済" : "コピー"}
-                  </button>
-                </div>
-              </div>
-              <pre className="flex-1 whitespace-pre-wrap break-words rounded-xl border border-white/40 bg-white/40 p-3.5 font-sans text-[13px] leading-relaxed text-zinc-700 dark:border-white/5 dark:bg-black/20 dark:text-zinc-300">
-                {renderPrompt(p.prompt)}
-              </pre>
-              {p.tags.length > 0 && (
-                <div className="mt-2.5 flex flex-wrap gap-1.5">
-                  {p.tags.map((t) => (
-                    <span key={t} className="rounded-md bg-white/50 px-2 py-0.5 text-[11px] font-medium text-zinc-500 dark:bg-white/5 dark:text-zinc-400">
-                      #{t}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
+            <PromptCard
+              key={p.id}
+              p={p}
+              copiedId={copiedId}
+              onCopy={copy}
+              onDelete={p.mine ? deleteMine : undefined}
+            />
           ))}
         </div>
 
