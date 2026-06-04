@@ -6,7 +6,10 @@ import { useDark } from "@/components/ThemeProvider";
 import { AuroraBg } from "@/components/AuroraBg";
 import { glass } from "@/lib/ui/glass";
 import { PROMPTS, PROMPT_CATEGORIES, type PromptItem } from "@/lib/prompts/data";
-import { loadUserPrompts, addUserPrompt, removeUserPrompt } from "@/lib/prompts/userStore";
+import {
+  loadUserPrompts, addUserPrompt, removeUserPrompt,
+  loadUserCategories, addUserCategory,
+} from "@/lib/prompts/userStore";
 import {
   IconArrowRight, IconSearch, IconSun, IconMoon, IconSparkles,
   IconCopy, IconCheck, IconPlus, IconTrash, IconX,
@@ -35,25 +38,46 @@ export default function PromptsPage() {
 
   // user prompts
   const [mine, setMine] = useState<Row[]>([]);
+  const [userCats, setUserCats] = useState<string[]>([]);
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: "", category: PROMPT_CATEGORIES[0] as string, prompt: "", tags: "" });
+  // "new" means the user is typing a brand-new category name
+  const [catMode, setCatMode] = useState<"select" | "new">("select");
+  const [newCatInput, setNewCatInput] = useState("");
 
   useEffect(() => {
     setMine(loadUserPrompts().map((p) => ({ ...p, mine: true })));
+    setUserCats(loadUserCategories());
   }, []);
+
+  // All categories available in the form = built-in + user-defined
+  const allCats = [...PROMPT_CATEGORIES, ...userCats];
 
   function saveMine() {
     if (!form.title.trim() || !form.prompt.trim()) return;
+    // If "new category" mode, register it first
+    let finalCat = form.category;
+    if (catMode === "new") {
+      const t = newCatInput.trim();
+      if (!t) return; // require a name
+      addUserCategory(t);
+      const updated = loadUserCategories();
+      setUserCats(updated);
+      finalCat = t;
+    }
     addUserPrompt({
       title: form.title.trim(),
-      category: form.category,
+      category: finalCat,
       prompt: form.prompt.trim(),
       tags: form.tags.split(/[,、\s]+/).map((t) => t.trim()).filter(Boolean),
     });
     setMine(loadUserPrompts().map((p) => ({ ...p, mine: true })));
-    setForm({ title: "", category: form.category, prompt: "", tags: "" });
+    setForm({ title: "", category: finalCat, prompt: "", tags: "" });
+    setCatMode("select");
+    setNewCatInput("");
     setShowForm(false);
   }
+
   function deleteMine(id: string) {
     removeUserPrompt(id);
     setMine(loadUserPrompts().map((p) => ({ ...p, mine: true })));
@@ -123,13 +147,54 @@ export default function PromptsPage() {
                 <IconX className="h-4 w-4" />
               </button>
             </div>
-            <div className="grid gap-2.5 sm:grid-cols-[1fr_200px]">
+            <div className="grid gap-2.5 sm:grid-cols-[1fr_220px]">
               <input value={form.title} onChange={(e) => setForm({ ...form, title: e.target.value })} placeholder="タイトル"
                 className="rounded-lg border border-white/60 bg-white/60 px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-white/10 dark:bg-white/5" />
-              <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })}
-                className="rounded-lg border border-white/60 bg-white/60 px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-white/10 dark:bg-white/5">
-                {PROMPT_CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-              </select>
+
+              {/* Category — select existing or create new */}
+              <div className="flex flex-col gap-1.5">
+                {catMode === "select" ? (
+                  <div className="flex items-center gap-1.5">
+                    <select
+                      value={form.category}
+                      onChange={(e) => setForm({ ...form, category: e.target.value })}
+                      className="flex-1 rounded-lg border border-white/60 bg-white/60 px-3 py-2 text-sm outline-none focus:border-indigo-400 dark:border-white/10 dark:bg-white/5"
+                    >
+                      {allCats.map((c) => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => { setCatMode("new"); setNewCatInput(""); }}
+                      title="新しいカテゴリを作る"
+                      className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/60 bg-white/60 text-zinc-500 transition hover:border-indigo-400 hover:text-indigo-600 dark:border-white/10 dark:bg-white/5"
+                    >
+                      <IconPlus className="h-4 w-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5">
+                    <input
+                      autoFocus
+                      value={newCatInput}
+                      onChange={(e) => setNewCatInput(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Escape") setCatMode("select"); }}
+                      placeholder="新しいカテゴリ名を入力"
+                      className="flex-1 rounded-lg border border-indigo-400 bg-white/60 px-3 py-2 text-sm outline-none ring-2 ring-indigo-200/60 dark:bg-white/5"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setCatMode("select")}
+                      title="キャンセル"
+                      className="grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/60 bg-white/60 text-zinc-400 transition hover:text-rose-500 dark:border-white/10 dark:bg-white/5"
+                    >
+                      <IconX className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
+                <p className="pl-0.5 text-[11px] text-zinc-400 dark:text-zinc-500">
+                  {catMode === "new" ? "保存するとカテゴリタブにも追加されます" : "＋ で新しいカテゴリを作成できます"}
+                </p>
+              </div>
             </div>
             <textarea value={form.prompt} onChange={(e) => setForm({ ...form, prompt: e.target.value })} rows={4}
               placeholder="プロンプト本文（{変数} で埋め込み箇所を作れます）"
@@ -153,18 +218,33 @@ export default function PromptsPage() {
             className="w-full rounded-xl border border-white/60 bg-white/50 py-2.5 pl-9 pr-4 text-sm text-zinc-900 outline-none backdrop-blur transition placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200/60 dark:border-white/10 dark:bg-white/5 dark:text-zinc-100" />
         </div>
 
-        {/* Category chips */}
+        {/* Category chips — built-in + user-defined categories */}
         <div className="mb-7 flex flex-wrap gap-2">
-          {(["all", ...(mine.length > 0 ? ["mine"] : []), ...PROMPT_CATEGORIES] as string[]).map((c) => (
-            <button key={c} type="button" onClick={() => setCat(c)}
-              className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
-                cat === c
-                  ? "bg-zinc-900 text-white shadow-sm dark:bg-white dark:text-zinc-900"
-                  : `${glass} text-zinc-600 hover:text-zinc-900 dark:text-zinc-300`
-              }`}>
-              {c === "all" ? "すべて" : c === "mine" ? `★ マイ (${mine.length})` : c}
-            </button>
-          ))}
+          {([
+            "all",
+            ...(mine.length > 0 ? ["mine"] : []),
+            ...PROMPT_CATEGORIES,
+            // user-defined categories that aren't already in PROMPT_CATEGORIES
+            ...userCats.filter((c) => !(PROMPT_CATEGORIES as readonly string[]).includes(c)),
+          ] as string[]).map((c) => {
+            const isUserCat = c !== "all" && c !== "mine" && !(PROMPT_CATEGORIES as readonly string[]).includes(c);
+            return (
+              <button key={c} type="button" onClick={() => setCat(c)}
+                className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
+                  cat === c
+                    ? "bg-zinc-900 text-white shadow-sm dark:bg-white dark:text-zinc-900"
+                    : `${glass} text-zinc-600 hover:text-zinc-900 dark:text-zinc-300`
+                }`}>
+                {c === "all"
+                  ? "すべて"
+                  : c === "mine"
+                    ? `★ マイ (${mine.length})`
+                    : isUserCat
+                      ? `✦ ${c}`
+                      : c}
+              </button>
+            );
+          })}
         </div>
 
         {/* Prompt grid */}

@@ -5,6 +5,32 @@ import type { PromptItem } from "./data";
 export type UserPrompt = PromptItem & { savedAt: number };
 
 const KEY = "user-prompts";
+const CAT_KEY = "user-prompt-categories";
+
+// ---- User-defined categories ----
+export function loadUserCategories(): string[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const s = localStorage.getItem(CAT_KEY);
+    return s ? (JSON.parse(s) as string[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveUserCategories(cats: string[]): void {
+  try {
+    localStorage.setItem(CAT_KEY, JSON.stringify([...new Set(cats)]));
+  } catch {
+    /* noop */
+  }
+}
+
+export function addUserCategory(name: string): void {
+  const trimmed = name.trim();
+  if (!trimmed) return;
+  saveUserCategories([...loadUserCategories(), trimmed]);
+}
 
 function newId() {
   if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
