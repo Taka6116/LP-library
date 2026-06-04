@@ -4,6 +4,7 @@ import Link from "next/link";
 import type { BuilderMode } from "@/types/section";
 import { ModeToggle } from "./ModeToggle";
 import { useDark } from "./ThemeProvider";
+import { IconSun, IconMoon } from "./icons";
 
 type Props = {
   mode: BuilderMode;
@@ -37,12 +38,15 @@ export function BuilderHeader({
         />
         <div className="flex items-center gap-3">
           <div>
-            <Link href="/" className="text-base font-bold leading-tight text-slate-900 hover:text-violet-700 dark:text-white dark:hover:text-violet-400 sm:text-lg">
-              LP Builder Library
+            <Link
+              href="/"
+              className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 transition hover:text-violet-600 focus:outline-none focus-visible:underline dark:text-slate-500 dark:hover:text-violet-400"
+            >
+              ← Marketer&apos;s Studio
             </Link>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Select sections. Generate reusable landing pages.
-            </p>
+            <h1 className="text-base font-bold leading-tight text-slate-900 dark:text-white sm:text-lg">
+              LP Library
+            </h1>
           </div>
         </div>
 
@@ -50,8 +54,8 @@ export function BuilderHeader({
           {/* Dark mode toggle */}
           <button type="button" onClick={toggle}
             aria-label={dark ? "ライトモードに切替" : "ダークモードに切替"}
-            className="grid h-8 w-8 place-items-center rounded-full border border-slate-200 bg-white/60 text-sm transition hover:border-violet-300 hover:bg-violet-50 dark:border-slate-700 dark:bg-slate-800 dark:hover:border-violet-500">
-            {dark ? "☀️" : "🌙"}
+            className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white/60 text-slate-600 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-violet-500">
+            {dark ? <IconSun className="h-[18px] w-[18px]" /> : <IconMoon className="h-[18px] w-[18px]" />}
           </button>
           {/* Brand Kit — shared brand tokens for all modules */}
           <Link

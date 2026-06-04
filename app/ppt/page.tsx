@@ -13,6 +13,7 @@ import {
   removeDeck,
   type DeckMeta,
 } from "@/lib/pptx/deckStore";
+import { IconUpload, IconPresentation } from "@/components/icons";
 
 type Status = "idle" | "loading" | "ready" | "error";
 
@@ -530,49 +531,78 @@ export default function PptStudioPage() {
       </header>
 
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        {/* Empty state importer */}
+        {/* Empty state — what PPT Studio does + importer */}
         {!hasDecks && (
-          <div className="mx-auto max-w-2xl">
+          <div className="mx-auto max-w-3xl">
+            {/* Value: 3 steps */}
+            <div className="mb-6 text-center">
+              <h2 className="text-xl font-bold text-slate-800">
+                PPTを取り込むと、スライドを「資産」として転用できます
+              </h2>
+              <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-slate-500">
+                社長資料・同僚作成のデッキから、図解・ビジュアル・表・CTAだけを選んで新しい1本に。
+              </p>
+            </div>
+            <ol className="mb-6 grid gap-3 sm:grid-cols-3">
+              {[
+                { n: "1", t: ".pptx を取り込む", d: "ローカルのPowerPointファイルを選択（端末内で処理）" },
+                { n: "2", t: "スライドを選ぶ", d: "サムネイル一覧から使いたいページにチェック" },
+                { n: "3", t: "転用・書き出す", d: "選んだスライドだけを新しい.pptxとして書き出し" },
+              ].map((s) => (
+                <li key={s.n} className="rounded-2xl border border-slate-200 bg-white p-4">
+                  <span className="grid h-7 w-7 place-items-center rounded-full bg-amber-100 text-sm font-bold text-amber-700">
+                    {s.n}
+                  </span>
+                  <p className="mt-2.5 text-sm font-bold text-slate-800">{s.t}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-500">{s.d}</p>
+                </li>
+              ))}
+            </ol>
+
+            {/* Dropzone */}
             <label
-              onDragOver={(e) => {
-                e.preventDefault();
-                if (!dragOver) setDragOver(true);
-              }}
-              onDragEnter={(e) => {
-                e.preventDefault();
-                setDragOver(true);
-              }}
-              onDragLeave={(e) => {
-                e.preventDefault();
-                setDragOver(false);
-              }}
+              onDragOver={(e) => { e.preventDefault(); if (!dragOver) setDragOver(true); }}
+              onDragEnter={(e) => { e.preventDefault(); setDragOver(true); }}
+              onDragLeave={(e) => { e.preventDefault(); setDragOver(false); }}
               onDrop={onDrop}
-              className={`flex cursor-pointer flex-col items-center justify-center gap-3 rounded-3xl border-2 border-dashed px-8 py-16 text-center backdrop-blur transition ${
-                dragOver
-                  ? "border-violet-500 bg-violet-50/80"
-                  : "border-violet-300 bg-white/70 hover:border-violet-400 hover:bg-white"
+              className={`flex min-h-[44px] cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-8 py-12 text-center transition focus-within:ring-2 focus-within:ring-amber-400 ${
+                dragOver ? "border-amber-500 bg-amber-50" : "border-slate-300 bg-white hover:border-amber-400 hover:bg-amber-50/40"
               }`}
             >
-              <span className="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-orange-500 to-amber-500 text-2xl text-white shadow">
-                ⤓
+              <span className="grid h-12 w-12 place-items-center rounded-xl bg-amber-100 text-amber-600">
+                <IconUpload className="h-6 w-6" />
               </span>
-              <span className="text-lg font-bold text-slate-800">
+              <span className="text-base font-bold text-slate-800">
                 {restoring ? "復元中…" : dragOver ? "ここにドロップ" : "PowerPoint ファイルを選択"}
               </span>
               <span className="text-sm text-slate-500">
-                .pptx をクリックで選択（またはドラッグ＆ドロップ）
+                .pptx をクリックで選択、またはドラッグ＆ドロップ
               </span>
               <input
                 type="file"
                 accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation"
-                className="hidden"
-                onChange={(e) => {
-                  const f = e.target.files?.[0];
-                  if (f) handleFile(f);
-                  e.target.value = "";
-                }}
+                className="sr-only"
+                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }}
               />
             </label>
+
+            {/* Tag examples */}
+            <div className="mt-5">
+              <p className="mb-1.5 text-xs font-semibold text-slate-400">よくある分類の例</p>
+              <div className="flex flex-wrap gap-1.5">
+                {["社長資料", "同僚作成", "図解", "FV", "料金表", "事例", "CTA"].map((t) => (
+                  <span key={t} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500">
+                    {t}
+                  </span>
+                ))}
+              </div>
+            </div>
+
+            <p className="mt-4 flex items-start gap-1.5 text-xs leading-relaxed text-slate-400">
+              <IconPresentation className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+              読み込んだファイルはこの端末内（ブラウザ）にのみ保存されます。クラウド共有や権限管理はありません。
+            </p>
+
             {errorMsg && (
               <p className="mt-4 rounded-xl bg-rose-50 px-4 py-3 text-center text-sm font-medium text-rose-600">
                 {errorMsg}

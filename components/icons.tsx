@@ -153,6 +153,12 @@ export const IconMaximize = ({ className }: IconProps) => (
   </svg>
 );
 
+export const IconChevronDown = ({ className }: IconProps) => (
+  <svg {...base(className)}>
+    <path d="m6 9 6 6 6-6" />
+  </svg>
+);
+
 export const IconStar = ({ className, filled }: IconProps & { filled?: boolean }) => (
   <svg {...base(className)} fill={filled ? "currentColor" : "none"}>
     <path d="M12 2.5l2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9L12 2.5Z" />

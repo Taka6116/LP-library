@@ -12,8 +12,16 @@ import type { ReactNode } from "react";
 import { AuroraBg } from "@/components/AuroraBg";
 import { glass } from "@/lib/ui/glass";
 import {
-  IconBookmark, IconSun, IconMoon, IconArrowRight, IconTool, IconLayers, IconSparkles,
+  IconBookmark, IconSun, IconMoon, IconArrowRight, IconTool, IconLayers,
+  IconSparkles, IconPresentation,
 } from "@/components/icons";
+
+const QUICK = [
+  { href: "/ppt", label: "PPTを取り込む", Icon: IconPresentation, tint: "text-amber-600 dark:text-amber-300", tintBg: "bg-amber-100/70 dark:bg-amber-400/15" },
+  { href: "/swipe", label: "参考URLを保存", Icon: IconBookmark, tint: "text-rose-600 dark:text-rose-300", tintBg: "bg-rose-100/70 dark:bg-rose-400/15" },
+  { href: "/library", label: "LPセクションを探す", Icon: IconLayers, tint: "text-indigo-600 dark:text-indigo-300", tintBg: "bg-indigo-100/70 dark:bg-indigo-400/15" },
+  { href: "/prompts", label: "プロンプトを使う", Icon: IconSparkles, tint: "text-fuchsia-600 dark:text-fuchsia-300", tintBg: "bg-fuchsia-100/70 dark:bg-fuchsia-400/15" },
+] as const;
 import {
   GmailTile, YahooTile, PowerPointTile, XTile, LinkedInTile,
   InstagramTile, LpMockTile, BrandKitTile,
@@ -101,6 +109,7 @@ export default function DashboardPage() {
     { label: "PPTデッキ", value: stats.pptDecks, href: "/ppt" },
     { label: "スワイプ", value: stats.swipes, href: "/swipe" },
   ];
+  const totalAssets = STATS.reduce((n, s) => n + s.value, 0);
 
   return (
     <div className="relative min-h-dvh text-zinc-900 dark:text-zinc-50">
@@ -129,24 +138,54 @@ export default function DashboardPage() {
 
       <main className="mx-auto max-w-6xl px-5 py-10 sm:px-6 sm:py-14">
         {/* Heading */}
-        <div className="mb-9">
+        <div className="mb-8">
           <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-indigo-500/80 dark:text-indigo-300/80">ワークスペース</p>
           <h1 className="text-[1.75rem] font-bold tracking-tight sm:text-4xl">今日は何を作りますか？</h1>
-          <p className="mt-2.5 max-w-xl text-[15px] leading-relaxed text-zinc-600 dark:text-zinc-300/80">
-            LP・スライド・メール・SNS投稿——マーケティング制作を、一つのワークスペースで。
+          <p className="mt-2.5 max-w-2xl text-[15px] leading-relaxed text-zinc-600 dark:text-zinc-300/80">
+            PPT・LPセクション・参考URL・コピー・プロンプトを保存し、案件ごとに探して転用・書き出す。マーケ制作の資産を、一つのワークスペースに。
           </p>
         </div>
 
-        {/* Stats — glass panel */}
-        <div className={`mb-9 flex flex-wrap items-stretch divide-x divide-white/40 overflow-hidden rounded-2xl dark:divide-white/10 ${glass}`}>
-          {STATS.map(s => (
-            <Link key={s.label} href={s.href}
-              className="group flex flex-1 flex-col gap-0.5 px-5 py-4 transition hover:bg-white/40 dark:hover:bg-white/[0.04]">
-              <span className="font-mono text-2xl font-bold tabular-nums tracking-tight">{s.value}</span>
-              <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{s.label}</span>
-            </Link>
-          ))}
+        {/* Quick start — direct action CTAs */}
+        <div className="mb-8">
+          <h2 className="mb-3 text-sm font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">クイックスタート</h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {QUICK.map(({ href, label, Icon, tint, tintBg }) => (
+              <Link key={href} href={href}
+                className="group flex min-h-[56px] items-center gap-3 rounded-xl border border-zinc-200/70 bg-white/70 px-4 py-3 transition hover:border-indigo-300 hover:bg-white focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 dark:border-white/10 dark:bg-white/5 dark:hover:bg-white/10">
+                <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${tintBg} ${tint}`}>
+                  <Icon className="h-5 w-5" />
+                </span>
+                <span className="text-sm font-semibold leading-tight">{label}</span>
+              </Link>
+            ))}
+          </div>
         </div>
+
+        {/* Stats — bar when there are assets, guidance when empty (no fake numbers) */}
+        {totalAssets > 0 ? (
+          <div className={`mb-9 flex flex-wrap items-stretch divide-x divide-white/40 overflow-hidden rounded-2xl dark:divide-white/10 ${glass}`}>
+            {STATS.map(s => (
+              <Link key={s.label} href={s.href}
+                className="group flex flex-1 basis-1/3 flex-col gap-0.5 px-5 py-4 transition hover:bg-white/40 focus:outline-none focus-visible:bg-white/40 dark:hover:bg-white/[0.04] sm:basis-0">
+                <span className="font-mono text-2xl font-bold tabular-nums tracking-tight">{s.value}</span>
+                <span className="text-xs font-medium text-zinc-500 dark:text-zinc-400">{s.label}</span>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className={`mb-9 flex items-center gap-4 rounded-2xl px-5 py-4 ${glass}`}>
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-indigo-100/70 text-indigo-600 dark:bg-indigo-400/15 dark:text-indigo-300">
+              <IconSparkles className="h-5 w-5" />
+            </span>
+            <div>
+              <p className="text-sm font-semibold">まだ保存した素材はありません</p>
+              <p className="mt-0.5 text-[13px] leading-relaxed text-zinc-600 dark:text-zinc-400">
+                上のクイックスタートからPPTの取り込みや参考URLの保存を始めましょう。保存した素材はここに集計されます。
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Modules — glass cards with lift */}
         <h2 className="mb-3.5 text-sm font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">モジュール</h2>

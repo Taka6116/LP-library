@@ -13,8 +13,9 @@ const lato = Lato({
 });
 
 export const metadata: Metadata = {
-  title: "LP Builder Library",
-  description: "Select sections. Generate reusable landing pages.",
+  title: "Marketer's Studio — マーケ制作資産スタジオ",
+  description:
+    "LP・PPT・参考URL・コピー・プロンプトを保存し、案件ごとに探して転用・書き出せるマーケ制作の作業スペース。",
 };
 
 export default function RootLayout({

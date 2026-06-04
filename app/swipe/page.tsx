@@ -147,8 +147,8 @@ export default function SwipePage() {
               <div className="grid gap-4 md:grid-cols-[1fr_200px]">
                 <div className="space-y-2.5">
                   <input value={sForm.title} onChange={e => setSForm({ ...sForm, title: e.target.value })} placeholder="タイトル（任意）" className={inputCls} />
-                  <input value={sForm.url} onChange={e => setSForm({ ...sForm, url: e.target.value })} placeholder="https://参考サイトのURL" className={inputCls} />
-                  <textarea value={sForm.note} onChange={e => setSForm({ ...sForm, note: e.target.value })} placeholder="メモ（なぜ参考にしたいか）" rows={2} className={`${inputCls} resize-none`} />
+                  <input value={sForm.url} onChange={e => setSForm({ ...sForm, url: e.target.value })} placeholder="参考にしたいURL（例：競合LP・広告・投稿）" className={inputCls} />
+                  <textarea value={sForm.note} onChange={e => setSForm({ ...sForm, note: e.target.value })} placeholder="参考理由・盗みたい要素（例：FVの余白の取り方、料金表の3列構成、CTAの言い回し）" rows={2} className={`${inputCls} resize-none`} />
                   <div className="flex items-center gap-2.5">
                     <input value={sForm.tags} onChange={e => setSForm({ ...sForm, tags: e.target.value })} placeholder="タグ（スペース区切り）" className={inputCls} />
                     <button type="button" onClick={addSwipe}
@@ -185,11 +185,45 @@ export default function SwipePage() {
                   )}
                 </div>
               </div>
+
+              {/* Tag examples — click to add */}
+              <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+                <span className="mr-1 text-[11px] font-semibold text-zinc-400">タグ例</span>
+                {["FV", "CTA", "図解", "価格表", "フォーム", "広告バナー", "コピー", "配色", "余白"].map((t) => (
+                  <button key={t} type="button"
+                    onClick={() => setSForm((f) => ({ ...f, tags: (f.tags + " " + t).trim() }))}
+                    className="rounded-md bg-zinc-100 px-2 py-1 text-[11px] font-medium text-zinc-500 transition hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 dark:bg-zinc-800 dark:text-zinc-400 dark:hover:bg-indigo-500/10 dark:hover:text-indigo-400">
+                    + {t}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Grid */}
             {swipeResults.length === 0 ? (
-              <EmptyState icon={<IconBookmark className="h-6 w-6" />} text="まだ参考がありません" sub="上のフォームから追加してください。" />
+              <div className="rounded-xl border border-dashed border-zinc-200 px-6 py-14 text-center dark:border-zinc-800">
+                <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500">
+                  <IconBookmark className="h-6 w-6" />
+                </div>
+                <p className="mt-4 text-sm font-semibold text-zinc-700 dark:text-zinc-300">参考の制作知見を貯める場所です</p>
+                <p className="mx-auto mt-1.5 max-w-md text-xs leading-relaxed text-zinc-500 dark:text-zinc-400">
+                  参考URL・スクショ・コピー断片を「なぜ参考にしたか」とセットで保存すると、ここにカードとして並びます。案件のときに検索して転用できます。
+                </p>
+                {/* faint example cards */}
+                <div className="mx-auto mt-6 grid max-w-lg grid-cols-3 gap-3 opacity-60">
+                  {[
+                    { k: "URL", c: "text-sky-600 bg-sky-50 dark:bg-sky-500/10 dark:text-sky-300" },
+                    { k: "スクショ", c: "text-violet-600 bg-violet-50 dark:bg-violet-500/10 dark:text-violet-300" },
+                    { k: "コピー", c: "text-amber-600 bg-amber-50 dark:bg-amber-500/10 dark:text-amber-300" },
+                  ].map((ex) => (
+                    <div key={ex.k} className="rounded-lg border border-zinc-200 bg-white p-2.5 text-left dark:border-zinc-800 dark:bg-zinc-900">
+                      <span className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-bold ${ex.c}`}>{ex.k}</span>
+                      <div className="mt-2 h-1.5 w-4/5 rounded bg-zinc-100 dark:bg-zinc-800" />
+                      <div className="mt-1 h-1.5 w-3/5 rounded bg-zinc-100 dark:bg-zinc-800" />
+                    </div>
+                  ))}
+                </div>
+              </div>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {swipeResults.map(s => (

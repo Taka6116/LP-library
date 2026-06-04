@@ -149,9 +149,28 @@ export default function SocialPage() {
         {/* Outputs */}
         <div className="space-y-4">
           {!ready ? (
-            <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 px-6 py-20 text-center text-sm text-slate-400">
-              左に元ネタを入力すると、各SNS向けの投稿文がここに生成されます。
-            </div>
+            <>
+              <p className="text-sm text-slate-500">
+                左に元ネタを入力すると、各SNSの作法に合わせて自動で整形されます。
+              </p>
+              {[
+                { name: "X (Twitter)", accent: "#0f1419", hint: "ここに X 向けの短文（〜280字・ハッシュタグ最小）が入ります", limit: "280" },
+                { name: "LinkedIn", accent: "#0a66c2", hint: "ここに LinkedIn 向けの長文（改行多め・専門的なトーン）が入ります", limit: "3000" },
+                { name: "Instagram", accent: "#c13584", hint: "ここに Instagram 向けのキャプション（絵文字・ハッシュタグ末尾）が入ります", limit: "2200" },
+              ].map((p) => (
+                <div key={p.name} className="overflow-hidden rounded-2xl border border-dashed border-slate-300 bg-white/60">
+                  <div className="flex items-center justify-between px-4 py-2.5 text-white/90" style={{ background: p.accent }}>
+                    <span className="text-sm font-bold">{p.name}</span>
+                    <span className="rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-bold tabular-nums">0 / {p.limit}</span>
+                  </div>
+                  <div className="space-y-2 p-4">
+                    <p className="text-sm leading-relaxed text-slate-400">{p.hint}</p>
+                    <div className="h-2 w-4/5 rounded bg-slate-100" />
+                    <div className="h-2 w-3/5 rounded bg-slate-100" />
+                  </div>
+                </div>
+              ))}
+            </>
           ) : (
             PLATFORMS.map((p) => {
               const text = p.format(input);
