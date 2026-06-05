@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, type CSSProperties } from "react";
 import type { SectionCategory, SelectedSections } from "@/types/section";
 import { getSection } from "@/data/sectionLibrary";
 import { getPreviewComponent } from "@/lib/previewMap";
-import { buildLpHtml, buildLpMarkdown, downloadTextFile } from "@/lib/exportLp";
+import { buildLpHtml, buildLpJs, buildLpMarkdown, downloadTextFile } from "@/lib/exportLp";
 import { buildLpReact } from "@/lib/exportReact";
 import { extractCopy, type CopyGroup } from "@/lib/extractCopy";
 import { addCopyItem } from "@/lib/swipe/store";
@@ -117,11 +117,16 @@ export function GeneratedLPPreview({
   }
 
   // ---- Export handlers ----
-  function handleDownloadHtml() {
+  function handleDownloadCode() {
     const origin = typeof window !== "undefined" ? window.location.origin : "";
-    // Pass ordered list + theme so the HTML respects drag order and brand.
+    // Download HTML and JS simultaneously
     const html = buildLpHtml(ordered, selected, origin, theme);
+    const js   = buildLpJs(ordered, selected, origin, theme);
     downloadTextFile("generated-lp.html", html, "text/html;charset=utf-8");
+    // Small delay so the browser doesn't block the second download
+    window.setTimeout(() => {
+      downloadTextFile("generated-lp.js", js, "text/javascript;charset=utf-8");
+    }, 150);
   }
 
   function handleDownloadMarkdown() {
@@ -538,13 +543,13 @@ export function GeneratedLPPreview({
 
             <button
               type="button"
-              onClick={handleDownloadHtml}
+              onClick={handleDownloadCode}
               className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-violet-500/30 transition hover:brightness-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2"
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
                 <path d="M12 3v12m0 0l-4-4m4 4l4-4M4 21h16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-              HTMLをダウンロード
+              コードをダウンロード
             </button>
             <button
               type="button"
