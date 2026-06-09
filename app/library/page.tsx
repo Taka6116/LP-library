@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type {
   BuilderMode,
   SectionPattern,
@@ -35,13 +35,12 @@ export default function Page() {
   const [activeCategoryId, setActiveCategoryId] = useState<string>(
     sortedCategories[0]?.id ?? "hero",
   );
-  // 作業状態（選択 + 並び順）は localStorage から復元して初期化。
-  const [selected, setSelected] = useState<SelectedSections>(
-    () => loadWorking()?.selected ?? {},
-  );
-  const [order, setOrder] = useState<string[]>(
-    () => loadWorking()?.order ?? [],
-  );
+  // 作業状態（選択 + 並び順）は SSR と一致させるため空で初期化し、
+  // マウント後に localStorage から復元する（ハイドレーション不一致を防ぐ）。
+  const [selected, setSelected] = useState<SelectedSections>({});
+  const [order, setOrder] = useState<string[]>([]);
+  // 復元完了までは自動保存を抑止し、空状態で上書き（クロバー）しないようにする。
+  const hydratedRef = useRef(false);
   // 「選択済みセクション」はレイアウトを圧迫しないよう、右からのスライドオーバーで表示。
   const [panelOpen, setPanelOpen] = useState(false);
 
@@ -70,8 +69,20 @@ export default function Page() {
     });
   }, [selected]);
 
-  // 作業状態を自動保存（リロードしても消えない）。
+  // マウント後に作業状態・お気に入りを localStorage から復元。
   useEffect(() => {
+    const w = loadWorking();
+    if (w) {
+      if (w.selected) setSelected(w.selected);
+      if (w.order) setOrder(w.order);
+    }
+    setBookmarks(loadBookmarks());
+    hydratedRef.current = true;
+  }, []);
+
+  // 作業状態を自動保存（復元完了後のみ。空状態でのクロバーを防止）。
+  useEffect(() => {
+    if (!hydratedRef.current) return;
     saveWorking({ selected, order });
   }, [selected, order]);
 
@@ -116,11 +127,13 @@ export default function Page() {
   }
 
   // ---- Bookmarks + cross-category search ----
-  const [bookmarks, setBookmarks] = useState<string[]>(() => loadBookmarks());
+  // SSR と一致させるため空初期化。復元は上のマウント effect で行う。
+  const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [query, setQuery] = useState("");
   const [favOnly, setFavOnly] = useState(false);
 
   useEffect(() => {
+    if (!hydratedRef.current) return;
     saveBookmarks(bookmarks);
   }, [bookmarks]);
 
