@@ -11,8 +11,9 @@ import {
   loadUserCategories, addUserCategory,
 } from "@/lib/prompts/userStore";
 import {
-  IconSearch, IconCopy, IconCheck, IconPlus, IconTrash, IconX, IconChevronDown,
+  IconSearch, IconCopy, IconCheck, IconPlus, IconTrash, IconX, IconChevronDown, IconSparkles,
 } from "@/components/icons";
+import { PromptRunModal } from "@/components/PromptRunModal";
 
 type Row = PromptItem & { mine?: boolean };
 
@@ -46,9 +47,16 @@ function PromptCard({
 }) {
   const isLong = p.prompt.length > COLLAPSE_THRESHOLD;
   const [expanded, setExpanded] = useState(false);
+  const [runOpen, setRunOpen] = useState(false);
 
   return (
     <div className={`flex flex-col rounded-2xl p-5 ${glass}`}>
+      <PromptRunModal
+        open={runOpen}
+        onClose={() => setRunOpen(false)}
+        title={p.title}
+        template={p.prompt}
+      />
       {/* Header: category / title / actions */}
       <div className="mb-2 flex items-start justify-between gap-3">
         <div>
@@ -73,6 +81,15 @@ function PromptCard({
               <IconTrash className="h-4 w-4" />
             </button>
           )}
+          <button
+            type="button"
+            onClick={() => setRunOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-white/70 px-3 py-1.5 text-xs font-bold text-indigo-700 transition hover:bg-indigo-50 dark:border-indigo-400/30 dark:bg-white/5 dark:text-indigo-300"
+            title="変数を埋めて使う / AIで実行"
+          >
+            <IconSparkles className="h-3.5 w-3.5" />
+            使う
+          </button>
           <button
             type="button"
             onClick={() => onCopy(p)}
