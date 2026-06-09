@@ -8,6 +8,7 @@
 
 export type LpThemeId =
   | "default"
+  | "brand"
   | "blue"
   | "teal"
   | "orange"
@@ -76,6 +77,16 @@ export function getTheme(id: LpThemeId): LpTheme {
   return LP_THEMES.find((t) => t.id === id) ?? LP_THEMES[0];
 }
 
+/** HEX を白に寄せた淡色（背景tint）に変換。Brand追従テーマの soft 値生成に使う。 */
+export function softFromHex(hex: string): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim());
+  if (!m) return "#eef2ff";
+  const n = parseInt(m[1], 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  const mix = (c: number) => Math.round(c + (255 - c) * 0.88);
+  return `#${[mix(r), mix(g), mix(b)].map((x) => x.toString(16).padStart(2, "0")).join("")}`;
+}
+
 export function getFont(id: LpFontId): LpFont {
   return LP_FONTS.find((f) => f.id === id) ?? LP_FONTS[0];
 }
@@ -90,12 +101,19 @@ export function hueFilter(sel: ThemeSelection): string | undefined {
   return h === 0 ? undefined : `hue-rotate(${h}deg)`;
 }
 
-/** Inline CSS-variable style for the themed container. */
-export function themeStyle(sel: ThemeSelection): Record<string, string> {
-  const t = getTheme(sel.themeId);
+/**
+ * Inline CSS-variable style for the themed container.
+ * `brandPrimary` を渡すと themeId === "brand" のとき Brand Kit の主色を accent に使う
+ * （プレビュー・HTML書き出しの双方で同じ色を焼き込むために共通利用）。
+ */
+export function themeStyle(sel: ThemeSelection, brandPrimary?: string): Record<string, string> {
   const f = getFont(sel.fontId);
   const style: Record<string, string> = {};
-  if (sel.themeId !== "default") {
+  if (sel.themeId === "brand" && brandPrimary) {
+    style["--lp-accent"] = brandPrimary;
+    style["--lp-accent-soft"] = softFromHex(brandPrimary);
+  } else if (sel.themeId !== "default") {
+    const t = getTheme(sel.themeId);
     style["--lp-accent"] = t.accent;
     style["--lp-accent-soft"] = t.soft;
   }

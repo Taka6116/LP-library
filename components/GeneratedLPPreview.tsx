@@ -27,6 +27,8 @@ import {
   type ThemeSelection,
 } from "@/lib/lpTheme";
 import { GeneratedSectionWrapper } from "./GeneratedSectionWrapper";
+import { useBrand } from "./BrandProvider";
+import { Modal, Input, Button, useToast } from "./ui";
 
 type Props = {
   categories: SectionCategory[];
@@ -49,6 +51,8 @@ export function GeneratedLPPreview({
 }: Props) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const dragItem = useRef<string | null>(null);
+  const { brand } = useBrand();
+  const toast = useToast();
 
   // ---- Saved compositions ----
   const [comps, setComps] = useState<LpComposition[]>([]);
@@ -77,11 +81,18 @@ export function GeneratedLPPreview({
   }
   const themed = isThemed(theme);
 
+  // ---- Save composition (modal) ----
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [compName, setCompName] = useState("");
   function handleSaveComposition() {
-    const name = window.prompt("この構成に名前を付けて保存します：", "");
-    if (!name) return;
-    saveComposition(name.trim() || "無題の構成", selected, order);
+    setCompName("");
+    setSaveOpen(true);
+  }
+  function confirmSaveComposition() {
+    saveComposition(compName.trim() || "無題の構成", selected, order);
     setComps(listCompositions());
+    setSaveOpen(false);
+    toast.success("構成を保存しました");
   }
 
   function handleDeleteComposition(id: string) {
@@ -119,9 +130,9 @@ export function GeneratedLPPreview({
   // ---- Export handlers ----
   function handleDownloadCode() {
     const origin = typeof window !== "undefined" ? window.location.origin : "";
-    // Download HTML and JS simultaneously
-    const html = buildLpHtml(ordered, selected, origin, theme);
-    const js   = buildLpJs(ordered, selected, origin, theme);
+    // Download HTML and JS simultaneously（Brand追従テーマ時は主色を焼き込む）
+    const html = buildLpHtml(ordered, selected, origin, theme, brand.primaryColor);
+    const js   = buildLpJs(ordered, selected, origin, theme, brand.primaryColor);
     downloadTextFile("generated-lp.html", html, "text/html;charset=utf-8");
     // Small delay so the browser doesn't block the second download
     window.setTimeout(() => {
@@ -148,10 +159,16 @@ export function GeneratedLPPreview({
     setCopyGroups(extractCopy(ordered, selected));
     setCopyOpen(true);
   }
-  function copyToClipboard(text: string) {
-    navigator.clipboard?.writeText(text);
-    setCopiedText(text);
-    window.setTimeout(() => setCopiedText(null), 1200);
+  async function copyToClipboard(text: string) {
+    try {
+      if (!navigator.clipboard) throw new Error("clipboard unavailable");
+      await navigator.clipboard.writeText(text);
+      setCopiedText(text);
+      window.setTimeout(() => setCopiedText(null), 1200);
+      toast.success("コピーしました");
+    } catch {
+      toast.error("コピーに失敗しました。手動でコピーしてください");
+    }
   }
 
   if (ordered.length === 0) {
@@ -209,6 +226,28 @@ export function GeneratedLPPreview({
     <div className="animate-fadeInSlow">
       {/* Theme remap CSS (scoped to [data-lp-theme]) */}
       <style dangerouslySetInnerHTML={{ __html: LP_THEME_CSS }} />
+
+      {/* 構成を保存（window.prompt 置換） */}
+      <Modal
+        open={saveOpen}
+        onClose={() => setSaveOpen(false)}
+        title="構成に名前を付けて保存"
+        footer={
+          <>
+            <Button variant="ghost" size="sm" onClick={() => setSaveOpen(false)}>キャンセル</Button>
+            <Button variant="primary" size="sm" onClick={confirmSaveComposition}>保存</Button>
+          </>
+        }
+      >
+        <Input
+          label="構成名"
+          value={compName}
+          onChange={(e) => setCompName(e.target.value)}
+          placeholder="例：補助金LP v2"
+          autoFocus
+          onKeyDown={(e) => { if (e.key === "Enter") confirmSaveComposition(); }}
+        />
+      </Modal>
 
       {/* コピー（文言）ライブラリ モーダル */}
       {copyOpen && (
@@ -432,8 +471,10 @@ export function GeneratedLPPreview({
                   className="h-3.5 w-3.5 rounded-full ring-1 ring-black/10"
                   style={{
                     background:
-                      LP_THEMES.find((t) => t.id === theme.themeId)?.accent ??
-                      "#004e98",
+                      theme.themeId === "brand"
+                        ? brand.primaryColor
+                        : LP_THEMES.find((t) => t.id === theme.themeId)?.accent ??
+                          "#004e98",
                   }}
                 />
                 テーマ
@@ -450,6 +491,23 @@ export function GeneratedLPPreview({
                     <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                       アクセントカラー
                     </p>
+                    {/* Brand Kit 追従 */}
+                    <button
+                      type="button"
+                      onClick={() => updateTheme({ ...theme, themeId: "brand" })}
+                      className={`mb-2 flex w-full items-center gap-2 rounded-lg border px-2.5 py-2 text-xs font-semibold transition ${
+                        theme.themeId === "brand"
+                          ? "border-violet-400 bg-violet-50 text-violet-700"
+                          : "border-slate-200 text-slate-600 hover:border-violet-300"
+                      }`}
+                      title="Brand Kit のメインカラーをLPに反映（書き出しにも焼き込み）"
+                    >
+                      <span
+                        className="h-5 w-5 shrink-0 rounded-full ring-1 ring-black/10"
+                        style={{ background: brand.primaryColor }}
+                      />
+                      ブランドキットに追従
+                    </button>
                     <div className="mb-3 flex flex-wrap gap-1.5">
                       {LP_THEMES.map((t) => (
                         <button
@@ -581,7 +639,7 @@ export function GeneratedLPPreview({
         <div
           className="overflow-hidden rounded-3xl border border-white/60 bg-white shadow-card"
           {...(themed ? { "data-lp-theme": "" } : {})}
-          style={themed ? (themeStyle(theme) as CSSProperties) : undefined}
+          style={themed ? (themeStyle(theme, brand.primaryColor) as CSSProperties) : undefined}
         >
           {/* Chrome-like chrome bar */}
           <div className="flex items-center gap-1.5 border-b border-slate-100 bg-slate-50 px-4 py-2.5">

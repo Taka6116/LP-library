@@ -1,10 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import type { BuilderMode } from "@/types/section";
 import { ModeToggle } from "./ModeToggle";
-import { useDark } from "./ThemeProvider";
-import { IconSun, IconMoon } from "./icons";
+import { AppHeader } from "./AppHeader";
+import { Button } from "./ui";
 
 type Props = {
   mode: BuilderMode;
@@ -14,6 +13,12 @@ type Props = {
   onOpenSelected: () => void;
 };
 
+/**
+ * LP Builder のヘッダー。共通 AppHeader を土台にし、
+ * Builder 固有の操作（モード切替・選択中・選択クリア）を actions に載せる。
+ * モジュール横移動・ホーム導線・ダークトグルは AppHeader が一手に担う
+ * （以前あった各モジュールへの絵文字ショートカット列は AppHeader のスイッチャに統合）。
+ */
 export function BuilderHeader({
   mode,
   onModeChange,
@@ -21,107 +26,29 @@ export function BuilderHeader({
   onReset,
   onOpenSelected,
 }: Props) {
-  const { dark, toggle } = useDark();
   return (
-    <header className="sticky top-0 z-40 px-3 pt-3 sm:px-4">
-      {/* 立体的なグラスバー */}
-      <div className="relative mx-auto flex max-w-7xl flex-col gap-3 overflow-hidden rounded-3xl border border-white/60 bg-gradient-to-b from-white/85 to-white/55 px-4 py-3 shadow-[0_12px_34px_-12px_rgba(76,29,149,0.35)] ring-1 ring-inset ring-white/60 backdrop-blur-xl dark:border-slate-700/60 dark:from-slate-900/90 dark:to-slate-900/70 dark:shadow-[0_12px_34px_-12px_rgba(0,0,0,0.5)] dark:ring-slate-700/40 sm:px-6 lg:flex-row lg:items-center lg:justify-between lg:py-4">
-        {/* 上端の光沢ハイライト */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white to-transparent opacity-80"
-        />
-        {/* やわらかいVioletの艶 */}
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -right-10 -top-16 h-32 w-40 rounded-full bg-violet-300/30 blur-2xl"
-        />
-        <div className="flex items-center gap-3">
-          <div>
-            <Link
-              href="/"
-              className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 transition hover:text-violet-600 focus:outline-none focus-visible:underline dark:text-slate-500 dark:hover:text-violet-400"
-            >
-              ← Marketer&apos;s Studio
-            </Link>
-            <h1 className="text-base font-bold leading-tight text-slate-900 dark:text-white sm:text-lg">
-              LP Library
-            </h1>
-          </div>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-          {/* Dark mode toggle */}
-          <button type="button" onClick={toggle}
-            aria-label={dark ? "ライトモードに切替" : "ダークモードに切替"}
-            className="grid h-9 w-9 place-items-center rounded-full border border-slate-200 bg-white/60 text-slate-600 transition hover:border-violet-300 hover:bg-violet-50 hover:text-violet-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:border-violet-500">
-            {dark ? <IconSun className="h-[18px] w-[18px]" /> : <IconMoon className="h-[18px] w-[18px]" />}
-          </button>
-          {/* Brand Kit — shared brand tokens for all modules */}
-          <Link
-            href="/brand"
-            className="inline-flex items-center gap-1.5 rounded-full border border-violet-300/70 bg-gradient-to-br from-violet-600 to-indigo-500 px-3 py-1.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110"
-          >
-            <span className="text-[11px]">🎨</span>
-            Brand
-          </Link>
-          {/* PPT — separate tool for extracting reference slides */}
-          <Link
-            href="/ppt"
-            className="inline-flex items-center gap-1.5 rounded-full border border-amber-300/70 bg-gradient-to-br from-orange-500 to-amber-500 px-3 py-1.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110"
-          >
-            <span className="grid h-4 w-4 place-items-center rounded bg-white/25 text-[10px]">
-              P
-            </span>
-            PPT
-          </Link>
-          {/* Swipe — reference inbox + copy bank */}
-          <Link
-            href="/swipe"
-            className="inline-flex items-center gap-1.5 rounded-full border border-rose-300/70 bg-gradient-to-br from-rose-500 to-pink-500 px-3 py-1.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110"
-          >
-            <span className="grid h-4 w-4 place-items-center rounded bg-white/25 text-[10px]">
-              ◆
-            </span>
-            Swipe
-          </Link>
-          {/* Mail — HTML email builder */}
-          <Link
-            href="/email"
-            className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300/70 bg-gradient-to-br from-emerald-500 to-teal-500 px-3 py-1.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110"
-          >
-            <span className="text-[11px]">✉</span>
-            Mail
-          </Link>
-          {/* Social — repurpose to SNS posts */}
-          <Link
-            href="/social"
-            className="inline-flex items-center gap-1.5 rounded-full border border-sky-300/70 bg-gradient-to-br from-sky-500 to-cyan-500 px-3 py-1.5 text-sm font-bold text-white shadow-sm transition hover:brightness-110"
-          >
-            <span className="text-[11px]">↻</span>
-            Social
-          </Link>
+    <AppHeader
+      current="library"
+      title="LP Library"
+      subtitle="セクションを組み合わせて構成を作る"
+      actions={
+        <>
           <ModeToggle mode={mode} onChange={onModeChange} />
           <button
             type="button"
             onClick={onOpenSelected}
-            className="inline-flex items-center gap-1.5 rounded-full border border-white/70 bg-white/60 px-3 py-1.5 text-sm font-semibold text-slate-700 backdrop-blur transition hover:bg-white hover:text-violet-700"
+            className="inline-flex items-center gap-1.5 rounded-full border border-white/70 bg-white/60 px-3 py-1.5 text-sm font-semibold text-slate-700 backdrop-blur transition hover:bg-white hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 dark:border-slate-600 dark:bg-slate-800/60 dark:text-slate-300"
           >
-            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 px-1.5 text-xs text-white">
+            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-gradient-to-br from-primary to-primary-accent px-1.5 text-xs text-primary-fg">
               {selectedCount}
             </span>
-            Selected
+            選択中
           </button>
-          <button
-            type="button"
-            onClick={onReset}
-            disabled={selectedCount === 0}
-            className="rounded-xl border border-slate-200 px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Reset Selection
-          </button>
-        </div>
-      </div>
-    </header>
+          <Button variant="secondary" size="sm" onClick={onReset} disabled={selectedCount === 0}>
+            選択をクリア
+          </Button>
+        </>
+      }
+    />
   );
 }

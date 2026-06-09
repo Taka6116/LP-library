@@ -56,13 +56,14 @@ export function buildLpHtml(
   selected: SelectedSections,
   origin: string,
   theme?: ThemeSelection,
+  brandPrimary?: string,
 ): string {
   const items = orderedSelected(categories, selected);
 
   // Brand theme: data attribute + CSS variables (+ optional hue filter) on <body>.
   const themed = theme && isThemed(theme);
   const styleProps = themed
-    ? Object.entries(themeStyle(theme!)).map(([k, v]) => `${k}:${v}`)
+    ? Object.entries(themeStyle(theme!, brandPrimary)).map(([k, v]) => `${k}:${v}`)
     : [];
   const hf = theme && hueFilter(theme);
   if (hf) styleProps.push(`filter:${hf}`);
@@ -121,9 +122,10 @@ export function buildLpJs(
   selected: SelectedSections,
   origin: string,
   theme?: ThemeSelection,
+  brandPrimary?: string,
 ): string {
   // Reuse the same HTML that buildLpHtml generates — only the wrapper changes.
-  const fullHtml = buildLpHtml(categories, selected, origin, theme);
+  const fullHtml = buildLpHtml(categories, selected, origin, theme, brandPrimary);
   // Escape backticks and template literal placeholders so the string embeds safely.
   const escaped = fullHtml
     .replace(/\\/g, "\\\\")
