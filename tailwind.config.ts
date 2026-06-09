@@ -26,7 +26,32 @@ const config: Config = {
         lato: ["var(--font-lato)", "Helvetica Neue", "Arial", "sans-serif"],
       },
       colors: {
-        // Sansan brand palette
+        // === Design System セマンティックトークン（単一の真実源） ===
+        // 実値は app/globals.css の CSS 変数。light/dark/Brand Kit を同一機構で扱う。
+        // 既存の Sansan 系トークンとは名前が衝突しないよう primary-* / surface 等を採用。
+        primary: {
+          DEFAULT: "rgb(var(--color-primary) / <alpha-value>)",
+          fg: "rgb(var(--color-primary-fg) / <alpha-value>)",
+          accent: "rgb(var(--color-primary-accent) / <alpha-value>)",
+          muted: "rgb(var(--color-primary-muted) / <alpha-value>)",
+        },
+        surface: {
+          DEFAULT: "rgb(var(--color-surface) / <alpha-value>)",
+          fg: "rgb(var(--color-surface-fg) / <alpha-value>)",
+          muted: "rgb(var(--color-surface-muted) / <alpha-value>)",
+        },
+        bg: "rgb(var(--color-bg) / <alpha-value>)",
+        border: "rgb(var(--color-border) / <alpha-value>)",
+        success: {
+          DEFAULT: "rgb(var(--color-success) / <alpha-value>)",
+          fg: "rgb(var(--color-success-fg) / <alpha-value>)",
+        },
+        danger: {
+          DEFAULT: "rgb(var(--color-danger) / <alpha-value>)",
+          fg: "rgb(var(--color-danger-fg) / <alpha-value>)",
+        },
+
+        // Sansan brand palette（既存・当面併存。撤去は後続Phase）
         canvas: "#f6f7f9",
         ink: "#1a1a1a",
         subtle: "#6b7280",

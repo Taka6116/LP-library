@@ -2,11 +2,61 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =====================================================================
+ * Design Tokens — 単一の真実源（Single Source of Truth）
+ * 値は「RGB を空白区切り」で持ち、Tailwind の `rgb(var(--x) / <alpha-value>)`
+ * で参照する。これにより bg-primary/40 のような alpha 付き utility と、
+ * ダークモード / Brand Kit による動的上書き（後続PR）を同一機構で扱える。
+ * 配色は実画面の実態（violet / fuchsia 系グラスモーフィズム）を「正」とする。
+ * 既存の Sansan 青トークン（accent/sansan/ink 等）は当面併存（撤去は後続Phase）。
+ * 詳細: docs/design-tokens.md
+ * ===================================================================== */
 :root {
   color-scheme: light;
+
+  /* --- primary（violet 系・ブランド主色） --- */
+  --color-primary: 124 58 237; /* violet-600 */
+  --color-primary-fg: 255 255 255; /* primary 上の前景色 */
+  --color-primary-accent: 217 70 239; /* fuchsia-500（グラデの相方） */
+  --color-primary-muted: 237 233 254; /* violet-100（淡い面・選択背景） */
+
+  /* --- surface（面と前景） --- */
+  --color-bg: 250 248 255; /* ページ背景 #faf8ff */
+  --color-surface: 255 255 255; /* カード等の面 */
+  --color-surface-fg: 26 26 26; /* 本文 #1a1a1a */
+  --color-surface-muted: 107 114 128; /* 補助テキスト slate-500 */
+  --color-border: 226 232 240; /* 罫線 slate-200 */
+
+  /* --- status --- */
+  --color-success: 5 150 105; /* emerald-600 */
+  --color-success-fg: 255 255 255;
+  --color-danger: 220 38 38; /* red-600 */
+  --color-danger-fg: 255 255 255;
+
+  /* --- radius（角丸スケール） --- */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
 }
 .dark {
   color-scheme: dark;
+
+  /* ダークは色反転でなくデサチュレート＋トーン調整 */
+  --color-primary: 139 92 246; /* violet-500 */
+  --color-primary-fg: 255 255 255;
+  --color-primary-accent: 232 121 249; /* fuchsia-400 */
+  --color-primary-muted: 49 46 129; /* indigo-900（淡面の暗版） */
+
+  --color-bg: 10 10 15; /* #0a0a0f */
+  --color-surface: 24 24 33; /* ダークグラスの基底面 */
+  --color-surface-fg: 245 245 247;
+  --color-surface-muted: 148 163 184; /* slate-400 */
+  --color-border: 51 51 64; /* ≒ white/10 */
+
+  --color-success: 52 211 153; /* emerald-400 */
+  --color-success-fg: 26 26 26;
+  --color-danger: 248 113 113; /* red-400 */
+  --color-danger-fg: 26 26 26;
 }
 
 html,
