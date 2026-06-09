@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useId } from "react";
 import Link from "next/link";
 import {
   EMAIL_BLOCKS,
@@ -9,6 +9,8 @@ import {
   type EmailFields,
 } from "@/lib/email/blocks";
 import { useBrand } from "@/components/BrandProvider";
+import { Button, Input, Textarea, useToast } from "@/components/ui";
+import { IconMail, IconChevronDown } from "@/components/icons";
 
 const DEFAULT_ORDER = ["header", "hero", "divider", "body", "button", "footer"];
 
@@ -16,6 +18,8 @@ export default function EmailPage() {
   const [fields, setFields] = useState<EmailFields>(DEFAULT_FIELDS);
   const [order, setOrder] = useState<string[]>(DEFAULT_ORDER);
   const { brand } = useBrand();
+  const toast = useToast();
+  const colorId = useId();
   // ユーザーが手で編集したフィールドは Brand 連動の上書き対象から外す
   const touched = useRef<Set<keyof EmailFields>>(new Set());
 
@@ -61,40 +65,31 @@ export default function EmailPage() {
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+    toast.success("email.html をダウンロードしました");
   }
-  const [copied, setCopied] = useState(false);
-  function copyHtml() {
-    navigator.clipboard?.writeText(html);
-    setCopied(true);
-    window.setTimeout(() => setCopied(false), 1200);
+  async function copyHtml() {
+    try {
+      if (!navigator.clipboard) throw new Error("clipboard unavailable");
+      await navigator.clipboard.writeText(html);
+      toast.success("HTMLをコピーしました");
+    } catch {
+      toast.error("コピーに失敗しました。お使いの環境では手動でコピーしてください");
+    }
   }
 
   const field = (
     label: string,
     k: keyof EmailFields,
     textarea = false,
-  ) => (
-    <label className="block">
-      <span className="mb-1 block text-xs font-semibold text-slate-500">{label}</span>
-      {textarea ? (
-        <textarea
-          value={fields[k]}
-          onChange={(e) => set(k, e.target.value)}
-          rows={3}
-          className="w-full resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-violet-300"
-        />
-      ) : (
-        <input
-          value={fields[k]}
-          onChange={(e) => set(k, e.target.value)}
-          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-violet-300"
-        />
-      )}
-    </label>
-  );
+  ) =>
+    textarea ? (
+      <Textarea label={label} value={fields[k]} rows={3} onChange={(e) => set(k, e.target.value)} />
+    ) : (
+      <Input label={label} value={fields[k]} onChange={(e) => set(k, e.target.value)} />
+    );
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-dvh">
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-violet-50 via-white to-fuchsia-50"
@@ -115,10 +110,10 @@ export default function EmailPage() {
             </Link>
             <div>
               <h1 className="flex items-center gap-2 text-base font-bold leading-tight text-slate-900 sm:text-lg">
-                <span className="grid h-6 w-6 place-items-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 text-xs text-white shadow-sm">
-                  ✉
+                <span className="grid h-6 w-6 place-items-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-sm">
+                  <IconMail className="h-3.5 w-3.5" />
                 </span>
-                メール / メルマガ Library
+                メール / メルマガ
               </h1>
               <p className="text-xs text-slate-500">
                 ブロックを組んで HTML メールを書き出し。
@@ -126,20 +121,12 @@ export default function EmailPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={copyHtml}
-              className="rounded-full border border-violet-200 bg-white/70 px-3 py-2 text-sm font-bold text-violet-700 transition hover:bg-white"
-            >
-              {copied ? "✓ コピー" : "HTMLをコピー"}
-            </button>
-            <button
-              type="button"
-              onClick={download}
-              className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-4 py-2 text-sm font-bold text-white shadow-lg shadow-violet-500/30 transition hover:brightness-110"
-            >
+            <Button variant="secondary" size="sm" onClick={copyHtml}>
+              HTMLをコピー
+            </Button>
+            <Button variant="primary" size="sm" onClick={download}>
               HTMLをダウンロード
-            </button>
+            </Button>
           </div>
         </div>
       </header>
@@ -172,18 +159,18 @@ export default function EmailPage() {
                         <button
                           type="button"
                           onClick={() => move(b.id, -1)}
-                          className="text-slate-400 hover:text-violet-700"
-                          aria-label="上へ"
+                          className="rounded p-0.5 text-slate-400 transition hover:text-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                          aria-label={`${b.label}を上へ`}
                         >
-                          ▲
+                          <IconChevronDown className="h-4 w-4 rotate-180" />
                         </button>
                         <button
                           type="button"
                           onClick={() => move(b.id, 1)}
-                          className="text-slate-400 hover:text-violet-700"
-                          aria-label="下へ"
+                          className="rounded p-0.5 text-slate-400 transition hover:text-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50"
+                          aria-label={`${b.label}を下へ`}
                         >
-                          ▼
+                          <IconChevronDown className="h-4 w-4" />
                         </button>
                       </>
                     )}
@@ -196,17 +183,18 @@ export default function EmailPage() {
           {/* Fields */}
           <div className="space-y-3 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
             <p className="text-sm font-bold text-slate-700">内容</p>
-            <label className="block">
-              <span className="mb-1 block text-xs font-semibold text-slate-500">
+            <div className="block">
+              <label htmlFor={colorId} className="mb-1 block text-xs font-semibold text-surface-muted">
                 ブランドカラー
-              </span>
+              </label>
               <input
+                id={colorId}
                 type="color"
                 value={fields.brandColor}
                 onChange={(e) => set("brandColor", e.target.value)}
-                className="h-9 w-16 cursor-pointer rounded border border-slate-200"
+                className="h-9 w-16 cursor-pointer rounded-[var(--radius-sm)] border border-border"
               />
-            </label>
+            </div>
             {field("会社名", "companyName")}
             {field("件名", "subject")}
             {field("プレヘッダー", "preheader")}
