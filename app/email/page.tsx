@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useMemo, useEffect, useRef, useId } from "react";
-import Link from "next/link";
 import {
   EMAIL_BLOCKS,
   DEFAULT_FIELDS,
@@ -9,8 +8,9 @@ import {
   type EmailFields,
 } from "@/lib/email/blocks";
 import { useBrand } from "@/components/BrandProvider";
+import { AppHeader } from "@/components/AppHeader";
 import { Button, Input, Textarea, useToast } from "@/components/ui";
-import { IconMail, IconChevronDown } from "@/components/icons";
+import { IconChevronDown } from "@/components/icons";
 
 const DEFAULT_ORDER = ["header", "hero", "divider", "body", "button", "footer"];
 
@@ -99,37 +99,21 @@ export default function EmailPage() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-40 px-3 pt-3 sm:px-4">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 rounded-3xl border border-white/60 bg-gradient-to-b from-white/85 to-white/55 px-5 py-3.5 shadow-[0_12px_34px_-12px_rgba(76,29,149,0.35)] ring-1 ring-inset ring-white/60 backdrop-blur-xl sm:px-6">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/library"
-              className="rounded-full border border-white/70 bg-white/60 px-3 py-1.5 text-sm font-semibold text-slate-700 backdrop-blur transition hover:bg-white hover:text-violet-700 dark:border-slate-600 dark:bg-slate-800/60 dark:text-slate-300"
-            >
-              ← Library
-            </Link>
-            <div>
-              <h1 className="flex items-center gap-2 text-base font-bold leading-tight text-slate-900 sm:text-lg">
-                <span className="grid h-6 w-6 place-items-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-sm">
-                  <IconMail className="h-3.5 w-3.5" />
-                </span>
-                メール / メルマガ
-              </h1>
-              <p className="text-xs text-slate-500">
-                ブロックを組んで HTML メールを書き出し。
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
+      <AppHeader
+        current="email"
+        title="メール / メルマガ"
+        subtitle="ブロックを組んで HTML メールを書き出し。"
+        actions={
+          <>
             <Button variant="secondary" size="sm" onClick={copyHtml}>
               HTMLをコピー
             </Button>
             <Button variant="primary" size="sm" onClick={download}>
-              HTMLをダウンロード
+              ダウンロード
             </Button>
-          </div>
-        </div>
-      </header>
+          </>
+        }
+      />
 
       <main className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[360px_1fr]">
         {/* Editor */}

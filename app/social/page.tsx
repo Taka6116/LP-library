@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
 import { PLATFORMS, type RepurposeInput, type ToneMode } from "@/lib/social/repurpose";
 import { addCopyItem } from "@/lib/swipe/store";
 import { TONE_LABELS } from "@/lib/brand/store";
 import { useBrand } from "@/components/BrandProvider";
+import { AppHeader } from "@/components/AppHeader";
+import { useToast } from "@/components/ui";
 
 function parseTags(s: string): string[] {
   return [...new Set(s.split(/[,、\s]+/).map((t) => t.replace(/^#/, "").trim()).filter(Boolean))];
@@ -42,19 +43,27 @@ export default function SocialPage() {
   };
   const ready = body.trim().length > 0 || hook.trim().length > 0;
 
-  function copy(id: string, text: string) {
-    navigator.clipboard?.writeText(text);
-    setCopiedId(id);
-    window.setTimeout(() => setCopiedId(null), 1200);
+  const toast = useToast();
+  async function copy(id: string, text: string) {
+    try {
+      if (!navigator.clipboard) throw new Error("clipboard unavailable");
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      window.setTimeout(() => setCopiedId(null), 1200);
+      toast.success("コピーしました");
+    } catch {
+      toast.error("コピーに失敗しました。手動でコピーしてください");
+    }
   }
   function saveToBank(id: string, text: string) {
     addCopyItem(text, "ボディ", ["SNS", id]);
     setSaved(id);
     window.setTimeout(() => setSaved(null), 1200);
+    toast.success("コピーバンクに保存しました");
   }
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-dvh">
       <div
         aria-hidden
         className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-violet-50 via-white to-fuchsia-50"
@@ -64,29 +73,11 @@ export default function SocialPage() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-40 px-3 pt-3 sm:px-4">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 rounded-3xl border border-white/60 bg-gradient-to-b from-white/85 to-white/55 px-5 py-3.5 shadow-[0_12px_34px_-12px_rgba(76,29,149,0.35)] ring-1 ring-inset ring-white/60 backdrop-blur-xl sm:px-6">
-          <div className="flex items-center gap-3">
-            <Link
-              href="/library"
-              className="rounded-full border border-white/70 bg-white/60 px-3 py-1.5 text-sm font-semibold text-slate-700 backdrop-blur transition hover:bg-white hover:text-violet-700 dark:border-slate-600 dark:bg-slate-800/60 dark:text-slate-300"
-            >
-              ← Library
-            </Link>
-            <div>
-              <h1 className="flex items-center gap-2 text-base font-bold leading-tight text-slate-900 sm:text-lg">
-                <span className="grid h-6 w-6 place-items-center rounded-lg bg-gradient-to-br from-sky-500 to-cyan-500 text-xs text-white shadow-sm">
-                  ↻
-                </span>
-                SNS投稿リパーパス
-              </h1>
-              <p className="text-xs text-slate-500">
-                1本の内容を各SNS向けに整形して量産。
-              </p>
-            </div>
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        current="social"
+        title="SNS投稿リパーパス"
+        subtitle="1本の内容を各SNS向けに整形して量産。"
+      />
 
       <main className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[380px_1fr]">
         {/* Input */}

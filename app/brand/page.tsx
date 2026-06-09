@@ -1,12 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import {
   FONT_STACKS, TONE_LABELS,
   type BrandKit, type FontId, type BrandTone,
 } from "@/lib/brand/store";
 import { useBrand } from "@/components/BrandProvider";
-import { useToast } from "@/components/ui";
+import { AppHeader } from "@/components/AppHeader";
+import { Button, useToast } from "@/components/ui";
 
 function Swatch({ color }: { color: string }) {
   return (
@@ -32,41 +32,27 @@ export default function BrandPage() {
   const fontStack = FONT_STACKS.find(f => f.id === kit.fontId)?.stack ?? "";
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-dvh">
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-violet-50 via-white to-fuchsia-50">
         <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-violet-300/30 blur-3xl" />
         <div className="absolute right-0 top-40 h-80 w-80 rounded-full bg-fuchsia-300/25 blur-3xl" />
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-40 px-3 pt-3 sm:px-4">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 rounded-3xl border border-white/60 bg-gradient-to-b from-white/85 to-white/55 px-5 py-3.5 shadow-[0_12px_34px_-12px_rgba(76,29,149,0.35)] ring-1 ring-inset ring-white/60 backdrop-blur-xl sm:px-6">
-          <div className="flex items-center gap-3">
-            <Link href="/library" className="rounded-full border border-white/70 bg-white/60 px-3 py-1.5 text-sm font-semibold text-slate-700 backdrop-blur transition hover:bg-white hover:text-violet-700 dark:border-slate-600 dark:bg-slate-800/60 dark:text-slate-300">
-              ← Library
-            </Link>
-            <div>
-              <h1 className="flex items-center gap-2 text-base font-bold leading-tight text-slate-900 sm:text-lg">
-                <span className="grid h-6 w-6 place-items-center rounded-lg bg-gradient-to-br from-violet-600 to-indigo-500 text-xs text-white shadow-sm">
-                  🎨
-                </span>
-                ブランドキット
-              </h1>
-              <p className="text-xs text-slate-500">色・フォント・トーンを1か所で定義し、全モジュールに適用。</p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="hidden items-center gap-1.5 rounded-full bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-600 sm:inline-flex dark:bg-violet-500/10 dark:text-violet-300">
+      <AppHeader
+        current="brand"
+        title="ブランドキット"
+        subtitle="色・フォント・トーンを1か所で定義し、全モジュールに適用。"
+        actions={
+          <>
+            <span className="hidden items-center gap-1.5 rounded-full bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-600 lg:inline-flex dark:bg-violet-500/10 dark:text-violet-300">
               <span className="h-1.5 w-1.5 rounded-full bg-violet-500" aria-hidden />
-              変更は自動保存・全モジュールに即反映
+              自動保存・即反映
             </span>
-            <button type="button" onClick={reset}
-              className="rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300">
-              リセット
-            </button>
-          </div>
-        </div>
-      </header>
+            <Button variant="secondary" size="sm" onClick={reset}>リセット</Button>
+          </>
+        }
+      />
 
       <main className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[420px_1fr]">
         {/* Editor */}

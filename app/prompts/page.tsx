@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
-import { useDark } from "@/components/ThemeProvider";
 import { AuroraBg } from "@/components/AuroraBg";
+import { AppHeader } from "@/components/AppHeader";
+import { useToast } from "@/components/ui";
 import { glass } from "@/lib/ui/glass";
 import { PROMPTS, PROMPT_CATEGORIES, type PromptItem } from "@/lib/prompts/data";
 import {
@@ -11,8 +11,7 @@ import {
   loadUserCategories, addUserCategory,
 } from "@/lib/prompts/userStore";
 import {
-  IconArrowRight, IconSearch, IconSun, IconMoon, IconSparkles,
-  IconCopy, IconCheck, IconPlus, IconTrash, IconX, IconChevronDown,
+  IconSearch, IconCopy, IconCheck, IconPlus, IconTrash, IconX, IconChevronDown,
 } from "@/components/icons";
 
 type Row = PromptItem & { mine?: boolean };
@@ -144,7 +143,7 @@ function PromptCard({
 }
 
 export default function PromptsPage() {
-  const { dark, toggle } = useDark();
+  const toast = useToast();
   const [cat, setCat] = useState<string>("all");
   const [query, setQuery] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -205,10 +204,16 @@ export default function PromptsPage() {
     return [p.title, p.prompt, p.category, ...p.tags].join(" ").toLowerCase().includes(q);
   });
 
-  function copy(p: { id: string; prompt: string }) {
-    navigator.clipboard?.writeText(p.prompt);
-    setCopiedId(p.id);
-    window.setTimeout(() => setCopiedId(null), 1400);
+  async function copy(p: { id: string; prompt: string }) {
+    try {
+      if (!navigator.clipboard) throw new Error("clipboard unavailable");
+      await navigator.clipboard.writeText(p.prompt);
+      setCopiedId(p.id);
+      window.setTimeout(() => setCopiedId(null), 1400);
+      toast.success("プロンプトをコピーしました");
+    } catch {
+      toast.error("コピーに失敗しました。手動でコピーしてください");
+    }
   }
 
   return (
@@ -216,26 +221,11 @@ export default function PromptsPage() {
       <AuroraBg />
 
       {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b border-white/40 bg-white/30 backdrop-blur-xl dark:border-white/10 dark:bg-white/[0.02]">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-5 sm:px-6">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-medium text-zinc-600 transition hover:bg-white/40 hover:text-zinc-900 dark:text-zinc-300 dark:hover:bg-white/10">
-              <IconArrowRight className="h-4 w-4 rotate-180" /> ホーム
-            </Link>
-            <div className="h-4 w-px bg-zinc-300/60 dark:bg-white/10" />
-            <div className="flex items-center gap-2">
-              <div className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-fuchsia-500 to-violet-600 text-white shadow-sm">
-                <IconSparkles className="h-4 w-4" />
-              </div>
-              <span className="text-[15px] font-semibold tracking-tight">プロンプト集</span>
-            </div>
-          </div>
-          <button type="button" onClick={toggle} aria-label={dark ? "ライトモード" : "ダークモード"}
-            className="grid h-9 w-9 place-items-center rounded-lg border border-white/50 bg-white/40 text-zinc-600 backdrop-blur transition hover:bg-white/70 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300">
-            {dark ? <IconSun className="h-[18px] w-[18px]" /> : <IconMoon className="h-[18px] w-[18px]" />}
-          </button>
-        </div>
-      </header>
+      <AppHeader
+        current="prompts"
+        title="プロンプト集"
+        subtitle="カテゴリ別の即使えるマーケ用プロンプト"
+      />
 
       <main className="mx-auto max-w-6xl px-5 py-10 sm:px-6">
         <div className="mb-7 flex flex-wrap items-end justify-between gap-3">

@@ -1,15 +1,15 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import Link from "next/link";
-import { useDark } from "@/components/ThemeProvider";
+import { AppHeader } from "@/components/AppHeader";
+import { useToast } from "@/components/ui";
 import {
   loadSwipe, saveSwipe, loadCopy, saveCopy, newId, COPY_TYPES,
   type SwipeItem, type CopyItem, type CopyType,
 } from "@/lib/swipe/store";
 import {
-  IconArrowRight, IconSearch, IconPlus, IconX, IconTrash, IconUpload,
-  IconExternalLink, IconImage, IconSun, IconMoon, IconBookmark,
+  IconSearch, IconPlus, IconX, IconTrash, IconUpload,
+  IconExternalLink, IconImage, IconBookmark,
 } from "@/components/icons";
 
 type Tab = "swipe" | "copy";
@@ -23,7 +23,7 @@ function hostOf(url: string): string {
 }
 
 export default function SwipePage() {
-  const { dark, toggle } = useDark();
+  const toast = useToast();
   const [tab, setTab] = useState<Tab>("swipe");
   const [query, setQuery] = useState("");
   const [lightbox, setLightbox] = useState<string | null>(null);
@@ -84,10 +84,16 @@ export default function SwipePage() {
     persistCopy([{ id: newId(), text: cForm.text.trim(), type: cForm.type, tags: parseTags(cForm.tags), savedAt: Date.now() }, ...copies]);
     setCForm({ text: "", type: cForm.type, tags: "" });
   }
-  function copyText(item: CopyItem) {
-    navigator.clipboard?.writeText(item.text);
-    setCopiedId(item.id);
-    window.setTimeout(() => setCopiedId(null), 1200);
+  async function copyText(item: CopyItem) {
+    try {
+      if (!navigator.clipboard) throw new Error("clipboard unavailable");
+      await navigator.clipboard.writeText(item.text);
+      setCopiedId(item.id);
+      window.setTimeout(() => setCopiedId(null), 1200);
+      toast.success("コピーしました");
+    } catch {
+      toast.error("コピーに失敗しました。手動でコピーしてください");
+    }
   }
 
   const q = query.trim().toLowerCase();
@@ -99,37 +105,21 @@ export default function SwipePage() {
   return (
     <div className="min-h-dvh bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
       {/* Top bar */}
-      <header className="sticky top-0 z-40 border-b border-zinc-200/80 bg-zinc-50/80 backdrop-blur-md dark:border-zinc-800/80 dark:bg-zinc-950/80">
-        <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-3 px-5 sm:px-6">
-          <div className="flex items-center gap-3">
-            <Link href="/library" className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-medium text-zinc-500 transition hover:bg-zinc-200/60 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-50">
-              <IconArrowRight className="h-4 w-4 rotate-180" /> Library
-            </Link>
-            <div className="h-4 w-px bg-zinc-200 dark:bg-zinc-700" />
-            <div className="flex items-center gap-2">
-              <div className="grid h-7 w-7 place-items-center rounded-md bg-rose-50 text-rose-600 dark:bg-rose-500/10 dark:text-rose-400">
-                <IconBookmark className="h-4 w-4" />
-              </div>
-              <span className="text-[15px] font-semibold tracking-tight">Swipe Bank</span>
-            </div>
+      <AppHeader
+        current="swipe"
+        title="Swipe Bank"
+        subtitle="参考URL・スクショ・コピーを貯める"
+        actions={
+          <div className="flex items-center rounded-lg bg-zinc-100 p-0.5 dark:bg-zinc-800" role="tablist" aria-label="表示切替">
+            {([{ id: "swipe", label: `参考`, n: swipes.length }, { id: "copy", label: `コピー`, n: copies.length }] as const).map(t => (
+              <button key={t.id} type="button" role="tab" aria-selected={tab === t.id} onClick={() => setTab(t.id)}
+                className={`rounded-md px-3 py-1 text-sm font-medium transition ${tab === t.id ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white" : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400"}`}>
+                {t.label} <span className="font-mono text-xs tabular-nums opacity-60">{t.n}</span>
+              </button>
+            ))}
           </div>
-          <div className="flex items-center gap-3">
-            {/* Tabs */}
-            <div className="flex items-center rounded-lg bg-zinc-100 p-0.5 dark:bg-zinc-800">
-              {([{ id: "swipe", label: `参考`, n: swipes.length }, { id: "copy", label: `コピー`, n: copies.length }] as const).map(t => (
-                <button key={t.id} type="button" onClick={() => setTab(t.id)}
-                  className={`rounded-md px-3 py-1 text-sm font-medium transition ${tab === t.id ? "bg-white text-zinc-900 shadow-sm dark:bg-zinc-700 dark:text-white" : "text-zinc-500 hover:text-zinc-900 dark:text-zinc-400"}`}>
-                  {t.label} <span className="font-mono text-xs tabular-nums opacity-60">{t.n}</span>
-                </button>
-              ))}
-            </div>
-            <button type="button" onClick={toggle} aria-label={dark ? "ライトモード" : "ダークモード"}
-              className="grid h-8 w-8 place-items-center rounded-md text-zinc-500 transition hover:bg-zinc-200/60 hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800">
-              {dark ? <IconSun className="h-[18px] w-[18px]" /> : <IconMoon className="h-[18px] w-[18px]" />}
-            </button>
-          </div>
-        </div>
-      </header>
+        }
+      />
 
       <main className="mx-auto max-w-6xl px-5 py-8 sm:px-6">
         {/* Search */}
