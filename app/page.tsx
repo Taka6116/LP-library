@@ -10,6 +10,7 @@ import { listDecks } from "@/lib/pptx/deckStore";
 import { loadBrand } from "@/lib/brand/store";
 import type { ReactNode } from "react";
 import { AuroraBg } from "@/components/AuroraBg";
+import { BackupControls } from "@/components/BackupControls";
 import { glass } from "@/lib/ui/glass";
 import {
   IconBookmark, IconSun, IconMoon, IconArrowRight, IconTool, IconLayers,
@@ -129,10 +130,13 @@ export default function DashboardPage() {
               </span>
             )}
           </div>
-          <button type="button" onClick={toggle} aria-label={dark ? "ライトモードに切替" : "ダークモードに切替"}
-            className="grid h-9 w-9 place-items-center rounded-lg border border-white/50 bg-white/40 text-zinc-600 backdrop-blur transition hover:bg-white/70 hover:text-zinc-900 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:bg-white/10">
-            {dark ? <IconSun className="h-[18px] w-[18px]" /> : <IconMoon className="h-[18px] w-[18px]" />}
-          </button>
+          <div className="flex items-center gap-2">
+            <BackupControls />
+            <button type="button" onClick={toggle} aria-label={dark ? "ライトモードに切替" : "ダークモードに切替"}
+              className="grid h-9 w-9 place-items-center rounded-lg border border-white/50 bg-white/40 text-zinc-600 backdrop-blur transition hover:bg-white/70 hover:text-zinc-900 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:bg-white/10">
+              {dark ? <IconSun className="h-[18px] w-[18px]" /> : <IconMoon className="h-[18px] w-[18px]" />}
+            </button>
+          </div>
         </div>
       </header>
 
