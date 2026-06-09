@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
-  loadBrand, saveBrand, FONT_STACKS, TONE_LABELS, DEFAULT_BRAND,
+  FONT_STACKS, TONE_LABELS,
   type BrandKit, type FontId, type BrandTone,
 } from "@/lib/brand/store";
+import { useBrand } from "@/components/BrandProvider";
+import { useToast } from "@/components/ui";
 
 function Swatch({ color }: { color: string }) {
   return (
@@ -17,21 +18,15 @@ function Swatch({ color }: { color: string }) {
 }
 
 export default function BrandPage() {
-  const [kit, setKit] = useState<BrandKit>(DEFAULT_BRAND);
-  const [saved, setSaved] = useState(false);
-
-  useEffect(() => { setKit(loadBrand()); }, []);
+  const { brand: kit, update, reset: resetBrand } = useBrand();
+  const { success } = useToast();
 
   function set<K extends keyof BrandKit>(k: K, v: BrandKit[K]) {
-    setKit(prev => ({ ...prev, [k]: v }));
-  }
-  function save() {
-    saveBrand(kit);
-    setSaved(true);
-    window.setTimeout(() => setSaved(false), 1500);
+    update({ [k]: v } as Partial<BrandKit>);
   }
   function reset() {
-    setKit({ ...DEFAULT_BRAND });
+    resetBrand();
+    success("ブランドを既定値に戻しました");
   }
 
   const fontStack = FONT_STACKS.find(f => f.id === kit.fontId)?.stack ?? "";
@@ -61,13 +56,13 @@ export default function BrandPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <span className="hidden items-center gap-1.5 rounded-full bg-violet-50 px-3 py-1.5 text-xs font-semibold text-violet-600 sm:inline-flex dark:bg-violet-500/10 dark:text-violet-300">
+              <span className="h-1.5 w-1.5 rounded-full bg-violet-500" aria-hidden />
+              変更は自動保存・全モジュールに即反映
+            </span>
             <button type="button" onClick={reset}
               className="rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300">
               リセット
-            </button>
-            <button type="button" onClick={save}
-              className="rounded-full bg-gradient-to-r from-violet-600 to-fuchsia-500 px-5 py-2 text-sm font-bold text-white shadow-lg transition hover:brightness-110">
-              {saved ? "✓ 保存しました" : "保存"}
             </button>
           </div>
         </div>
@@ -223,14 +218,14 @@ export default function BrandPage() {
             </p>
           </div>
 
-          {/* Apply to modules hint */}
-          <div className="rounded-2xl border border-violet-200 bg-violet-50/50 p-4 text-sm text-violet-700">
-            <p className="font-bold mb-1">💡 各モジュールへの適用方法</p>
-            <ul className="space-y-1 text-xs text-violet-600">
-              <li>• <strong>LP</strong>：Generated LP の「テーマ」→ ブランドカラーを選択</li>
-              <li>• <strong>Mail</strong>：メールビルダーで「ブランド適用」ボタンを使用</li>
-              <li>• <strong>Social</strong>：SNSリパーパスで「ブランドから入力」を使用</li>
-              <li>• <strong>Swipe</strong>：コピーバンクのタグ検索でブランド名で絞り込み</li>
+          {/* Auto-linking hint */}
+          <div className="rounded-2xl border border-violet-200 bg-violet-50/50 p-4 text-sm text-violet-700 dark:border-violet-500/30 dark:bg-violet-500/10 dark:text-violet-300">
+            <p className="font-bold mb-1">各モジュールへ自動で反映されます</p>
+            <ul className="space-y-1 text-xs text-violet-600 dark:text-violet-300/90">
+              <li>• <strong>Mail</strong>：会社名・ブランドカラーが自動で入ります（個別に編集した項目はそのまま保持）</li>
+              <li>• <strong>Social</strong>：会社名・トーンが自動で入ります（個別編集は保持）</li>
+              <li>• <strong>LP</strong>：プレビューのアクセントにブランドカラーを反映（書き出しへの焼き込みは順次対応）</li>
+              <li>• ここでの変更は保存ボタン不要で即時反映されます</li>
             </ul>
           </div>
         </div>

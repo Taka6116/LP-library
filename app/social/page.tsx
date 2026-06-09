@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { PLATFORMS, type RepurposeInput, type ToneMode } from "@/lib/social/repurpose";
 import { addCopyItem } from "@/lib/swipe/store";
-import { loadBrand, TONE_LABELS } from "@/lib/brand/store";
+import { TONE_LABELS } from "@/lib/brand/store";
+import { useBrand } from "@/components/BrandProvider";
 
 function parseTags(s: string): string[] {
   return [...new Set(s.split(/[,、\s]+/).map((t) => t.replace(/^#/, "").trim()).filter(Boolean))];
@@ -20,11 +21,18 @@ export default function SocialPage() {
   const [companyName, setCompanyName] = useState("");
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
+  const { brand } = useBrand();
+  const toneTouched = useRef(false);
 
-  function applyBrand() {
-    const b = loadBrand();
-    setTone(b.tone as ToneMode);
-    setCompanyName(b.companyName);
+  // Brand Kit のトーン・会社名を未編集なら自動反映（手動「ブランドから取込」を廃止）
+  useEffect(() => {
+    if (!toneTouched.current) setTone(brand.tone as ToneMode);
+    setCompanyName(brand.companyName === "Your Company" ? "" : brand.companyName);
+  }, [brand.tone, brand.companyName]);
+
+  function chooseTone(t: ToneMode) {
+    toneTouched.current = true;
+    setTone(t);
   }
 
   const input: RepurposeInput = {
@@ -119,14 +127,11 @@ export default function SocialPage() {
             <div className="mt-4 border-t border-slate-100 pt-4">
               <div className="mb-2 flex items-center justify-between">
                 <p className="text-xs font-bold text-slate-600">トーン</p>
-                <button type="button" onClick={applyBrand}
-                  className="rounded-full border border-indigo-200 px-2.5 py-1 text-[11px] font-bold text-indigo-700 hover:bg-indigo-50">
-                  🎨 ブランドから取込
-                </button>
+                <span className="text-[11px] text-slate-400">ブランドから自動反映</span>
               </div>
               <div className="grid grid-cols-3 gap-1.5">
                 {(Object.entries(TONE_LABELS) as [ToneMode, string][]).map(([t, label]) => (
-                  <button key={t} type="button" onClick={() => setTone(t)}
+                  <button key={t} type="button" onClick={() => chooseTone(t)}
                     className={`rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition ${
                       tone === t
                         ? "border-violet-400 bg-violet-50 text-violet-700"

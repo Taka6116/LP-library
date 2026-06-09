@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import Link from "next/link";
 import {
   EMAIL_BLOCKS,
@@ -8,17 +8,30 @@ import {
   buildEmailHtml,
   type EmailFields,
 } from "@/lib/email/blocks";
-import { loadBrand } from "@/lib/brand/store";
+import { useBrand } from "@/components/BrandProvider";
 
 const DEFAULT_ORDER = ["header", "hero", "divider", "body", "button", "footer"];
 
 export default function EmailPage() {
   const [fields, setFields] = useState<EmailFields>(DEFAULT_FIELDS);
   const [order, setOrder] = useState<string[]>(DEFAULT_ORDER);
+  const { brand } = useBrand();
+  // ユーザーが手で編集したフィールドは Brand 連動の上書き対象から外す
+  const touched = useRef<Set<keyof EmailFields>>(new Set());
+
+  // Brand Kit の会社名・色を未編集フィールドへ自動反映（手動「ブランド適用」を廃止）
+  useEffect(() => {
+    setFields((f) => ({
+      ...f,
+      ...(touched.current.has("brandColor") ? {} : { brandColor: brand.primaryColor }),
+      ...(touched.current.has("companyName") ? {} : { companyName: brand.companyName }),
+    }));
+  }, [brand.primaryColor, brand.companyName]);
 
   const html = useMemo(() => buildEmailHtml(order, fields), [order, fields]);
 
   function set<K extends keyof EmailFields>(k: K, v: EmailFields[K]) {
+    touched.current.add(k);
     setFields((f) => ({ ...f, [k]: v }));
   }
   const active = (id: string) => order.includes(id);
@@ -36,11 +49,6 @@ export default function EmailPage() {
       [next[i], next[j]] = [next[j], next[i]];
       return next;
     });
-  }
-
-  function applyBrand() {
-    const b = loadBrand();
-    setFields(f => ({ ...f, brandColor: b.primaryColor, companyName: b.companyName }));
   }
 
   function download() {
@@ -118,14 +126,6 @@ export default function EmailPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={applyBrand}
-              title="ブランドキットから色・会社名を取り込む"
-              className="rounded-full border border-indigo-200 bg-white/70 px-3 py-2 text-sm font-bold text-indigo-700 transition hover:bg-indigo-50"
-            >
-              🎨 ブランド適用
-            </button>
             <button
               type="button"
               onClick={copyHtml}
