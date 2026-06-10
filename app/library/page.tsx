@@ -18,6 +18,7 @@ import { CategoryTabs } from "@/components/CategoryTabs";
 import { SectionPatternCard } from "@/components/SectionPatternCard";
 import { SelectedSectionsPanel } from "@/components/SelectedSectionsPanel";
 import { GeneratedLPPreview } from "@/components/GeneratedLPPreview";
+import { LpPlanModal } from "@/components/LpPlanModal";
 import { AuroraBg } from "@/components/AuroraBg";
 import { IconSearch, IconX } from "@/components/icons";
 import { glassInput } from "@/lib/ui/glass";
@@ -118,6 +119,15 @@ export default function Page() {
     setPanelOpen(false);
   }, []);
 
+  // AI構成設計（LpPlanModal）
+  const [aiPlanOpen, setAiPlanOpen] = useState(false);
+  const handleApplyAiPlan = useCallback((sel: SelectedSections, ord: string[]) => {
+    setSelected(sel);
+    setOrder(ord);
+    setMode("preview");
+    setPanelOpen(false);
+  }, []);
+
   function handleJumpToCategory(categoryId: string) {
     setActiveCategoryId(categoryId);
     setMode("library");
@@ -176,6 +186,13 @@ export default function Page() {
         selectedCount={selectedCount}
         onReset={handleReset}
         onOpenSelected={() => setPanelOpen(true)}
+        onOpenAiPlan={() => setAiPlanOpen(true)}
+      />
+
+      <LpPlanModal
+        open={aiPlanOpen}
+        onClose={() => setAiPlanOpen(false)}
+        onApply={handleApplyAiPlan}
       />
 
       {mode === "library" ? (

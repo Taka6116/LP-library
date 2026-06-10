@@ -4,6 +4,7 @@ import type { BuilderMode } from "@/types/section";
 import { ModeToggle } from "./ModeToggle";
 import { AppHeader } from "./AppHeader";
 import { Button } from "./ui";
+import { IconSparkles } from "./icons";
 
 type Props = {
   mode: BuilderMode;
@@ -11,6 +12,8 @@ type Props = {
   selectedCount: number;
   onReset: () => void;
   onOpenSelected: () => void;
+  /** AI構成設計モーダルを開く */
+  onOpenAiPlan?: () => void;
 };
 
 /**
@@ -25,6 +28,7 @@ export function BuilderHeader({
   selectedCount,
   onReset,
   onOpenSelected,
+  onOpenAiPlan,
 }: Props) {
   return (
     <AppHeader
@@ -33,6 +37,17 @@ export function BuilderHeader({
       subtitle="セクションを組み合わせて構成を作る"
       actions={
         <>
+          {onOpenAiPlan && (
+            <button
+              type="button"
+              onClick={onOpenAiPlan}
+              className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-violet-600 via-purple-600 to-fuchsia-500 px-3 py-1.5 text-sm font-bold text-white shadow-lg shadow-violet-500/30 transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2"
+              title="商材を入力するとAIがセクション構成を設計します"
+            >
+              <IconSparkles className="h-4 w-4" />
+              AIで構成
+            </button>
+          )}
           <ModeToggle mode={mode} onChange={onModeChange} />
           <button
             type="button"
