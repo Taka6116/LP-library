@@ -12,6 +12,7 @@ import {
   IconSearch, IconPlus, IconX, IconTrash, IconUpload,
   IconExternalLink, IconImage, IconBookmark,
 } from "@/components/icons";
+import { glassPanel, glassInput } from "@/lib/ui/glass";
 
 type Tab = "swipe" | "copy";
 
@@ -101,7 +102,7 @@ export default function SwipePage() {
   const swipeResults = swipes.filter(s => !q || [s.title, s.url, s.note, ...s.tags].join(" ").toLowerCase().includes(q));
   const copyResults = copies.filter(c => !q || [c.text, c.type, ...c.tags].join(" ").toLowerCase().includes(q));
 
-  const inputCls = "w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:focus:ring-indigo-500/20";
+  const inputCls = glassInput;
 
   return (
     <div className="relative min-h-dvh text-zinc-900 dark:text-zinc-50">
@@ -135,7 +136,7 @@ export default function SwipePage() {
         {tab === "swipe" ? (
           <>
             {/* Add form */}
-            <div className="mb-8 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className={`mb-8 p-5 ${glassPanel}`}>
               <div className="grid gap-4 md:grid-cols-[1fr_200px]">
                 <div className="space-y-2.5">
                   <input value={sForm.title} onChange={e => setSForm({ ...sForm, title: e.target.value })} placeholder="タイトル（任意）" className={inputCls} />
@@ -179,7 +180,7 @@ export default function SwipePage() {
               </div>
 
               {/* Tag examples — click to add */}
-              <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-zinc-100 pt-3 dark:border-zinc-800">
+              <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-white/50 pt-3 dark:border-white/10">
                 <span className="mr-1 text-[11px] font-semibold text-zinc-400">タグ例</span>
                 {["FV", "CTA", "図解", "価格表", "フォーム", "広告バナー", "コピー", "配色", "余白"].map((t) => (
                   <button key={t} type="button"
@@ -193,7 +194,7 @@ export default function SwipePage() {
 
             {/* Grid */}
             {swipeResults.length === 0 ? (
-              <div className="rounded-xl border border-dashed border-zinc-200 px-6 py-14 text-center dark:border-zinc-800">
+              <div className="rounded-2xl border border-dashed border-white/70 bg-white/30 px-6 py-14 text-center backdrop-blur dark:border-white/15 dark:bg-white/[0.03]">
                 <div className="mx-auto grid h-12 w-12 place-items-center rounded-xl bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500">
                   <IconBookmark className="h-6 w-6" />
                 </div>
@@ -208,7 +209,7 @@ export default function SwipePage() {
                     { k: "スクショ", c: "text-violet-600 bg-violet-50 dark:bg-violet-500/10 dark:text-violet-300" },
                     { k: "コピー", c: "text-amber-600 bg-amber-50 dark:bg-amber-500/10 dark:text-amber-300" },
                   ].map((ex) => (
-                    <div key={ex.k} className="rounded-lg border border-zinc-200 bg-white p-2.5 text-left dark:border-zinc-800 dark:bg-zinc-900">
+                    <div key={ex.k} className="rounded-lg border border-white/60 bg-white/50 p-2.5 text-left backdrop-blur dark:border-white/10 dark:bg-white/5">
                       <span className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-bold ${ex.c}`}>{ex.k}</span>
                       <div className="mt-2 h-1.5 w-4/5 rounded bg-zinc-100 dark:bg-zinc-800" />
                       <div className="mt-1 h-1.5 w-3/5 rounded bg-zinc-100 dark:bg-zinc-800" />
@@ -219,7 +220,7 @@ export default function SwipePage() {
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {swipeResults.map(s => (
-                  <article key={s.id} className="group flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white transition hover:border-zinc-300 hover:shadow-[0_8px_24px_-12px_rgba(0,0,0,0.15)] dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-zinc-700">
+                  <article key={s.id} className={`group flex flex-col overflow-hidden transition hover:-translate-y-0.5 hover:shadow-[0_14px_34px_-14px_rgba(76,29,149,0.35)] ${glassPanel}`}>
                     {s.image ? (
                       <button type="button" onClick={() => setLightbox(s.image!)}
                         className="relative block aspect-[16/9] w-full overflow-hidden bg-zinc-100 dark:bg-zinc-800">
@@ -271,7 +272,7 @@ export default function SwipePage() {
         ) : (
           <>
             {/* Add copy */}
-            <div className="mb-8 rounded-xl border border-zinc-200 bg-white p-5 dark:border-zinc-800 dark:bg-zinc-900">
+            <div className={`mb-8 p-5 ${glassPanel}`}>
               <textarea value={cForm.text} onChange={e => setCForm({ ...cForm, text: e.target.value })} placeholder="文言（見出し・CTA・フック・メール件名…）" rows={2} className={`${inputCls} resize-none`} />
               <div className="mt-2.5 flex flex-wrap items-center gap-2.5">
                 <select value={cForm.type} onChange={e => setCForm({ ...cForm, type: e.target.value as CopyType })} className={`${inputCls} w-auto`}>
@@ -288,9 +289,9 @@ export default function SwipePage() {
             {copyResults.length === 0 ? (
               <EmptyState icon={<IconBookmark className="h-6 w-6" />} text="まだコピーがありません" sub="上のフォーム、または LP の「文言」から保存できます。" />
             ) : (
-              <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900">
+              <div className={`overflow-hidden ${glassPanel}`}>
                 {copyResults.map((c, i) => (
-                  <div key={c.id} className={`flex items-center gap-3 px-4 py-3 transition hover:bg-zinc-50 dark:hover:bg-zinc-800/50 ${i > 0 ? "border-t border-zinc-100 dark:border-zinc-800" : ""}`}>
+                  <div key={c.id} className={`flex items-center gap-3 px-4 py-3 transition hover:bg-white/45 dark:hover:bg-white/[0.05] ${i > 0 ? "border-t border-white/40 dark:border-white/10" : ""}`}>
                     <span className={`shrink-0 rounded-md px-2 py-0.5 text-[11px] font-semibold ${
                       c.type === "CTA" ? "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
                       : c.type === "見出し" ? "bg-sky-50 text-sky-700 dark:bg-sky-500/10 dark:text-sky-400"
@@ -333,7 +334,7 @@ export default function SwipePage() {
 
 function EmptyState({ icon, text, sub }: { icon: React.ReactNode; text: string; sub: string }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-zinc-200 py-20 text-center dark:border-zinc-800">
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/70 bg-white/30 py-20 text-center backdrop-blur dark:border-white/15 dark:bg-white/[0.03]">
       <div className="grid h-12 w-12 place-items-center rounded-xl bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-500">{icon}</div>
       <p className="mt-4 text-sm font-semibold text-zinc-700 dark:text-zinc-300">{text}</p>
       <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">{sub}</p>

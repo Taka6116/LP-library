@@ -174,11 +174,11 @@ export function GeneratedLPPreview({
   if (ordered.length === 0) {
     return (
       <div className="mx-auto max-w-2xl px-6 py-24 text-center">
-        <div className="rounded-3xl border border-dashed border-slate-300 bg-white px-8 py-16">
-          <h2 className="text-xl font-bold text-slate-800">
+        <div className="rounded-3xl border border-dashed border-slate-300 bg-white/60 px-8 py-16 backdrop-blur dark:border-white/15 dark:bg-white/[0.04]">
+          <h2 className="text-xl font-bold text-slate-800 dark:text-zinc-100">
             まだLPが生成されていません
           </h2>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-sm text-slate-500 dark:text-zinc-400">
             Library モードでセクションを選択すると、ここに1本のLPとして合成されます。
           </p>
 
@@ -191,12 +191,12 @@ export function GeneratedLPPreview({
                 {comps.map((c) => (
                   <li
                     key={c.id}
-                    className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2"
+                    className="flex items-center justify-between gap-2 rounded-xl border border-white/60 bg-white/60 px-3 py-2 backdrop-blur dark:border-white/10 dark:bg-white/5"
                   >
                     <button
                       type="button"
                       onClick={() => onLoadComposition(c)}
-                      className="flex-1 truncate text-left text-sm font-semibold text-slate-700 hover:text-violet-700"
+                      className="flex-1 truncate text-left text-sm font-semibold text-slate-700 hover:text-violet-700 dark:text-zinc-200 dark:hover:text-violet-300"
                       title={c.name}
                     >
                       {c.name}
@@ -256,11 +256,11 @@ export function GeneratedLPPreview({
           onClick={() => setCopyOpen(false)}
         >
           <div
-            className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
+            className="flex max-h-[85vh] w-full max-w-lg flex-col overflow-hidden rounded-2xl bg-white shadow-2xl dark:bg-zinc-900"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5">
-              <h3 className="text-sm font-bold text-slate-800">
+            <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5 dark:border-white/10">
+              <h3 className="text-sm font-bold text-slate-800 dark:text-zinc-100">
                 文言ライブラリ
                 <span className="ml-2 text-xs font-normal text-slate-400">
                   見出し・CTA を抽出
@@ -270,7 +270,7 @@ export function GeneratedLPPreview({
                 type="button"
                 onClick={() => setCopyOpen(false)}
                 aria-label="閉じる"
-                className="grid h-7 w-7 place-items-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                className="grid h-7 w-7 place-items-center rounded-full text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-zinc-200"
               >
                 ✕
               </button>
@@ -293,7 +293,7 @@ export function GeneratedLPPreview({
                       return (
                         <div
                           key={ti}
-                          className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2 transition hover:border-violet-300"
+                          className="flex items-center justify-between gap-2 rounded-lg border border-slate-200 px-3 py-2 transition hover:border-violet-300 dark:border-white/10"
                         >
                           <span className="flex min-w-0 items-center gap-2">
                             <span
@@ -305,7 +305,7 @@ export function GeneratedLPPreview({
                             >
                               {isCta ? "CTA" : "見出し"}
                             </span>
-                            <span className="truncate text-sm text-slate-700">{txt}</span>
+                            <span className="truncate text-sm text-slate-700 dark:text-zinc-200">{txt}</span>
                           </span>
                           <span className="flex shrink-0 items-center gap-1.5">
                             <button
@@ -343,14 +343,14 @@ export function GeneratedLPPreview({
             <span className="grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br from-violet-600 to-fuchsia-500 text-xs text-white shadow-sm">
               ✓
             </span>
-            <p className="text-sm font-semibold text-slate-700">
+            <p className="text-sm font-semibold text-slate-700 dark:text-zinc-200">
               この構成でLPを書き出す
               <span className="ml-2 text-xs font-normal text-slate-400">
                 {ordered.length} sections
               </span>
             </p>
             {/* ドラッグヒント */}
-            <span className="hidden items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] text-slate-500 sm:inline-flex">
+            <span className="hidden items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] text-slate-500 dark:bg-white/10 dark:text-zinc-400 sm:inline-flex">
               <svg width="10" height="12" viewBox="0 0 12 14" fill="currentColor" className="text-slate-400" aria-hidden>
                 <circle cx="3" cy="2" r="1.2" /><circle cx="9" cy="2" r="1.2" />
                 <circle cx="3" cy="7" r="1.2" /><circle cx="9" cy="7" r="1.2" />
@@ -359,7 +359,7 @@ export function GeneratedLPPreview({
               ドラッグで順番を入れ替えできます
             </span>
             {/* レスポンシブ切替 */}
-            <div className="ml-1 inline-flex items-center rounded-full border border-slate-200 bg-white/70 p-0.5">
+            <div className="ml-1 inline-flex items-center rounded-full border border-slate-200 bg-white/70 p-0.5 dark:border-white/10 dark:bg-white/5">
               {([
                 { id: "pc", label: "PC", icon: "🖥" },
                 { id: "tablet", label: "Tablet", icon: "▭" },
@@ -386,7 +386,7 @@ export function GeneratedLPPreview({
             <button
               type="button"
               onClick={handleSaveComposition}
-              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/70 px-3 py-2 text-sm font-bold text-slate-700 backdrop-blur transition hover:border-violet-300 hover:text-violet-700"
+              className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/70 px-3 py-2 text-sm font-bold text-slate-700 backdrop-blur transition hover:border-violet-300 hover:text-violet-700 dark:border-white/10 dark:bg-white/5 dark:text-zinc-200 dark:hover:text-violet-300"
               title="この構成に名前を付けて保存"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -400,7 +400,7 @@ export function GeneratedLPPreview({
               <button
                 type="button"
                 onClick={() => setCompMenuOpen((v) => !v)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/70 px-3 py-2 text-sm font-bold text-slate-700 backdrop-blur transition hover:border-violet-300 hover:text-violet-700"
+                className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white/70 px-3 py-2 text-sm font-bold text-slate-700 backdrop-blur transition hover:border-violet-300 hover:text-violet-700 dark:border-white/10 dark:bg-white/5 dark:text-zinc-200 dark:hover:text-violet-300"
               >
                 構成 <span className="text-xs text-slate-400">{comps.length}</span>
                 <span className="text-[10px]">▾</span>
@@ -412,7 +412,7 @@ export function GeneratedLPPreview({
                     onClick={() => setCompMenuOpen(false)}
                     aria-hidden
                   />
-                  <div className="absolute right-0 z-40 mt-1 w-64 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+                  <div className="absolute right-0 z-40 mt-1 w-64 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl dark:border-white/10 dark:bg-zinc-900">
                     {comps.length === 0 ? (
                       <p className="px-3 py-4 text-center text-xs text-slate-400">
                         保存された構成はありません
@@ -422,7 +422,7 @@ export function GeneratedLPPreview({
                         {comps.map((c) => (
                           <li
                             key={c.id}
-                            className="flex items-center justify-between gap-2 px-2 py-1.5 hover:bg-slate-50"
+                            className="flex items-center justify-between gap-2 px-2 py-1.5 hover:bg-slate-50 dark:hover:bg-white/5"
                           >
                             <button
                               type="button"
@@ -430,7 +430,7 @@ export function GeneratedLPPreview({
                                 onLoadComposition(c);
                                 setCompMenuOpen(false);
                               }}
-                              className="flex-1 truncate text-left text-sm font-semibold text-slate-700"
+                              className="flex-1 truncate text-left text-sm font-semibold text-slate-700 dark:text-zinc-200"
                               title={c.name}
                             >
                               {c.name}
@@ -487,7 +487,7 @@ export function GeneratedLPPreview({
                     onClick={() => setThemeMenuOpen(false)}
                     aria-hidden
                   />
-                  <div className="absolute right-0 z-40 mt-1 w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-xl">
+                  <div className="absolute right-0 z-40 mt-1 w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-xl dark:border-white/10 dark:bg-zinc-900">
                     <p className="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                       アクセントカラー
                     </p>
@@ -554,7 +554,7 @@ export function GeneratedLPPreview({
                       ))}
                     </div>
                     {/* 全体カラーシフト（実セクション・画像も含めて色を回す） */}
-                    <div className="mt-3 border-t border-slate-100 pt-3">
+                    <div className="mt-3 border-t border-slate-100 pt-3 dark:border-white/10">
                       <div className="mb-1 flex items-center justify-between">
                         <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-400">
                           全体カラーシフト

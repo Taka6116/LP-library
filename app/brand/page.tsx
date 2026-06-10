@@ -8,6 +8,7 @@ import { useBrand } from "@/components/BrandProvider";
 import { AppHeader } from "@/components/AppHeader";
 import { AuroraBg } from "@/components/AuroraBg";
 import { Button, useToast } from "@/components/ui";
+import { glassPanel, glassInput } from "@/lib/ui/glass";
 
 function Swatch({ color }: { color: string }) {
   return (
@@ -57,26 +58,26 @@ export default function BrandPage() {
         <div className="space-y-5 lg:sticky lg:top-24 lg:self-start">
 
           {/* Brand identity */}
-          <section className="rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm">
-            <p className="mb-4 text-sm font-bold text-slate-700">ブランド基本情報</p>
+          <section className={`p-5 ${glassPanel}`}>
+            <p className="mb-4 text-sm font-bold text-slate-700 dark:text-zinc-200">ブランド基本情報</p>
             <div className="space-y-3">
               <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-slate-500">会社名 / ブランド名</span>
+                <span className="mb-1 block text-xs font-semibold text-slate-500 dark:text-zinc-400">会社名 / ブランド名</span>
                 <input value={kit.companyName} onChange={e => set("companyName", e.target.value)}
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-violet-300" />
+                  className={glassInput} />
               </label>
               <label className="block">
-                <span className="mb-1 block text-xs font-semibold text-slate-500">タグライン（任意）</span>
+                <span className="mb-1 block text-xs font-semibold text-slate-500 dark:text-zinc-400">タグライン（任意）</span>
                 <input value={kit.tagline} onChange={e => set("tagline", e.target.value)}
                   placeholder="例：補助金申請をシンプルに。"
-                  className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-violet-300" />
+                  className={glassInput} />
               </label>
             </div>
           </section>
 
           {/* Colors */}
-          <section className="rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm">
-            <p className="mb-4 text-sm font-bold text-slate-700">カラーパレット</p>
+          <section className={`p-5 ${glassPanel}`}>
+            <p className="mb-4 text-sm font-bold text-slate-700 dark:text-zinc-200">カラーパレット</p>
             <div className="space-y-3">
               {([
                 ["primaryColor",   "プライマリカラー（メインブランド色）"],
@@ -86,9 +87,9 @@ export default function BrandPage() {
                 <div key={k} className="flex items-center gap-3">
                   <input type="color" value={kit[k] as string}
                     onChange={e => set(k, e.target.value)}
-                    className="h-10 w-14 cursor-pointer rounded-lg border border-slate-200" />
+                    className="h-10 w-14 cursor-pointer rounded-lg border border-slate-200 bg-white/60 dark:border-white/10 dark:bg-white/5" />
                   <div>
-                    <p className="text-xs font-semibold text-slate-600">{label}</p>
+                    <p className="text-xs font-semibold text-slate-600 dark:text-zinc-300">{label}</p>
                     <p className="text-[11px] text-slate-400 font-mono">{kit[k] as string}</p>
                   </div>
                 </div>
@@ -97,16 +98,16 @@ export default function BrandPage() {
           </section>
 
           {/* Font */}
-          <section className="rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm">
-            <p className="mb-3 text-sm font-bold text-slate-700">フォント</p>
+          <section className={`p-5 ${glassPanel}`}>
+            <p className="mb-3 text-sm font-bold text-slate-700 dark:text-zinc-200">フォント</p>
             <div className="grid grid-cols-2 gap-2">
               {FONT_STACKS.map(f => (
                 <button key={f.id} type="button"
                   onClick={() => set("fontId", f.id as FontId)}
                   className={`rounded-xl border px-3 py-2.5 text-sm transition ${
                     kit.fontId === f.id
-                      ? "border-violet-400 bg-violet-50 text-violet-700"
-                      : "border-slate-200 text-slate-600 hover:border-violet-300"
+                      ? "border-violet-400 bg-violet-50 text-violet-700 dark:border-violet-400/60 dark:bg-violet-500/15 dark:text-violet-200"
+                      : "border-slate-200 bg-white/40 text-slate-600 hover:border-violet-300 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:border-violet-400/50"
                   }`}
                   style={{ fontFamily: f.stack }}>
                   {f.label}
@@ -117,16 +118,16 @@ export default function BrandPage() {
           </section>
 
           {/* Tone */}
-          <section className="rounded-2xl border border-slate-200 bg-white/80 p-5 shadow-sm">
-            <p className="mb-3 text-sm font-bold text-slate-700">コミュニケーションの温度感</p>
+          <section className={`p-5 ${glassPanel}`}>
+            <p className="mb-3 text-sm font-bold text-slate-700 dark:text-zinc-200">コミュニケーションの温度感</p>
             <div className="space-y-2">
               {(Object.entries(TONE_LABELS) as [BrandTone, string][]).map(([t, label]) => (
                 <button key={t} type="button"
                   onClick={() => set("tone", t)}
                   className={`flex w-full items-center gap-3 rounded-xl border px-4 py-3 text-left text-sm transition ${
                     kit.tone === t
-                      ? "border-violet-400 bg-violet-50 text-violet-700"
-                      : "border-slate-200 text-slate-600 hover:border-violet-300"
+                      ? "border-violet-400 bg-violet-50 text-violet-700 dark:border-violet-400/60 dark:bg-violet-500/15 dark:text-violet-200"
+                      : "border-slate-200 bg-white/40 text-slate-600 hover:border-violet-300 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:border-violet-400/50"
                   }`}>
                   <span className="text-lg">
                     {t === "formal" ? "🤝" : t === "casual" ? "😊" : "⚡"}
@@ -140,10 +141,10 @@ export default function BrandPage() {
 
         {/* Live preview */}
         <div className="space-y-4">
-          <p className="text-sm font-bold text-slate-600">プレビュー</p>
+          <p className="text-sm font-bold text-slate-600 dark:text-zinc-300">プレビュー</p>
 
           {/* Mini LP card */}
-          <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm"
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10"
             style={{ fontFamily: fontStack }}>
             <div className="px-8 py-12 text-white"
               style={{ background: `linear-gradient(135deg, ${kit.secondaryColor} 0%, ${kit.primaryColor} 100%)` }}>
@@ -159,7 +160,7 @@ export default function BrandPage() {
           </div>
 
           {/* Mini email preview */}
-          <div className="overflow-hidden rounded-2xl border border-slate-200 shadow-sm"
+          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-white/10"
             style={{ fontFamily: fontStack }}>
             <div className="border-b-4 px-6 py-3 text-center font-bold"
               style={{ borderColor: kit.primaryColor }}>

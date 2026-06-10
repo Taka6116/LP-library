@@ -9,6 +9,8 @@ export const runtime = "nodejs";
 // 整形・短文生成向けの既定モデル（用途で差し替え可能）。
 const MODEL = "claude-sonnet-4-6";
 
+type Body = { prompt?: string; system?: string; stream?: boolean };
+
 export async function POST(req: Request) {
   const key = process.env.ANTHROPIC_API_KEY;
   if (!key) {
@@ -22,7 +24,7 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { prompt?: string; system?: string };
+  let body: Body;
   try {
     body = await req.json();
   } catch {
@@ -34,7 +36,41 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: "プロンプトが空です" }, { status: 400 });
   }
 
+  const payload = {
+    model: MODEL,
+    max_tokens: 2048,
+    ...(body.system ? { system: body.system } : {}),
+    messages: [{ role: "user", content: prompt }],
+  };
+
   try {
+    // ---- ストリーミング（SSEをそのまま転送） ----
+    if (body.stream) {
+      const r = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": key,
+          "anthropic-version": "2023-06-01",
+        },
+        body: JSON.stringify({ ...payload, stream: true }),
+      });
+      if (!r.ok || !r.body) {
+        const data = await r.json().catch(() => null);
+        const msg =
+          (data && data.error && data.error.message) || `Anthropic APIエラー (${r.status})`;
+        return NextResponse.json({ ok: false, error: msg }, { status: 502 });
+      }
+      return new Response(r.body, {
+        headers: {
+          "content-type": "text/event-stream; charset=utf-8",
+          "cache-control": "no-cache, no-transform",
+          connection: "keep-alive",
+        },
+      });
+    }
+
+    // ---- 一括生成（従来どおり） ----
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
@@ -42,12 +78,7 @@ export async function POST(req: Request) {
         "x-api-key": key,
         "anthropic-version": "2023-06-01",
       },
-      body: JSON.stringify({
-        model: MODEL,
-        max_tokens: 2048,
-        ...(body.system ? { system: body.system } : {}),
-        messages: [{ role: "user", content: prompt }],
-      }),
+      body: JSON.stringify(payload),
     });
 
     const data = await r.json().catch(() => null);

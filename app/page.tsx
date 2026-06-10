@@ -15,7 +15,7 @@ import { CloudSyncControls } from "@/components/CloudSyncControls";
 import { glass } from "@/lib/ui/glass";
 import {
   IconBookmark, IconSun, IconMoon, IconArrowRight, IconTool, IconLayers,
-  IconSparkles, IconPresentation,
+  IconSparkles, IconPresentation, IconSearch, IconCopy,
 } from "@/components/icons";
 
 const QUICK = [
@@ -93,6 +93,8 @@ export default function DashboardPage() {
   const [stats, setStats] = useState({ compositions: 0, bookmarks: 0, copyBank: 0, pptDecks: 0, swipes: 0 });
   const [brandName, setBrandName] = useState("");
   const [recent, setRecent] = useState<{ name: string; sections: number }[]>([]);
+  const [recentSwipes, setRecentSwipes] = useState<{ id: string; title: string; url: string }[]>([]);
+  const [recentCopies, setRecentCopies] = useState<{ id: string; text: string; type: string }[]>([]);
 
   useEffect(() => {
     const comps = listCompositions();
@@ -100,8 +102,12 @@ export default function DashboardPage() {
     setStats(s => ({ ...s, compositions: comps.length, bookmarks: loadBookmarks().length, copyBank: loadCopy().length }));
     setBrandName(brand.companyName !== "Your Company" ? brand.companyName : "");
     setRecent(comps.slice(0, 4).map(c => ({ name: c.name, sections: Object.keys(c.selected).length })));
+    setRecentCopies(loadCopy().slice(0, 4).map(c => ({ id: c.id, text: c.text, type: c.type })));
     listDecks().then(d => setStats(s => ({ ...s, pptDecks: d.length }))).catch(() => {});
-    loadSwipe().then(sw => setStats(s => ({ ...s, swipes: sw.length }))).catch(() => {});
+    loadSwipe().then(sw => {
+      setStats(s => ({ ...s, swipes: sw.length }));
+      setRecentSwipes(sw.slice(0, 4).map(x => ({ id: x.id, title: x.title, url: x.url })));
+    }).catch(() => {});
   }, []);
 
   const STATS = [
@@ -132,6 +138,14 @@ export default function DashboardPage() {
             )}
           </div>
           <div className="flex items-center gap-2">
+            <button type="button"
+              onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }))}
+              aria-label="横断検索（Ctrl+K）" title="横断検索（Ctrl+K）"
+              className="hidden h-9 items-center gap-2 rounded-lg border border-white/50 bg-white/40 px-3 text-xs font-semibold text-zinc-500 backdrop-blur transition hover:bg-white/70 hover:text-zinc-900 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:bg-white/10 sm:inline-flex">
+              <IconSearch className="h-3.5 w-3.5" />
+              検索
+              <kbd className="rounded border border-zinc-200 bg-white/60 px-1 text-[10px] font-bold text-zinc-400 dark:border-white/10 dark:bg-white/10">⌘K</kbd>
+            </button>
             <span className="hidden sm:contents"><CloudSyncControls /></span>
             <BackupControls />
             <button type="button" onClick={toggle} aria-label={dark ? "ライトモードに切替" : "ダークモードに切替"}
@@ -211,26 +225,69 @@ export default function DashboardPage() {
           ))}
         </div>
 
-        {/* Recent — glass panel */}
-        {recent.length > 0 && (
+        {/* Recent — glass panels (LP構成 / スワイプ / コピー) */}
+        {(recent.length > 0 || recentSwipes.length > 0 || recentCopies.length > 0) && (
           <>
-            <div className="mb-3.5 flex items-center justify-between">
-              <h2 className="text-sm font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">最近のLP構成</h2>
-              <Link href="/library" className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-300">
-                すべて見る
-              </Link>
-            </div>
-            <div className={`overflow-hidden rounded-2xl ${glass}`}>
-              {recent.map((c, i) => (
-                <Link key={c.name + i} href="/library"
-                  className={`flex items-center gap-3 px-5 py-3.5 transition hover:bg-white/45 dark:hover:bg-white/[0.04] ${i > 0 ? "border-t border-white/40 dark:border-white/10" : ""}`}>
-                  <div className="grid h-8 w-8 place-items-center rounded-lg bg-indigo-100/70 text-indigo-600 ring-1 ring-inset ring-white/40 dark:bg-indigo-400/15 dark:text-indigo-300 dark:ring-white/5">
-                    <IconLayers className="h-4 w-4" />
+            <h2 className="mb-3.5 text-sm font-semibold tracking-wide text-zinc-500 dark:text-zinc-400">最近の素材</h2>
+            <div className="grid gap-4 lg:grid-cols-3">
+              {recent.length > 0 && (
+                <div className={`overflow-hidden rounded-2xl ${glass}`}>
+                  <div className="flex items-center justify-between px-5 pb-1 pt-4">
+                    <p className="text-xs font-bold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">LP構成</p>
+                    <Link href="/library" className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-300">すべて見る</Link>
                   </div>
-                  <span className="flex-1 truncate text-sm font-medium">{c.name}</span>
-                  <span className="font-mono text-xs tabular-nums text-zinc-500 dark:text-zinc-400">{c.sections} sections</span>
-                </Link>
-              ))}
+                  {recent.map((c, i) => (
+                    <Link key={c.name + i} href="/library"
+                      className={`flex items-center gap-3 px-5 py-3 transition hover:bg-white/45 dark:hover:bg-white/[0.04] ${i > 0 ? "border-t border-white/40 dark:border-white/10" : ""}`}>
+                      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-indigo-100/70 text-indigo-600 ring-1 ring-inset ring-white/40 dark:bg-indigo-400/15 dark:text-indigo-300 dark:ring-white/5">
+                        <IconLayers className="h-4 w-4" />
+                      </div>
+                      <span className="flex-1 truncate text-sm font-medium">{c.name}</span>
+                      <span className="font-mono text-xs tabular-nums text-zinc-500 dark:text-zinc-400">{c.sections}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {recentSwipes.length > 0 && (
+                <div className={`overflow-hidden rounded-2xl ${glass}`}>
+                  <div className="flex items-center justify-between px-5 pb-1 pt-4">
+                    <p className="text-xs font-bold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">スワイプ</p>
+                    <Link href="/swipe" className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-300">すべて見る</Link>
+                  </div>
+                  {recentSwipes.map((x, i) => (
+                    <Link key={x.id} href="/swipe"
+                      className={`flex items-center gap-3 px-5 py-3 transition hover:bg-white/45 dark:hover:bg-white/[0.04] ${i > 0 ? "border-t border-white/40 dark:border-white/10" : ""}`}>
+                      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-rose-100/70 text-rose-600 ring-1 ring-inset ring-white/40 dark:bg-rose-400/15 dark:text-rose-300 dark:ring-white/5">
+                        <IconBookmark className="h-4 w-4" />
+                      </div>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium">{x.title}</span>
+                        {x.url && <span className="block truncate text-xs text-zinc-400 dark:text-zinc-500">{x.url}</span>}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+              {recentCopies.length > 0 && (
+                <div className={`overflow-hidden rounded-2xl ${glass}`}>
+                  <div className="flex items-center justify-between px-5 pb-1 pt-4">
+                    <p className="text-xs font-bold uppercase tracking-wide text-zinc-400 dark:text-zinc-500">コピーバンク</p>
+                    <Link href="/swipe" className="text-xs font-semibold text-indigo-600 hover:text-indigo-700 dark:text-indigo-300">すべて見る</Link>
+                  </div>
+                  {recentCopies.map((x, i) => (
+                    <Link key={x.id} href="/swipe"
+                      className={`flex items-center gap-3 px-5 py-3 transition hover:bg-white/45 dark:hover:bg-white/[0.04] ${i > 0 ? "border-t border-white/40 dark:border-white/10" : ""}`}>
+                      <div className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-amber-100/70 text-amber-600 ring-1 ring-inset ring-white/40 dark:bg-amber-400/15 dark:text-amber-300 dark:ring-white/5">
+                        <IconCopy className="h-4 w-4" />
+                      </div>
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm font-medium">{x.text}</span>
+                        <span className="block text-xs text-zinc-400 dark:text-zinc-500">{x.type}</span>
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </div>
           </>
         )}

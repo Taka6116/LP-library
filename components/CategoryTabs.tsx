@@ -30,7 +30,7 @@ export function CategoryTabs({
             className={`group flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full px-4 text-sm font-bold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 ${
               active
                 ? "bg-violet-600 text-white shadow-sm"
-                : "border border-slate-200 bg-white text-slate-600 hover:border-violet-300 hover:text-violet-700 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                : "border border-white/60 bg-white/60 text-slate-600 backdrop-blur hover:border-violet-300 hover:text-violet-700 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:text-violet-300"
             }`}
           >
             <span>{cat.label}</span>

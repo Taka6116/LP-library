@@ -27,7 +27,7 @@ export function SelectedSectionsPanel({
   return (
     <div>
       {count === 0 ? (
-        <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-400">
+        <p className="rounded-2xl border border-dashed border-slate-200 bg-slate-50 px-4 py-6 text-center text-sm text-slate-400 dark:border-white/15 dark:bg-white/5 dark:text-zinc-500">
           まだセクションが選択されていません。
           <br />
           各カテゴリから1つずつ選んでください。
@@ -39,9 +39,9 @@ export function SelectedSectionsPanel({
             return (
               <li
                 key={cat.id}
-                className="group flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2"
+                className="group flex items-center gap-2 rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-white/10 dark:bg-white/5"
               >
-                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-white text-xs font-bold text-slate-500 ring-1 ring-slate-200">
+                <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-white text-xs font-bold text-slate-500 ring-1 ring-slate-200 dark:bg-white/10 dark:text-zinc-300 dark:ring-white/10">
                   {i + 1}
                 </span>
                 <button
@@ -52,7 +52,7 @@ export function SelectedSectionsPanel({
                   <span className="block text-xs font-semibold text-violet-600">
                     {cat.label}
                   </span>
-                  <span className="block truncate text-sm font-medium text-slate-700">
+                  <span className="block truncate text-sm font-medium text-slate-700 dark:text-zinc-200">
                     {section?.title ?? selected[cat.id]}
                   </span>
                 </button>
@@ -60,7 +60,7 @@ export function SelectedSectionsPanel({
                   type="button"
                   onClick={() => onRemove(cat.id)}
                   aria-label={`Remove ${cat.label}`}
-                  className="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold text-slate-400 transition hover:bg-rose-50 hover:text-rose-600"
+                  className="shrink-0 rounded-lg px-2 py-1 text-xs font-semibold text-slate-400 transition hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-500/10 dark:hover:text-rose-300"
                 >
                   ✕
                 </button>
@@ -83,7 +83,7 @@ export function SelectedSectionsPanel({
           type="button"
           onClick={onReset}
           disabled={count === 0}
-          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40"
+          className="w-full rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-40 dark:border-white/15 dark:text-zinc-300 dark:hover:text-white"
         >
           Reset Selection
         </button>

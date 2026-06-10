@@ -20,6 +20,7 @@ import { SelectedSectionsPanel } from "@/components/SelectedSectionsPanel";
 import { GeneratedLPPreview } from "@/components/GeneratedLPPreview";
 import { AuroraBg } from "@/components/AuroraBg";
 import { IconSearch, IconX } from "@/components/icons";
+import { glassInput } from "@/lib/ui/glass";
 
 // 開発確認用の初期選択サンプル（必要なときだけ有効化）:
 // const initialSelectedSections: SelectedSections = {
@@ -195,7 +196,7 @@ export default function Page() {
                 onChange={(e) => setQuery(e.target.value)}
                 aria-label="全カテゴリからセクションを検索"
                 placeholder="全カテゴリから検索（名前・タグ・カテゴリ…）"
-                className="w-full rounded-full border border-slate-200 bg-white/80 py-2 pl-9 pr-9 text-sm text-slate-700 shadow-sm outline-none transition focus:border-violet-300 focus:ring-2 focus:ring-violet-200"
+                className={`rounded-full py-2 pl-9 pr-9 shadow-sm ${glassInput}`}
               />
               {query && (
                 <button
@@ -213,8 +214,8 @@ export default function Page() {
               onClick={() => setFavOnly((v) => !v)}
               className={`inline-flex items-center gap-1.5 rounded-full border px-4 py-2 text-sm font-bold transition ${
                 favOnly
-                  ? "border-amber-300 bg-amber-50 text-amber-600"
-                  : "border-slate-200 bg-white/80 text-slate-600 hover:border-amber-300 hover:text-amber-600"
+                  ? "border-amber-300 bg-amber-50 text-amber-600 dark:border-amber-400/50 dark:bg-amber-400/15 dark:text-amber-300"
+                  : "border-white/60 bg-white/50 text-slate-600 backdrop-blur hover:border-amber-300 hover:text-amber-600 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:text-amber-300"
               }`}
             >
               {favOnly ? "★" : "☆"} お気に入り
@@ -227,12 +228,12 @@ export default function Page() {
           {isSearching ? (
             /* ---- 横断検索結果 ---- */
             <div className="animate-fadeIn space-y-4">
-              <p className="text-sm font-semibold text-slate-600">
+              <p className="text-sm font-semibold text-slate-600 dark:text-zinc-300">
                 {favOnly ? "お気に入り" : "検索結果"}
                 <span className="ml-2 text-slate-400">{searchResults.length} 件</span>
               </p>
               {searchResults.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 px-6 py-16 text-center text-sm text-slate-400">
+                <div className="rounded-2xl border border-dashed border-slate-300 bg-white/60 px-6 py-16 text-center text-sm text-slate-400 dark:border-white/15 dark:bg-white/5 dark:text-zinc-500">
                   {favOnly
                     ? "お気に入りはまだありません。各セクションの ☆ を押すと追加できます。"
                     : "一致するセクションがありません。"}
@@ -269,14 +270,14 @@ export default function Page() {
               {activeCategory && (
                 <div key={activeCategory.id} className="mt-6 animate-fadeIn space-y-4">
                   <div className="flex items-baseline gap-2">
-                    <h2 className="text-lg font-bold text-slate-900">
+                    <h2 className="text-lg font-bold text-slate-900 dark:text-zinc-100">
                       {activeCategory.label}
                     </h2>
-                    <span className="text-sm text-slate-400">
+                    <span className="text-sm text-slate-400 dark:text-zinc-500">
                       {activeCategory.labelJa}
                     </span>
                   </div>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-slate-500 dark:text-zinc-400">
                     {activeCategory.description}
                   </p>
 
@@ -320,9 +321,9 @@ export default function Page() {
             onClick={() => setPanelOpen(false)}
             aria-hidden
           />
-          <aside className="absolute right-0 top-0 flex h-full w-full max-w-sm flex-col border-l border-white/50 bg-white/80 shadow-2xl backdrop-blur-xl">
-            <div className="flex items-center justify-between border-b border-white/60 px-5 py-4">
-              <span className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-700">
+          <aside className="absolute right-0 top-0 flex h-full w-full max-w-sm flex-col border-l border-white/50 bg-white/80 shadow-2xl backdrop-blur-xl dark:border-white/10 dark:bg-zinc-900/80">
+            <div className="flex items-center justify-between border-b border-white/60 px-5 py-4 dark:border-white/10">
+              <span className="flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-700 dark:text-zinc-200">
                 Selected Sections
                 <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-gradient-to-br from-violet-600 to-fuchsia-500 px-2 text-xs font-semibold text-white">
                   {selectedCount}
@@ -332,7 +333,7 @@ export default function Page() {
                 type="button"
                 onClick={() => setPanelOpen(false)}
                 aria-label="閉じる"
-                className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                className="rounded-lg px-2 py-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/10 dark:hover:text-zinc-200"
               >
                 ✕
               </button>

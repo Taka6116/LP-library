@@ -6,6 +6,7 @@ import { useDark } from "@/components/ThemeProvider";
 import {
   IconLayers, IconPresentation, IconBookmark, IconMail, IconRepeat,
   IconPalette, IconSparkles, IconSun, IconMoon, IconChevronDown, IconArrowRight,
+  IconSearch,
 } from "@/components/icons";
 import { cn } from "@/lib/ui/cn";
 
@@ -99,6 +100,17 @@ export function AppHeader({ current, title, subtitle, actions }: AppHeaderProps)
 
         <div className="flex shrink-0 items-center gap-2">
           {actions}
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "k", ctrlKey: true }))}
+            aria-label="横断検索（Ctrl+K）"
+            title="横断検索（Ctrl+K）"
+            className="inline-flex h-9 items-center gap-2 rounded-full border border-white/70 bg-white/60 px-2.5 text-xs font-semibold text-slate-500 transition hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 dark:border-slate-600 dark:bg-slate-800/60 dark:text-slate-300 sm:px-3"
+          >
+            <IconSearch className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">検索</span>
+            <kbd className="hidden rounded border border-slate-200 bg-white/70 px-1 text-[10px] font-bold text-slate-400 dark:border-slate-600 dark:bg-slate-700/60 dark:text-slate-400 sm:inline">⌘K</kbd>
+          </button>
           <button
             type="button"
             onClick={toggle}

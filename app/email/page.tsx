@@ -13,6 +13,7 @@ import { AuroraBg } from "@/components/AuroraBg";
 import { Button, Input, Textarea, useToast } from "@/components/ui";
 import { takeHandoff } from "@/lib/cross/handoff";
 import { IconChevronDown } from "@/components/icons";
+import { glassPanel } from "@/lib/ui/glass";
 
 const DEFAULT_ORDER = ["header", "hero", "divider", "body", "button", "footer"];
 
@@ -126,8 +127,8 @@ export default function EmailPage() {
         {/* Editor */}
         <div className="space-y-4 lg:sticky lg:top-24 lg:self-start">
           {/* Blocks */}
-          <div className="rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
-            <p className="mb-2 text-sm font-bold text-slate-700">ブロック構成</p>
+          <div className={`p-4 ${glassPanel}`}>
+            <p className="mb-2 text-sm font-bold text-slate-700 dark:text-zinc-200">ブロック構成</p>
             <div className="space-y-1.5">
               {EMAIL_BLOCKS.map((b) => {
                 const on = active(b.id);
@@ -135,7 +136,7 @@ export default function EmailPage() {
                   <div
                     key={b.id}
                     className={`flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-sm ${
-                      on ? "border-violet-200 bg-violet-50/50" : "border-slate-200"
+                      on ? "border-violet-200 bg-violet-50/50 dark:border-violet-400/30 dark:bg-violet-500/10" : "border-slate-200 dark:border-white/10"
                     }`}
                   >
                     <input
@@ -144,7 +145,7 @@ export default function EmailPage() {
                       onChange={() => toggle(b.id)}
                       className="accent-violet-600"
                     />
-                    <span className="flex-1 text-slate-700">{b.label}</span>
+                    <span className="flex-1 text-slate-700 dark:text-zinc-300">{b.label}</span>
                     {on && (
                       <>
                         <button
@@ -172,8 +173,8 @@ export default function EmailPage() {
           </div>
 
           {/* Fields */}
-          <div className="space-y-3 rounded-2xl border border-slate-200 bg-white/80 p-4 shadow-sm">
-            <p className="text-sm font-bold text-slate-700">内容</p>
+          <div className={`space-y-3 p-4 ${glassPanel}`}>
+            <p className="text-sm font-bold text-slate-700 dark:text-zinc-200">内容</p>
             <div className="block">
               <label htmlFor={colorId} className="mb-1 block text-xs font-semibold text-surface-muted">
                 ブランドカラー
@@ -199,8 +200,8 @@ export default function EmailPage() {
         </div>
 
         {/* Preview */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
-          <div className="mb-2 flex items-center gap-1.5 px-2 pt-1 text-xs text-slate-400">
+        <div className={`p-2 ${glassPanel}`}>
+          <div className="mb-2 flex items-center gap-1.5 px-2 pt-1 text-xs text-slate-400 dark:text-zinc-500">
             <span className="h-2.5 w-2.5 rounded-full bg-rose-300" />
             <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
             <span className="h-2.5 w-2.5 rounded-full bg-emerald-300" />
@@ -209,7 +210,7 @@ export default function EmailPage() {
           <iframe
             title="email preview"
             srcDoc={html}
-            className="h-[70vh] w-full rounded-lg border border-slate-100"
+            className="h-[70vh] w-full rounded-lg border border-slate-100 bg-white dark:border-white/10"
           />
         </div>
       </main>

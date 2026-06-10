@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import JSZip from "jszip";
 import { AppHeader } from "@/components/AppHeader";
 import { AuroraBg } from "@/components/AuroraBg";
+import { glassPanel } from "@/lib/ui/glass";
 import { getSlideRefs, buildPptxSubset, PPTX_MIME } from "@/lib/pptx/subset";
 import { buildMergedPptx } from "@/lib/pptx/merge";
 import {
@@ -452,13 +453,13 @@ export default function PptStudioPage() {
         actions={
           status === "ready" ? (
             <div className="flex flex-wrap items-center gap-2">
-              <span className="hidden text-xs text-slate-500 sm:inline">
+              <span className="hidden text-xs text-slate-500 dark:text-zinc-400 sm:inline">
                 {selected.size} / {slideCount} 選択中
               </span>
               <button
                 type="button"
                 onClick={selected.size === slideCount ? clearAll : selectAll}
-                className="rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-slate-300 hover:text-slate-900"
+                className="rounded-full border border-white/60 bg-white/60 px-3 py-1.5 text-xs font-semibold text-slate-600 backdrop-blur transition hover:border-slate-300 hover:text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:text-white"
               >
                 {selected.size === slideCount ? "全解除" : "全選択"}
               </button>
@@ -466,7 +467,7 @@ export default function PptStudioPage() {
                 type="button"
                 onClick={deleteSelected}
                 disabled={selected.size === 0 || selected.size >= slideCount || busy}
-                className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-white/70 px-3 py-2 text-sm font-bold text-rose-600 transition hover:border-rose-300 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex items-center gap-1.5 rounded-full border border-rose-200 bg-white/70 px-3 py-2 text-sm font-bold text-rose-600 backdrop-blur transition hover:border-rose-300 hover:bg-rose-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-rose-400/30 dark:bg-white/5 dark:text-rose-300 dark:hover:bg-rose-500/10"
                 title="選択したスライドを削除"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -478,7 +479,7 @@ export default function PptStudioPage() {
                 type="button"
                 onClick={addToCart}
                 disabled={selected.size === 0 || busy}
-                className="inline-flex items-center gap-1.5 rounded-full border border-violet-300 bg-violet-50 px-3 py-2 text-sm font-bold text-violet-700 transition hover:bg-violet-100 disabled:cursor-not-allowed disabled:opacity-40"
+                className="inline-flex items-center gap-1.5 rounded-full border border-violet-300 bg-violet-50 px-3 py-2 text-sm font-bold text-violet-700 transition hover:bg-violet-100 disabled:cursor-not-allowed disabled:opacity-40 dark:border-violet-400/40 dark:bg-violet-500/15 dark:text-violet-200 dark:hover:bg-violet-500/25"
                 title="他ファイルのスライドと合成するためカートに追加"
               >
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden>
@@ -514,10 +515,10 @@ export default function PptStudioPage() {
           <div className="mx-auto max-w-3xl">
             {/* Value: 3 steps */}
             <div className="mb-6 text-center">
-              <h2 className="text-xl font-bold text-slate-800">
+              <h2 className="text-xl font-bold text-slate-800 dark:text-zinc-100">
                 PPTを取り込むと、スライドを「資産」として転用できます
               </h2>
-              <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-slate-500">
+              <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-slate-500 dark:text-zinc-400">
                 社長資料・同僚作成のデッキから、図解・ビジュアル・表・CTAだけを選んで新しい1本に。
               </p>
             </div>
@@ -527,12 +528,12 @@ export default function PptStudioPage() {
                 { n: "2", t: "スライドを選ぶ", d: "サムネイル一覧から使いたいページにチェック" },
                 { n: "3", t: "転用・書き出す", d: "選んだスライドだけを新しい.pptxとして書き出し" },
               ].map((s) => (
-                <li key={s.n} className="rounded-2xl border border-slate-200 bg-white p-4">
+                <li key={s.n} className={`p-4 ${glassPanel}`}>
                   <span className="grid h-7 w-7 place-items-center rounded-full bg-amber-100 text-sm font-bold text-amber-700">
                     {s.n}
                   </span>
-                  <p className="mt-2.5 text-sm font-bold text-slate-800">{s.t}</p>
-                  <p className="mt-1 text-xs leading-relaxed text-slate-500">{s.d}</p>
+                  <p className="mt-2.5 text-sm font-bold text-slate-800 dark:text-zinc-100">{s.t}</p>
+                  <p className="mt-1 text-xs leading-relaxed text-slate-500 dark:text-zinc-400">{s.d}</p>
                 </li>
               ))}
             </ol>
@@ -544,16 +545,16 @@ export default function PptStudioPage() {
               onDragLeave={(e) => { e.preventDefault(); setDragOver(false); }}
               onDrop={onDrop}
               className={`flex min-h-[44px] cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-8 py-12 text-center transition focus-within:ring-2 focus-within:ring-amber-400 ${
-                dragOver ? "border-amber-500 bg-amber-50" : "border-slate-300 bg-white hover:border-amber-400 hover:bg-amber-50/40"
+                dragOver ? "border-amber-500 bg-amber-50 dark:bg-amber-400/10" : "border-slate-300 bg-white/60 backdrop-blur hover:border-amber-400 hover:bg-amber-50/40 dark:border-white/20 dark:bg-white/[0.04] dark:hover:bg-amber-400/10"
               }`}
             >
               <span className="grid h-12 w-12 place-items-center rounded-xl bg-amber-100 text-amber-600">
                 <IconUpload className="h-6 w-6" />
               </span>
-              <span className="text-base font-bold text-slate-800">
+              <span className="text-base font-bold text-slate-800 dark:text-zinc-100">
                 {restoring ? "復元中…" : dragOver ? "ここにドロップ" : "PowerPoint ファイルを選択"}
               </span>
-              <span className="text-sm text-slate-500">
+              <span className="text-sm text-slate-500 dark:text-zinc-400">
                 .pptx をクリックで選択、またはドラッグ＆ドロップ
               </span>
               <input
@@ -566,23 +567,23 @@ export default function PptStudioPage() {
 
             {/* Tag examples */}
             <div className="mt-5">
-              <p className="mb-1.5 text-xs font-semibold text-slate-400">よくある分類の例</p>
+              <p className="mb-1.5 text-xs font-semibold text-slate-400 dark:text-zinc-500">よくある分類の例</p>
               <div className="flex flex-wrap gap-1.5">
                 {["社長資料", "同僚作成", "図解", "FV", "料金表", "事例", "CTA"].map((t) => (
-                  <span key={t} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500">
+                  <span key={t} className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-500 dark:bg-white/10 dark:text-zinc-400">
                     {t}
                   </span>
                 ))}
               </div>
             </div>
 
-            <p className="mt-4 flex items-start gap-1.5 text-xs leading-relaxed text-slate-400">
+            <p className="mt-4 flex items-start gap-1.5 text-xs leading-relaxed text-slate-400 dark:text-zinc-500">
               <IconPresentation className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               読み込んだファイルはこの端末内（ブラウザ）にのみ保存されます。クラウド共有や権限管理はありません。
             </p>
 
             {errorMsg && (
-              <p className="mt-4 rounded-xl bg-rose-50 px-4 py-3 text-center text-sm font-medium text-rose-600">
+              <p className="mt-4 rounded-xl bg-rose-50 px-4 py-3 text-center text-sm font-medium text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
                 {errorMsg}
               </p>
             )}
@@ -594,12 +595,12 @@ export default function PptStudioPage() {
           <>
             {/* Cross-deck merge cart */}
             {cartTotal > 0 && (
-              <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-violet-200 bg-violet-50/70 px-4 py-3">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-violet-200 bg-violet-50/70 px-4 py-3 backdrop-blur dark:border-violet-400/30 dark:bg-violet-500/10">
                 <div className="flex flex-wrap items-center gap-2 text-sm">
-                  <span className="font-bold text-violet-800">
+                  <span className="font-bold text-violet-800 dark:text-violet-200">
                     🛒 合成カート：{cartTotal}枚
                   </span>
-                  <span className="text-violet-500">
+                  <span className="text-violet-500 dark:text-violet-300/80">
                     （
                     {Object.entries(cart)
                       .filter(([, a]) => a.length > 0)
@@ -615,7 +616,7 @@ export default function PptStudioPage() {
                   <button
                     type="button"
                     onClick={clearCart}
-                    className="rounded-full border border-slate-200 bg-white/70 px-3 py-1.5 text-xs font-semibold text-slate-600 transition hover:border-slate-300"
+                    className="rounded-full border border-white/60 bg-white/60 px-3 py-1.5 text-xs font-semibold text-slate-600 backdrop-blur transition hover:border-slate-300 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300"
                   >
                     空にする
                   </button>
@@ -643,8 +644,8 @@ export default function PptStudioPage() {
                     key={d.id}
                     className={`group/chip flex items-center gap-2 rounded-full border px-3 py-1.5 text-sm transition ${
                       isActive
-                        ? "border-violet-400 bg-white text-violet-700 shadow-sm ring-1 ring-violet-200"
-                        : "border-slate-200 bg-white/70 text-slate-600 hover:border-violet-300 hover:text-violet-700"
+                        ? "border-violet-400 bg-white text-violet-700 shadow-sm ring-1 ring-violet-200 dark:border-violet-400/60 dark:bg-violet-500/15 dark:text-violet-200 dark:ring-violet-400/30"
+                        : "border-white/60 bg-white/60 text-slate-600 backdrop-blur hover:border-violet-300 hover:text-violet-700 dark:border-white/10 dark:bg-white/5 dark:text-zinc-300 dark:hover:text-violet-300"
                     }`}
                   >
                     <button
@@ -657,7 +658,7 @@ export default function PptStudioPage() {
                         P
                       </span>
                       <span className="max-w-[160px] truncate font-semibold">{d.name}</span>
-                      <span className="text-xs text-slate-400">{d.slideCount}</span>
+                      <span className="text-xs text-slate-400 dark:text-zinc-500">{d.slideCount}</span>
                     </button>
                     <button
                       type="button"
@@ -673,7 +674,7 @@ export default function PptStudioPage() {
               })}
 
               {/* Add new deck */}
-              <label className="flex cursor-pointer items-center gap-1.5 rounded-full border border-dashed border-violet-300 bg-white/60 px-3 py-1.5 text-sm font-semibold text-violet-600 transition hover:border-violet-400 hover:bg-white">
+              <label className="flex cursor-pointer items-center gap-1.5 rounded-full border border-dashed border-violet-300 bg-white/60 px-3 py-1.5 text-sm font-semibold text-violet-600 backdrop-blur transition hover:border-violet-400 hover:bg-white dark:border-violet-400/40 dark:bg-white/5 dark:text-violet-300 dark:hover:bg-violet-500/10">
                 ＋ ファイルを追加
                 <input
                   type="file"
@@ -690,9 +691,9 @@ export default function PptStudioPage() {
 
             {/* Active deck header */}
             <div className="mb-4 flex items-center justify-between">
-              <p className="text-sm font-semibold text-slate-700">
-                <span className="text-slate-900">{fileName}</span>
-                <span className="ml-2 text-slate-400">{slideCount} スライド</span>
+              <p className="text-sm font-semibold text-slate-700 dark:text-zinc-300">
+                <span className="text-slate-900 dark:text-zinc-100">{fileName}</span>
+                <span className="ml-2 text-slate-400 dark:text-zinc-500">{slideCount} スライド</span>
                 {status === "loading" && (
                   <span className="ml-2 text-violet-500">描画中…</span>
                 )}
@@ -705,7 +706,7 @@ export default function PptStudioPage() {
             </div>
 
             {errorMsg && (
-              <p className="mb-4 rounded-xl bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-600">
+              <p className="mb-4 rounded-xl bg-rose-50 px-4 py-2.5 text-sm font-medium text-rose-600 dark:bg-rose-500/10 dark:text-rose-300">
                 {errorMsg}
               </p>
             )}
@@ -731,8 +732,8 @@ export default function PptStudioPage() {
                     }}
                     className={`group relative cursor-pointer overflow-hidden rounded-xl border-2 bg-white text-left transition focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 ${
                       isSel
-                        ? "border-violet-500 ring-2 ring-violet-200"
-                        : "border-slate-200 hover:border-violet-300"
+                        ? "border-violet-500 ring-2 ring-violet-200 dark:ring-violet-500/40"
+                        : "border-slate-200 hover:border-violet-300 dark:border-white/15 dark:hover:border-violet-400/60"
                     }`}
                   >
                     <div
