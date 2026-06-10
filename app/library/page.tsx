@@ -18,6 +18,7 @@ import { CategoryTabs } from "@/components/CategoryTabs";
 import { SectionPatternCard } from "@/components/SectionPatternCard";
 import { SelectedSectionsPanel } from "@/components/SelectedSectionsPanel";
 import { GeneratedLPPreview } from "@/components/GeneratedLPPreview";
+import { AuroraBg } from "@/components/AuroraBg";
 import { IconSearch, IconX } from "@/components/icons";
 
 // 開発確認用の初期選択サンプル（必要なときだけ有効化）:
@@ -165,16 +166,8 @@ export default function Page() {
     });
 
   return (
-    <div className="relative min-h-screen">
-      {/* 背景: 淡いVioletグラデーション + ブロブ（グラスモーフィズムの下地） */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-violet-50 via-white to-fuchsia-50"
-      >
-        <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-violet-300/30 blur-3xl" />
-        <div className="absolute right-0 top-40 h-80 w-80 rounded-full bg-fuchsia-300/25 blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 h-72 w-72 rounded-full bg-indigo-300/20 blur-3xl" />
-      </div>
+    <div className="relative min-h-dvh">
+      <AuroraBg />
 
       <BuilderHeader
         mode={mode}

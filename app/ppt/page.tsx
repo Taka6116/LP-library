@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import JSZip from "jszip";
 import { AppHeader } from "@/components/AppHeader";
+import { AuroraBg } from "@/components/AuroraBg";
 import { getSlideRefs, buildPptxSubset, PPTX_MIME } from "@/lib/pptx/subset";
 import { buildMergedPptx } from "@/lib/pptx/merge";
 import {
@@ -441,13 +442,7 @@ export default function PptStudioPage() {
       onDrop={hasDecks ? onDrop : undefined}
     >
       {/* Background */}
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-violet-50 via-white to-fuchsia-50"
-      >
-        <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-violet-300/30 blur-3xl" />
-        <div className="absolute right-0 top-40 h-80 w-80 rounded-full bg-fuchsia-300/25 blur-3xl" />
-      </div>
+      <AuroraBg />
 
       {/* Header */}
       <AppHeader

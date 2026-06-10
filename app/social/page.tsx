@@ -6,6 +6,7 @@ import { addCopyItem } from "@/lib/swipe/store";
 import { TONE_LABELS } from "@/lib/brand/store";
 import { useBrand } from "@/components/BrandProvider";
 import { AppHeader } from "@/components/AppHeader";
+import { AuroraBg } from "@/components/AuroraBg";
 import { useToast } from "@/components/ui";
 import { takeHandoff } from "@/lib/cross/handoff";
 
@@ -75,13 +76,7 @@ export default function SocialPage() {
 
   return (
     <div className="relative min-h-dvh">
-      <div
-        aria-hidden
-        className="pointer-events-none fixed inset-0 -z-10 bg-gradient-to-b from-violet-50 via-white to-fuchsia-50"
-      >
-        <div className="absolute -left-24 top-10 h-72 w-72 rounded-full bg-violet-300/30 blur-3xl" />
-        <div className="absolute right-0 top-40 h-80 w-80 rounded-full bg-fuchsia-300/25 blur-3xl" />
-      </div>
+      <AuroraBg />
 
       {/* Header */}
       <AppHeader

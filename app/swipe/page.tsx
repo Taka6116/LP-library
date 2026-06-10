@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { AppHeader } from "@/components/AppHeader";
+import { AuroraBg } from "@/components/AuroraBg";
 import { useToast } from "@/components/ui";
 import {
   loadSwipe, saveSwipe, loadCopy, saveCopy, newId, COPY_TYPES,
@@ -103,7 +104,8 @@ export default function SwipePage() {
   const inputCls = "w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-100 dark:focus:ring-indigo-500/20";
 
   return (
-    <div className="min-h-dvh bg-zinc-50 text-zinc-900 dark:bg-zinc-950 dark:text-zinc-50">
+    <div className="relative min-h-dvh text-zinc-900 dark:text-zinc-50">
+      <AuroraBg />
       {/* Top bar */}
       <AppHeader
         current="swipe"

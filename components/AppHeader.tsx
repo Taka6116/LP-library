@@ -47,7 +47,7 @@ export function AppHeader({ current, title, subtitle, actions }: AppHeaderProps)
 
   return (
     <header className="sticky top-0 z-40 px-3 pt-3 sm:px-4">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-white/60 bg-gradient-to-b from-white/85 to-white/55 px-4 py-3 shadow-card ring-1 ring-inset ring-white/60 backdrop-blur-xl dark:border-white/10 dark:from-white/10 dark:to-white/[0.04] sm:px-6">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 rounded-[var(--radius-lg)] border border-white/60 bg-gradient-to-b from-white/80 to-white/50 px-4 py-3 shadow-[0_14px_40px_-14px_rgba(124,58,237,0.45)] ring-1 ring-inset ring-white/60 backdrop-blur-xl dark:border-white/10 dark:from-white/10 dark:to-white/[0.04] dark:shadow-[0_14px_40px_-14px_rgba(0,0,0,0.6)] sm:px-6">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           <Link
             href="/"
@@ -60,10 +60,10 @@ export function AppHeader({ current, title, subtitle, actions }: AppHeaderProps)
           {/* モジュールスイッチャ */}
           <details className="group relative min-w-0">
             <summary className="flex cursor-pointer list-none items-center gap-2 rounded-full px-2 py-1 outline-none focus-visible:ring-2 focus-visible:ring-primary/50 [&::-webkit-details-marker]:hidden">
-              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-primary to-primary-accent text-primary-fg shadow-sm">
+              <span className="grid h-7 w-7 shrink-0 place-items-center rounded-lg bg-gradient-to-br from-violet-600 via-fuchsia-500 to-indigo-500 text-white shadow-[0_4px_14px_-2px_rgba(217,70,239,0.55)]">
                 <cur.Icon className="h-4 w-4" />
               </span>
-              <span className="truncate text-base font-bold leading-tight text-slate-900 dark:text-slate-100 sm:text-lg">
+              <span className="truncate bg-gradient-to-r from-violet-700 to-fuchsia-600 bg-clip-text text-base font-bold leading-tight text-transparent dark:from-violet-200 dark:to-fuchsia-200 sm:text-lg">
                 {heading}
               </span>
               <IconChevronDown className="h-4 w-4 shrink-0 text-slate-400 transition group-open:rotate-180" />
