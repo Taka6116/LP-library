@@ -4,6 +4,8 @@ import { useMemo, useState } from "react";
 import { Modal, Input, Button, useToast } from "./ui";
 import { extractVars, fillVars } from "@/lib/prompts/vars";
 import { runPrompt } from "@/lib/ai/client";
+import { addCopyItem } from "@/lib/swipe/store";
+import { setHandoff, moduleHref } from "@/lib/cross/handoff";
 
 type Props = {
   open: boolean;
@@ -48,6 +50,21 @@ export function PromptRunModal({ open, onClose, title, template }: Props) {
     } else {
       toast.error(res.error);
     }
+  }
+
+  // 送り先: 生成結果があればそれを、無ければ埋め込み済みプロンプトを渡す
+  const outgoing = result ?? filled;
+
+  function sendToCopyBank() {
+    addCopyItem(outgoing, "ボディ", ["AI", "プロンプト"]);
+    toast.success("コピーバンクに保存しました");
+  }
+  function sendToModule(kind: "email" | "social") {
+    setHandoff(kind, outgoing);
+    toast.success(kind === "email" ? "メールへ送ります…" : "SNSへ送ります…");
+    window.setTimeout(() => {
+      window.location.href = moduleHref(kind === "email" ? "/email" : "/social");
+    }, 400);
   }
 
   return (
@@ -95,9 +112,20 @@ export function PromptRunModal({ open, onClose, title, template }: Props) {
           </pre>
         </div>
 
+        <div>
+          <p className="mb-1.5 text-xs font-semibold text-surface-muted">
+            送る（{result ? "生成結果" : "埋め込み後プロンプト"}を渡す）
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="secondary" size="sm" onClick={sendToCopyBank}>コピーバンク</Button>
+            <Button variant="secondary" size="sm" onClick={() => sendToModule("email")}>メールへ</Button>
+            <Button variant="secondary" size="sm" onClick={() => sendToModule("social")}>SNSへ</Button>
+          </div>
+        </div>
+
         <div className="rounded-[var(--radius-sm)] border border-amber-300/50 bg-amber-50/60 px-3 py-2 text-xs leading-relaxed text-amber-700 dark:border-amber-400/20 dark:bg-amber-400/10 dark:text-amber-300">
           アプリ内AI実行は、サーバ側に <code className="font-mono">ANTHROPIC_API_KEY</code> が設定されている場合のみ動作します。
-          未設定の環境では「AIで実行」は使えません（「埋めてコピー」で外部AIに貼り付けてご利用ください）。
+          未設定の環境では「AIで実行」は使えません（「埋めてコピー」や上の「送る」で外部AI・各モジュールへ渡せます）。
         </div>
 
         {result && (

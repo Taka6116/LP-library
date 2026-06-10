@@ -10,6 +10,7 @@ import {
 import { useBrand } from "@/components/BrandProvider";
 import { AppHeader } from "@/components/AppHeader";
 import { Button, Input, Textarea, useToast } from "@/components/ui";
+import { takeHandoff } from "@/lib/cross/handoff";
 import { IconChevronDown } from "@/components/icons";
 
 const DEFAULT_ORDER = ["header", "hero", "divider", "body", "button", "footer"];
@@ -31,6 +32,17 @@ export default function EmailPage() {
       ...(touched.current.has("companyName") ? {} : { companyName: brand.companyName }),
     }));
   }, [brand.primaryColor, brand.companyName]);
+
+  // プロンプト集などからの受け渡しがあれば本文に流し込む
+  useEffect(() => {
+    const text = takeHandoff("email");
+    if (text) {
+      touched.current.add("bodyText");
+      setFields((f) => ({ ...f, bodyText: text }));
+      toast.success("プロンプト集から本文を受け取りました");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const html = useMemo(() => buildEmailHtml(order, fields), [order, fields]);
 

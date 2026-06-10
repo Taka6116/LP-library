@@ -7,6 +7,7 @@ import { TONE_LABELS } from "@/lib/brand/store";
 import { useBrand } from "@/components/BrandProvider";
 import { AppHeader } from "@/components/AppHeader";
 import { useToast } from "@/components/ui";
+import { takeHandoff } from "@/lib/cross/handoff";
 
 function parseTags(s: string): string[] {
   return [...new Set(s.split(/[,、\s]+/).map((t) => t.replace(/^#/, "").trim()).filter(Boolean))];
@@ -24,12 +25,23 @@ export default function SocialPage() {
   const [saved, setSaved] = useState<string | null>(null);
   const { brand } = useBrand();
   const toneTouched = useRef(false);
+  const toast = useToast();
 
   // Brand Kit のトーン・会社名を未編集なら自動反映（手動「ブランドから取込」を廃止）
   useEffect(() => {
     if (!toneTouched.current) setTone(brand.tone as ToneMode);
     setCompanyName(brand.companyName === "Your Company" ? "" : brand.companyName);
   }, [brand.tone, brand.companyName]);
+
+  // プロンプト集などからの受け渡しがあれば本文に流し込む
+  useEffect(() => {
+    const text = takeHandoff("social");
+    if (text) {
+      setBody(text);
+      toast.success("プロンプト集から本文を受け取りました");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function chooseTone(t: ToneMode) {
     toneTouched.current = true;
@@ -43,7 +55,6 @@ export default function SocialPage() {
   };
   const ready = body.trim().length > 0 || hook.trim().length > 0;
 
-  const toast = useToast();
   async function copy(id: string, text: string) {
     try {
       if (!navigator.clipboard) throw new Error("clipboard unavailable");
