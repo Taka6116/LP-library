@@ -146,7 +146,7 @@ export default function DashboardPage() {
         {/* Heading */}
         <div className="mb-8">
           <p className="mb-2 text-sm font-semibold uppercase tracking-wider text-indigo-500/80 dark:text-indigo-300/80">ワークスペース</p>
-          <h1 className="text-[1.75rem] font-bold tracking-tight sm:text-4xl">今日は何を作りますか？</h1>
+          <h1 className="bg-gradient-to-r from-violet-600 via-fuchsia-500 to-indigo-500 bg-clip-text text-[1.75rem] font-bold tracking-tight text-transparent sm:text-4xl dark:from-violet-300 dark:via-fuchsia-300 dark:to-indigo-300">今日は何を作りますか？</h1>
           <p className="mt-2.5 max-w-2xl text-[15px] leading-relaxed text-zinc-600 dark:text-zinc-300/80">
             PPT・LPセクション・参考URL・コピー・プロンプトを保存し、案件ごとに探して転用・書き出す。マーケ制作の資産を、一つのワークスペースに。
           </p>
