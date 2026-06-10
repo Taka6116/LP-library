@@ -4,7 +4,10 @@ import { useEffect, useMemo, useState } from "react";
 import { Modal, Input, Button, useToast } from "./ui";
 import { extractVars, fillVars } from "@/lib/prompts/vars";
 import { runPromptStream } from "@/lib/ai/client";
-import { SYSTEM_PRESETS, getPreset, type SystemPresetId } from "@/lib/ai/system";
+import {
+  SYSTEM_PRESETS, getPreset, brandContext, composeSystem, type SystemPresetId,
+} from "@/lib/ai/system";
+import { useBrand } from "./BrandProvider";
 import {
   loadAiHistory, addAiHistory, removeAiHistory, type AiHistoryItem,
 } from "@/lib/ai/history";
@@ -29,9 +32,12 @@ type Props = {
  */
 export function PromptRunModal({ open, onClose, title, template }: Props) {
   const toast = useToast();
+  const { brand } = useBrand();
   const vars = useMemo(() => extractVars(template), [template]);
   const [values, setValues] = useState<Record<string, string>>({});
   const [presetId, setPresetId] = useState<SystemPresetId>("none");
+  const [useBrandCtx, setUseBrandCtx] = useState(true);
+  const brandCtx = useMemo(() => brandContext(brand), [brand]);
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [streaming, setStreaming] = useState(false);
@@ -56,11 +62,12 @@ export function PromptRunModal({ open, onClose, title, template }: Props) {
 
   async function runAi() {
     const preset = getPreset(presetId);
+    const system = composeSystem(preset.system, useBrandCtx ? brandCtx : null);
     setRunning(true);
     setStreaming(true);
     setResult("");
     const res = await runPromptStream(
-      { prompt: filled, ...(preset.system ? { system: preset.system } : {}) },
+      { prompt: filled, ...(system ? { system } : {}) },
       (textSoFar) => setResult(textSoFar),
     );
     setRunning(false);
@@ -152,6 +159,22 @@ export function PromptRunModal({ open, onClose, title, template }: Props) {
               <option key={p.id} value={p.id}>{p.label}</option>
             ))}
           </select>
+          {brandCtx && (
+            <label className="mt-2 flex cursor-pointer items-start gap-2 text-xs text-surface-fg">
+              <input
+                type="checkbox"
+                checked={useBrandCtx}
+                onChange={(e) => setUseBrandCtx(e.target.checked)}
+                className="mt-0.5 h-3.5 w-3.5 accent-violet-600"
+              />
+              <span>
+                <span className="font-semibold">ブランド情報を反映</span>
+                <span className="ml-1 text-surface-muted">
+                  （{brand.companyName !== "Your Company" ? brand.companyName : "タグライン"}・トーンをAIに伝える）
+                </span>
+              </span>
+            </label>
+          )}
         </div>
 
         <div>

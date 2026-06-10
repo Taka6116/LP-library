@@ -61,3 +61,29 @@ export const SYSTEM_PRESETS: SystemPreset[] = [
 export function getPreset(id: SystemPresetId): SystemPreset {
   return SYSTEM_PRESETS.find(p => p.id === id) ?? SYSTEM_PRESETS[0];
 }
+
+// ---- Brand Kit の自動注入 ----
+
+import { TONE_LABELS, DEFAULT_BRAND, type BrandKit } from "@/lib/brand/store";
+
+/**
+ * Brand Kit を system プロンプト向けの文脈に変換する。
+ * 会社名が未設定（デフォルトのまま）でタグラインも無い場合は null（注入しない）。
+ */
+export function brandContext(brand: BrandKit): string | null {
+  const hasName = brand.companyName.trim() !== "" && brand.companyName !== DEFAULT_BRAND.companyName;
+  const hasTagline = brand.tagline.trim() !== "";
+  if (!hasName && !hasTagline) return null;
+
+  const parts: string[] = ["以下のブランド情報を踏まえて書いてください。"];
+  if (hasName) parts.push(`会社名・ブランド名: ${brand.companyName}`);
+  if (hasTagline) parts.push(`タグライン: ${brand.tagline}`);
+  parts.push(`文体トーン: ${TONE_LABELS[brand.tone]}`);
+  return parts.join("\n");
+}
+
+/** プリセット system と Brand 文脈を結合する（どちらか無ければ片方/undefined）。 */
+export function composeSystem(presetSystem: string | undefined, brandCtx: string | null): string | undefined {
+  if (presetSystem && brandCtx) return `${presetSystem}\n\n${brandCtx}`;
+  return presetSystem ?? brandCtx ?? undefined;
+}
