@@ -18,6 +18,7 @@ import { CategoryTabs } from "@/components/CategoryTabs";
 import { SectionPatternCard } from "@/components/SectionPatternCard";
 import { SelectedSectionsPanel } from "@/components/SelectedSectionsPanel";
 import { GeneratedLPPreview } from "@/components/GeneratedLPPreview";
+import { IconSearch, IconX } from "@/components/icons";
 
 // 開発確認用の初期選択サンプル（必要なときだけ有効化）:
 // const initialSelectedSections: SelectedSections = {
@@ -194,24 +195,23 @@ export default function Page() {
           {/* 横断検索 + お気に入りフィルタ */}
           <div className="mb-5 flex flex-wrap items-center gap-2">
             <div className="relative flex-1 min-w-[220px]">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                ⌕
-              </span>
+              <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
               <input
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                aria-label="全カテゴリからセクションを検索"
                 placeholder="全カテゴリから検索（名前・タグ・カテゴリ…）"
-                className="w-full rounded-full border border-slate-200 bg-white/80 py-2 pl-9 pr-4 text-sm text-slate-700 shadow-sm outline-none transition focus:border-violet-300 focus:ring-2 focus:ring-violet-200"
+                className="w-full rounded-full border border-slate-200 bg-white/80 py-2 pl-9 pr-9 text-sm text-slate-700 shadow-sm outline-none transition focus:border-violet-300 focus:ring-2 focus:ring-violet-200"
               />
               {query && (
                 <button
                   type="button"
                   onClick={() => setQuery("")}
                   aria-label="検索をクリア"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 transition hover:text-slate-700"
                 >
-                  ✕
+                  <IconX className="h-4 w-4" />
                 </button>
               )}
             </div>

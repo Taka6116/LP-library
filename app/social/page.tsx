@@ -134,12 +134,13 @@ export default function SocialPage() {
               <div className="grid grid-cols-3 gap-1.5">
                 {(Object.entries(TONE_LABELS) as [ToneMode, string][]).map(([t, label]) => (
                   <button key={t} type="button" onClick={() => chooseTone(t)}
-                    className={`rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition ${
+                    aria-pressed={tone === t}
+                    title={label}
+                    className={`rounded-lg border px-2 py-1.5 text-[11px] font-semibold transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
                       tone === t
-                        ? "border-violet-400 bg-violet-50 text-violet-700"
-                        : "border-slate-200 text-slate-500 hover:border-violet-300"
+                        ? "border-violet-400 bg-violet-50 text-violet-700 dark:border-violet-400/50 dark:bg-violet-500/15 dark:text-violet-200"
+                        : "border-slate-200 text-slate-500 hover:border-violet-300 dark:border-slate-700 dark:text-slate-400"
                     }`}>
-                    {t === "formal" ? "🤝 " : t === "casual" ? "😊 " : "⚡ "}
                     {label.split("・")[0]}
                   </button>
                 ))}

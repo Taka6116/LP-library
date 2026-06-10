@@ -334,6 +334,7 @@ export default function PromptsPage() {
         <div className="relative mb-4 max-w-md">
           <IconSearch className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
           <input type="text" value={query} onChange={(e) => setQuery(e.target.value)}
+            aria-label="プロンプトを検索"
             placeholder="プロンプトを検索…"
             className="w-full rounded-xl border border-white/60 bg-white/50 py-2.5 pl-9 pr-4 text-sm text-zinc-900 outline-none backdrop-blur transition placeholder:text-zinc-400 focus:border-indigo-400 focus:ring-2 focus:ring-indigo-200/60 dark:border-white/10 dark:bg-white/5 dark:text-zinc-100" />
         </div>
@@ -350,7 +351,8 @@ export default function PromptsPage() {
             const isUserCat = c !== "all" && c !== "mine" && !(PROMPT_CATEGORIES as readonly string[]).includes(c);
             return (
               <button key={c} type="button" onClick={() => setCat(c)}
-                className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
+                aria-pressed={cat === c}
+                className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 ${
                   cat === c
                     ? "bg-zinc-900 text-white shadow-sm dark:bg-white dark:text-zinc-900"
                     : `${glass} text-zinc-600 hover:text-zinc-900 dark:text-zinc-300`
@@ -366,6 +368,9 @@ export default function PromptsPage() {
             );
           })}
         </div>
+
+        {/* 検索結果件数（スクリーンリーダー通知） */}
+        <p className="sr-only" role="status" aria-live="polite">{results.length} 件のプロンプト</p>
 
         {/* Prompt grid */}
         <div className="grid gap-4 lg:grid-cols-2">
