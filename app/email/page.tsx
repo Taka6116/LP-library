@@ -11,7 +11,7 @@ import { useBrand } from "@/components/BrandProvider";
 import { AppHeader } from "@/components/AppHeader";
 import { AuroraBg } from "@/components/AuroraBg";
 import { Button, Input, Textarea, useToast } from "@/components/ui";
-import { takeHandoff } from "@/lib/cross/handoff";
+import { takeHandoff, parseEmailParts } from "@/lib/cross/handoff";
 import { IconChevronDown } from "@/components/icons";
 import { glassPanel } from "@/lib/ui/glass";
 
@@ -35,13 +35,19 @@ export default function EmailPage() {
     }));
   }, [brand.primaryColor, brand.companyName]);
 
-  // プロンプト集などからの受け渡しがあれば本文に流し込む
+  // プロンプト集などからの受け渡しがあれば各フィールドへ構造化して流し込む
   useEffect(() => {
     const text = takeHandoff("email");
     if (text) {
+      const p = parseEmailParts(text);
+      const patch: Partial<EmailFields> = { bodyText: p.body };
       touched.current.add("bodyText");
-      setFields((f) => ({ ...f, bodyText: text }));
-      toast.success("プロンプト集から本文を受け取りました");
+      if (p.subject) { patch.subject = p.subject; touched.current.add("subject"); }
+      if (p.heading) { patch.heading = p.heading; touched.current.add("heading"); }
+      if (p.cta) { patch.ctaText = p.cta; touched.current.add("ctaText"); }
+      setFields((f) => ({ ...f, ...patch }));
+      const n = Object.keys(patch).length;
+      toast.success(n > 1 ? `件名・見出しなど${n}項目を受け取りました` : "本文を受け取りました");
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -195,6 +201,9 @@ export default function EmailPage() {
             {field("本文ブロックのテキスト", "bodyText2", true)}
             {field("CTAテキスト", "ctaText")}
             {field("CTAリンク", "ctaUrl")}
+            {field("画像URL（画像ブロック用）", "imageUrl")}
+            {field("画像の説明（alt）", "imageAlt")}
+            {field("SNSリンク（1行に「ラベル URL」）", "socialLinks", true)}
             {field("フッター注記", "footerNote", true)}
           </div>
         </div>

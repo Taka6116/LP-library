@@ -8,7 +8,7 @@ import { useBrand } from "@/components/BrandProvider";
 import { AppHeader } from "@/components/AppHeader";
 import { AuroraBg } from "@/components/AuroraBg";
 import { useToast } from "@/components/ui";
-import { takeHandoff } from "@/lib/cross/handoff";
+import { takeHandoff, parseSocialParts } from "@/lib/cross/handoff";
 import { glassPanel, glassInput } from "@/lib/ui/glass";
 
 function parseTags(s: string): string[] {
@@ -35,12 +35,17 @@ export default function SocialPage() {
     setCompanyName(brand.companyName === "Your Company" ? "" : brand.companyName);
   }, [brand.tone, brand.companyName]);
 
-  // プロンプト集などからの受け渡しがあれば本文に流し込む
+  // プロンプト集などからの受け渡しがあれば各フィールドへ構造化して流し込む
   useEffect(() => {
     const text = takeHandoff("social");
     if (text) {
-      setBody(text);
-      toast.success("プロンプト集から本文を受け取りました");
+      const p = parseSocialParts(text);
+      setBody(p.body);
+      if (p.hook) setHook(p.hook);
+      if (p.hashtags) setHashtagsStr(p.hashtags);
+      toast.success(
+        p.hook || p.hashtags ? "フック・本文・タグを受け取りました" : "本文を受け取りました",
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

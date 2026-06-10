@@ -47,3 +47,75 @@ export function moduleHref(path: string): string {
   const base = process.env.NEXT_PUBLIC_BASE_PATH || "";
   return `${base}${path}`;
 }
+
+// ---- 構造化分解 ----
+// AI出力（lib/ai/system.ts のプリセットがラベル付き出力を誘導）や手書きテキストを
+// 「件名: …」等のラベル行で分解し、受け側モジュールの各フィールドへ流し込めるようにする。
+
+/** 「ラベル: 内容」形式の行群を { ラベル: 内容 } に分解。ラベル行が無い部分は rest に貯まる。 */
+function splitByLabels(text: string, labels: string[]): { parts: Record<string, string>; rest: string } {
+  const parts: Record<string, string> = {};
+  const restLines: string[] = [];
+  let current: string | null = null;
+  const re = new RegExp(`^(?:【)?(${labels.join("|")})(?:】)?[:：]\\s*(.*)$`);
+
+  for (const line of text.split(/\r?\n/)) {
+    const m = re.exec(line.trim());
+    if (m) {
+      current = m[1];
+      parts[current] = m[2] ?? "";
+    } else if (current) {
+      parts[current] = `${parts[current]}\n${line}`.trim();
+    } else {
+      restLines.push(line);
+    }
+  }
+  return { parts, rest: restLines.join("\n").trim() };
+}
+
+export type EmailParts = {
+  subject?: string;
+  heading?: string;
+  body: string;
+  cta?: string;
+};
+
+/**
+ * メール向けに分解。「件名/見出し/本文/CTA」ラベルが1つでもあれば構造化、
+ * 無ければ全文を body として返す。
+ */
+export function parseEmailParts(text: string): EmailParts {
+  const { parts, rest } = splitByLabels(text, ["件名", "見出し", "本文", "CTA"]);
+  if (Object.keys(parts).length === 0) return { body: text.trim() };
+  return {
+    subject: parts["件名"]?.trim() || undefined,
+    heading: parts["見出し"]?.trim() || undefined,
+    body: (parts["本文"] ?? rest).trim() || text.trim(),
+    cta: parts["CTA"]?.trim() || undefined,
+  };
+}
+
+export type SocialParts = {
+  hook?: string;
+  body: string;
+  hashtags?: string;
+};
+
+/**
+ * SNS向けに分解。「フック/本文/ハッシュタグ」ラベルが1つでもあれば構造化、
+ * 無ければ全文を body として返す。ハッシュタグは「#」を除いた空白区切りに正規化。
+ */
+export function parseSocialParts(text: string): SocialParts {
+  const { parts, rest } = splitByLabels(text, ["フック", "本文", "ハッシュタグ"]);
+  if (Object.keys(parts).length === 0) return { body: text.trim() };
+  const tags = parts["ハッシュタグ"]
+    ?.replace(/[#＃]/g, " ")
+    .split(/[\s,、]+/)
+    .filter(Boolean)
+    .join(" ");
+  return {
+    hook: parts["フック"]?.trim() || undefined,
+    body: (parts["本文"] ?? rest).trim() || text.trim(),
+    hashtags: tags || undefined,
+  };
+}

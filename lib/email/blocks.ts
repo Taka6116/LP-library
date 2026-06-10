@@ -12,6 +12,11 @@ export type EmailFields = {
   ctaText: string;
   ctaUrl: string;
   footerNote: string;
+  /** 画像ブロック用。空なら画像ブロックは描画されない */
+  imageUrl: string;
+  imageAlt: string;
+  /** SNSリンク。1行1リンク「ラベル URL」（例: X https://x.com/yourname） */
+  socialLinks: string;
 };
 
 export const DEFAULT_FIELDS: EmailFields = {
@@ -27,17 +32,22 @@ export const DEFAULT_FIELDS: EmailFields = {
   ctaText: "詳しく見る",
   ctaUrl: "https://example.com",
   footerNote: "本メールは配信を希望された方へお送りしています。",
+  imageUrl: "",
+  imageAlt: "",
+  socialLinks: "X https://x.com/yourname\nInstagram https://instagram.com/yourname",
 };
 
 export const EMAIL_BLOCKS: { id: string; label: string }[] = [
   { id: "header",    label: "ロゴヘッダー" },
   { id: "hero",      label: "ヒーロー（見出し＋本文＋CTA）" },
+  { id: "image",     label: "画像" },
   { id: "body",      label: "本文ブロック" },
   { id: "highlight", label: "ハイライトボックス（引用・強調）" },
   { id: "feature2",  label: "2カラム特徴紹介" },
   { id: "numlist",   label: "番号付きリスト" },
   { id: "button",    label: "ボタン CTA" },
   { id: "divider",   label: "区切り線" },
+  { id: "socialfooter", label: "SNSリンク" },
   { id: "footer",    label: "フッター（配信停止）" },
 ];
 
@@ -65,6 +75,11 @@ export function renderBlock(id: string, f: EmailFields): string {
         <h1 style="margin:0 0 16px;font-family:${FONT};font-size:24px;line-height:1.4;font-weight:800;color:#1a1a1a">${nl2br(f.heading)}</h1>
         <p style="margin:0 0 24px;font-family:${FONT};font-size:15px;line-height:1.9;color:#444">${nl2br(f.bodyText)}</p>
         ${button(f)}
+      </td></tr>`;
+    case "image":
+      if (!f.imageUrl.trim()) return "";
+      return `<tr><td style="padding:16px 32px">
+        <img src="${esc(f.imageUrl.trim())}" alt="${esc(f.imageAlt)}" width="536" style="display:block;width:100%;max-width:536px;height:auto;border-radius:8px"/>
       </td></tr>`;
     case "body":
       return `<tr><td style="padding:16px 32px">
@@ -111,6 +126,22 @@ export function renderBlock(id: string, f: EmailFields): string {
           </table>`
         ).join("")}
       </td></tr>`;
+    case "socialfooter": {
+      const links = f.socialLinks
+        .split(/\r?\n/)
+        .map((line) => {
+          const sp = line.trim().split(/\s+/);
+          const url = sp.find((t) => /^https?:\/\//.test(t));
+          if (!url) return null;
+          const label = sp.filter((t) => t !== url).join(" ") || url.replace(/^https?:\/\/(www\.)?/, "").split("/")[0];
+          return `<a href="${esc(url)}" style="font-family:${FONT};font-size:13px;font-weight:700;color:${f.brandColor};text-decoration:none">${esc(label)}</a>`;
+        })
+        .filter(Boolean);
+      if (links.length === 0) return "";
+      return `<tr><td style="padding:18px 32px;text-align:center">
+        ${links.join(`<span style="font-family:${FONT};color:#ccc">　·　</span>`)}
+      </td></tr>`;
+    }
     case "footer":
       return `<tr><td style="padding:28px 32px;background:#f6f7f9;text-align:center">
         <p style="margin:0 0 8px;font-family:${FONT};font-size:12px;line-height:1.7;color:#888">${nl2br(f.footerNote)}</p>
