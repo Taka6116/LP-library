@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { AppHeader } from "@/components/AppHeader";
 import { AuroraBg } from "@/components/AuroraBg";
 import { useToast } from "@/components/ui";
+import { compressImageFile } from "@/lib/persist/image";
+import { quotaWarning } from "@/lib/persist/quota";
 import {
   loadSwipe, saveSwipe, loadCopy, saveCopy, newId, COPY_TYPES,
   type SwipeItem, type CopyItem, type CopyType,
@@ -61,12 +63,16 @@ export default function SwipePage() {
   }, [tab]);
 
   function readImage(file: File) {
-    const r = new FileReader();
-    r.onload = () => setSImage(r.result as string);
-    r.readAsDataURL(file);
+    // 取り込み時に圧縮（長辺1600px / WebP・JPEG）して容量消費を抑える
+    compressImageFile(file).then((dataUrl) => { if (dataUrl) setSImage(dataUrl); });
   }
 
-  const persistSwipe = useCallback((next: SwipeItem[]) => { setSwipes(next); saveSwipe(next).catch(() => {}); }, []);
+  const persistSwipe = useCallback((next: SwipeItem[]) => {
+    setSwipes(next);
+    saveSwipe(next)
+      .then(() => quotaWarning().then((msg) => { if (msg) toast.error(msg); }))
+      .catch(() => toast.error("保存に失敗しました。容量不足の可能性があります"));
+  }, [toast]);
   const persistCopy = useCallback((next: CopyItem[]) => { setCopies(next); saveCopy(next); }, []);
 
   function addSwipe() {
