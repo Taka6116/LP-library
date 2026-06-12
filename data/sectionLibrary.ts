@@ -193,6 +193,15 @@ export const sectionCategories: SectionCategory[] = [
         recommendedFor: ["汎用LP", "新規サービス紹介"],
       },
       {
+        id: "solution-bento-grid",
+        categoryId: "solution",
+        title: "Bento Grid 機能一覧",
+        description: "大小タイルの非対称グリッドで機能を見せる2025年定番レイアウト。大タイルにミニグラフ、ダークタイルで数字訴求",
+        tags: ["Bento", "グリッド", "モダン", "汎用", "テーマ対応"],
+        componentType: "SolutionBentoGrid",
+        recommendedFor: ["SaaSプロダクト", "機能が多い商材", "モダンな印象を出したいLP"],
+      },
+      {
         id: "solution-three-pillars",
         categoryId: "solution",
         title: "Three Pillars Solution",
@@ -245,6 +254,15 @@ export const sectionCategories: SectionCategory[] = [
         tags: ["3点整理", "メリット", "汎用"],
         componentType: "BenefitThreePoints",
         recommendedFor: ["汎用LP", "メリットが明確な商材"],
+      },
+      {
+        id: "benefit-comparison-table",
+        categoryId: "benefit",
+        title: "他社比較テーブル（✓/✗）",
+        description: "一般的なサービスとの違いを✓/✗/△で見せる定番の説得テーブル。当社列をアクセント色で強調",
+        tags: ["比較表", "選ばれる理由", "汎用", "テーマ対応"],
+        componentType: "BenefitComparisonTable",
+        recommendedFor: ["競合が多い商材", "差別化ポイントが明確なサービス", "検討後期のLP"],
       },
       {
         id: "benefit-kpi-grid",
@@ -353,6 +371,15 @@ export const sectionCategories: SectionCategory[] = [
         tags: ["Sansan", "コミュニティ", "SUF", "実セクション"],
         componentType: "ProofSansanCommunity",
         recommendedFor: ["活用ガイド", "コミュニティを持つ商材", "カスタマーサクセス"],
+      },
+      {
+        id: "proof-testimonial-cards",
+        categoryId: "proof",
+        title: "お客様の声 3カード",
+        description: "星評価＋数字入りの引用＋イニシャルアバターの定番テスティモニアル。「具体的成果＞漠然とした称賛」の原則で構成",
+        tags: ["お客様の声", "テスティモニアル", "星評価", "汎用", "テーマ対応"],
+        componentType: "ProofTestimonialCards",
+        recommendedFor: ["汎用LP", "BtoB/BtoC問わず", "信頼を補強したい全商材"],
       },
       {
         id: "proof-case-cards",

@@ -24,6 +24,9 @@ import { HookQuestion } from "@/components/previews/HookQuestion";
 import { HookGap } from "@/components/previews/HookGap";
 import { HookCommonMisunderstanding } from "@/components/previews/HookCommonMisunderstanding";
 import { SolutionOverview } from "@/components/previews/SolutionOverview";
+import { SolutionBentoGrid } from "@/components/previews/SolutionBentoGrid";
+import { ProofTestimonialCards } from "@/components/previews/ProofTestimonialCards";
+import { BenefitComparisonTable } from "@/components/previews/BenefitComparisonTable";
 import { SolutionThreePillars } from "@/components/previews/SolutionThreePillars";
 import { SolutionWorkflow } from "@/components/previews/SolutionWorkflow";
 import { BenefitThreePoints } from "@/components/previews/BenefitThreePoints";
@@ -86,6 +89,9 @@ export const previewMap: Record<
   HookGap,
   HookCommonMisunderstanding,
   SolutionOverview,
+  SolutionBentoGrid,
+  ProofTestimonialCards,
+  BenefitComparisonTable,
   SolutionThreePillars,
   SolutionWorkflow,
   BenefitThreePoints,
