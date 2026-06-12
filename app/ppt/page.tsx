@@ -7,6 +7,7 @@ import { AuroraBg } from "@/components/AuroraBg";
 import { glassPanel } from "@/lib/ui/glass";
 import { getSlideRefs, buildPptxSubset, PPTX_MIME } from "@/lib/pptx/subset";
 import { buildMergedPptx } from "@/lib/pptx/merge";
+import { isImageFile, isPdfFile, imagesToPptx, pdfToPptx } from "@/lib/pptx/importMedia";
 import {
   listDecks,
   getDeckBuf,
@@ -94,15 +95,11 @@ export default function PptStudioPage() {
     [resetRender],
   );
 
-  // Import a NEW deck (adds to the library, does not replace existing ones).
-  const handleFile = useCallback(
-    async (file: File) => {
-      if (!/\.pptx$/i.test(file.name)) {
-        setErrorMsg(".pptx ファイルを選択してください。");
-        return;
-      }
-      const buf = await file.arrayBuffer();
-      // parse count first (for the deck metadata)
+  const [importing, setImporting] = useState<string | null>(null);
+
+  // バッファをデッキとして登録する共通処理（pptx/変換済みの両方が通る）。
+  const importDeckBuf = useCallback(
+    async (name: string, buf: ArrayBuffer) => {
       let count = 0;
       try {
         const zip = await JSZip.loadAsync(buf.slice(0));
@@ -111,14 +108,14 @@ export default function PptStudioPage() {
         /* handled below */
       }
       if (count === 0) {
-        setErrorMsg("スライドが見つかりませんでした。.pptx をご確認ください。");
+        setErrorMsg("スライドが見つかりませんでした。ファイルをご確認ください。");
         return;
       }
       try {
-        const meta = await addDeck(file.name, buf.slice(0), count);
+        const meta = await addDeck(name, buf.slice(0), count);
         setDecks((prev) => [...prev, meta]);
         setActiveId(meta.id);
-        await loadFromBuffer(buf, file.name);
+        await loadFromBuffer(buf, name);
       } catch (e) {
         console.error(e);
         setErrorMsg("保存に失敗しました。");
@@ -126,6 +123,55 @@ export default function PptStudioPage() {
     },
     [loadFromBuffer],
   );
+
+  // Import NEW deck(s): .pptx はそのまま、PDF/画像は端末内で PPTX に変換して登録。
+  const handleFiles = useCallback(
+    async (fileList: FileList | File[]) => {
+      const files = Array.from(fileList);
+      if (files.length === 0) return;
+      setErrorMsg("");
+
+      const pptx = files.filter((f) => /\.pptx$/i.test(f.name));
+      const pdfs = files.filter(isPdfFile);
+      const images = files.filter((f) => !/\.pptx$/i.test(f.name) && !isPdfFile(f) && isImageFile(f));
+      const unknown = files.length - pptx.length - pdfs.length - images.length;
+      if (unknown > 0 && pptx.length + pdfs.length + images.length === 0) {
+        setErrorMsg(".pptx / PDF / 画像（PNG・JPG・WebP等）を選択してください。");
+        return;
+      }
+
+      try {
+        for (const f of pptx) {
+          await importDeckBuf(f.name, await f.arrayBuffer());
+        }
+        for (const f of pdfs) {
+          setImporting(`PDF を変換中… (${f.name})`);
+          const { buf, pages } = await pdfToPptx(f, (done, total) =>
+            setImporting(`PDF を変換中… ${done}/${total} ページ (${f.name})`),
+          );
+          await importDeckBuf(f.name.replace(/\.pdf$/i, "") + ` (${pages}p)`, buf);
+        }
+        if (images.length > 0) {
+          setImporting(`画像 ${images.length} 枚を変換中…`);
+          const buf = await imagesToPptx(images);
+          const name =
+            images.length === 1
+              ? images[0].name.replace(/\.[a-z0-9]+$/i, "")
+              : `画像 ${images.length}枚`;
+          await importDeckBuf(name, buf);
+        }
+      } catch (e) {
+        console.error(e);
+        setErrorMsg("変換に失敗しました。ファイル形式をご確認ください。");
+      } finally {
+        setImporting(null);
+      }
+    },
+    [importDeckBuf],
+  );
+
+  // 後方互換（単一ファイル経路）。
+  const handleFile = useCallback((file: File) => handleFiles([file]), [handleFiles]);
 
   // Restore decks on mount.
   useEffect(() => {
@@ -364,10 +410,9 @@ export default function PptStudioPage() {
     (e: React.DragEvent) => {
       e.preventDefault();
       setDragOver(false);
-      const f = e.dataTransfer.files?.[0];
-      if (f) handleFile(f);
+      if (e.dataTransfer.files?.length) handleFiles(e.dataTransfer.files);
     },
-    [handleFile],
+    [handleFiles],
   );
 
   // Zoom modal: render a single slide large.
@@ -449,7 +494,7 @@ export default function PptStudioPage() {
       <AppHeader
         current="ppt"
         title="PPT スライド抽出"
-        subtitle=".pptx を読み込み、使いたいスライドだけを選んで書き出し。"
+        subtitle=".pptx・PDF・画像を読み込み、使いたいスライドだけを選んで書き出し。"
         actions={
           status === "ready" ? (
             <div className="flex flex-wrap items-center gap-2">
@@ -555,13 +600,14 @@ export default function PptStudioPage() {
                 {restoring ? "復元中…" : dragOver ? "ここにドロップ" : "PowerPoint ファイルを選択"}
               </span>
               <span className="text-sm text-slate-500 dark:text-zinc-400">
-                .pptx をクリックで選択、またはドラッグ＆ドロップ
+                .pptx / PDF / 画像 をクリックで選択、またはドラッグ＆ドロップ
               </span>
               <input
                 type="file"
-                accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                multiple
+                accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/pdf,image/*"
                 className="sr-only"
-                onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f); e.target.value = ""; }}
+                onChange={(e) => { if (e.target.files?.length) handleFiles(e.target.files); e.target.value = ""; }}
               />
             </label>
 
@@ -678,11 +724,11 @@ export default function PptStudioPage() {
                 ＋ ファイルを追加
                 <input
                   type="file"
-                  accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation"
+                  multiple
+                  accept=".pptx,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/pdf,image/*"
                   className="hidden"
                   onChange={(e) => {
-                    const f = e.target.files?.[0];
-                    if (f) handleFile(f);
+                    if (e.target.files?.length) handleFiles(e.target.files);
                     e.target.value = "";
                   }}
                 />
