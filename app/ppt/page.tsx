@@ -38,6 +38,8 @@ export default function PptStudioPage() {
   const [restoring, setRestoring] = useState(true);
   const [zoom, setZoom] = useState<number | null>(null);
   const [zoomLoading, setZoomLoading] = useState(false);
+  // Indices whose thumbnail has been rendered (to hide their skeleton).
+  const [filled, setFilled] = useState<Set<number>>(new Set());
   // Cross-deck merge cart: deckId -> slide indices
   const [cart, setCart] = useState<Record<string, number[]>>({});
 
@@ -71,6 +73,7 @@ export default function PptStudioPage() {
     async (buf: ArrayBuffer, name: string) => {
       resetRender();
       setSelected(new Set());
+      setFilled(new Set());
       setErrorMsg("");
       setStatus("loading");
       setFileName(name);
@@ -203,56 +206,71 @@ export default function PptStudioPage() {
     };
   }, [activeId, loadFromBuffer]);
 
-  // Render the active deck's slides — cached per deck for instant re-display.
+  // Render the active deck's slides — one slide at a time (single-slide subset),
+  // which renders reliably for real-world decks. Progressive top-down + cached.
   useEffect(() => {
     if (status !== "loading" || slideCount === 0 || !bufRef.current || !activeId) return;
     const token = ++renderTokenRef.current;
     const deckId = activeId;
+    const buf = bufRef.current;
 
     (async () => {
       try {
-        // 1) Let the skeleton grid paint before any heavy work.
+        // Let the skeleton grid paint before any heavy work.
         await new Promise((r) => requestAnimationFrame(() => r(null)));
         if (token !== renderTokenRef.current) return;
 
-        // 2) Cache hit → fill cells instantly, no re-parse/re-render.
-        const cached = renderCacheRef.current.get(deckId);
-        if (cached && cached.length === slideCount) {
-          for (let i = 0; i < slideCount; i++) {
-            const cell = cellRefs.current[i];
-            if (cell) cell.innerHTML = cached[i] ?? "";
-          }
-          setStatus("ready");
-          return;
-        }
+        const cacheArr = renderCacheRef.current.get(deckId) ?? [];
+        const nextFilled = new Set<number>();
 
-        // 3) First render of this deck.
+        // Reusable offscreen render host + a single previewer instance.
         const { init } = await import("pptx-preview");
         const host = offscreenRef.current;
         if (!host) return;
         host.innerHTML = "";
-        const previewer = init(host, { mode: "list", width: THUMB_W, height: THUMB_H });
-        previewerRef.current = previewer;
+        const pv = init(host, { mode: "list", width: THUMB_W, height: THUMB_H });
+        previewerRef.current = pv;
 
-        await previewer.preview(bufRef.current!.slice(0));
-        if (token !== renderTokenRef.current) return;
-
-        const nodes = host.querySelectorAll<HTMLElement>(".pptx-preview-slide-wrapper");
-        const cacheArr: string[] = [];
         for (let i = 0; i < slideCount; i++) {
-          const cell = cellRefs.current[i];
-          const node = nodes[i];
-          if (node) {
-            node.style.margin = "0";
-            cacheArr[i] = node.outerHTML;
+          if (token !== renderTokenRef.current) return;
+
+          let html = cacheArr[i];
+          if (html == null) {
+            // Build a 1-slide deck and render just that slide (reliable path).
+            const blob = await buildPptxSubset(buf.slice(0), [i]);
+            const sbuf = await blob.arrayBuffer();
+            if (token !== renderTokenRef.current) return;
+            await pv.preview(sbuf);
+            const node = host.querySelector<HTMLElement>(".pptx-preview-slide-wrapper");
+            if (node) {
+              node.style.margin = "0";
+              html = node.outerHTML;
+            } else {
+              html = "";
+            }
+            cacheArr[i] = html;
           }
-          if (cell && node) {
-            cell.innerHTML = "";
-            cell.appendChild(node);
+
+          const cell = cellRefs.current[i];
+          if (cell) cell.innerHTML = html;
+          nextFilled.add(i);
+          // Reveal progressively + keep the main thread responsive.
+          if (i % 2 === 1 || i === slideCount - 1) {
+            setFilled(new Set(nextFilled));
+            await new Promise((r) => requestAnimationFrame(() => r(null)));
           }
         }
+
         renderCacheRef.current.set(deckId, cacheArr);
-        setStatus("ready");
+        try {
+          pv.destroy();
+        } catch {
+          /* noop */
+        }
+        if (token === renderTokenRef.current) {
+          setFilled(new Set(nextFilled));
+          setStatus("ready");
+        }
       } catch (e) {
         console.error(e);
         if (token === renderTokenRef.current) {
@@ -789,8 +807,8 @@ export default function PptStudioPage() {
                       className="flex items-center justify-center bg-slate-50"
                       style={{ width: "100%", height: THUMB_H, overflow: "hidden" }}
                     />
-                    {/* Skeleton overlay while rendering (sibling — never touched by the JS that fills the cell) */}
-                    {status === "loading" && (
+                    {/* Skeleton overlay only for cells not yet rendered (sibling — never touched by the JS that fills the cell) */}
+                    {status === "loading" && !filled.has(i) && (
                       <div
                         className="pointer-events-none absolute inset-0 animate-pulse bg-gradient-to-br from-slate-100 via-slate-200 to-slate-100"
                         style={{ height: THUMB_H }}
