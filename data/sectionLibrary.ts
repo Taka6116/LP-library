@@ -85,6 +85,15 @@ export const sectionCategories: SectionCategory[] = [
         recommendedFor: ["IPO・士業・コンサル系", "対象セグメント別に課題提示したいLP", "経営層向けBtoB"],
       },
       {
+        id: "problem-rfq-worries",
+        categoryId: "problem",
+        title: "お悩み解決6カード（RFQクラウド）",
+        description: "ライトブルー背景＋ブルーアクセントで、6つの課題/解決ポイントをイラスト付きカードで提示。各カードに「もっと詳しく」導線",
+        tags: ["お悩み", "6カード", "イラスト", "実セクション", "BtoB・SaaS"],
+        componentType: "ProblemRfqWorries",
+        recommendedFor: ["業務効率化・購買/SaaS", "解決ポイントが複数ある商材", "BtoB LP"],
+      },
+      {
         id: "problem-before-state",
         categoryId: "problem",
         title: "Before State Problem",

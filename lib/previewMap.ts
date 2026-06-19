@@ -18,6 +18,7 @@ import { HookDesknetsFeatures } from "@/components/previews/HookDesknetsFeatures
 import { BenefitProgritReasons } from "@/components/previews/BenefitProgritReasons";
 import { ProblemThreeCards } from "@/components/previews/ProblemThreeCards";
 import { ProblemUniforceTask } from "@/components/previews/ProblemUniforceTask";
+import { ProblemRfqWorries } from "@/components/previews/ProblemRfqWorries";
 import { ProblemBeforeState } from "@/components/previews/ProblemBeforeState";
 import { ProblemHiddenCost } from "@/components/previews/ProblemHiddenCost";
 import { HookQuestion } from "@/components/previews/HookQuestion";
@@ -83,6 +84,7 @@ export const previewMap: Record<
   BenefitProgritReasons,
   ProblemThreeCards,
   ProblemUniforceTask,
+  ProblemRfqWorries,
   ProblemBeforeState,
   ProblemHiddenCost,
   HookQuestion,
