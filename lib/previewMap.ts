@@ -31,6 +31,7 @@ import { BenefitComparisonTable } from "@/components/previews/BenefitComparisonT
 import { SolutionThreePillars } from "@/components/previews/SolutionThreePillars";
 import { SolutionWorkflow } from "@/components/previews/SolutionWorkflow";
 import { BenefitThreePoints } from "@/components/previews/BenefitThreePoints";
+import { BenefitMasoukenReasons } from "@/components/previews/BenefitMasoukenReasons";
 import { BenefitKpiGrid } from "@/components/previews/BenefitKpiGrid";
 import { BenefitBeforeAfter } from "@/components/previews/BenefitBeforeAfter";
 import { ProcessStepFlow } from "@/components/previews/ProcessStepFlow";
@@ -97,6 +98,7 @@ export const previewMap: Record<
   SolutionThreePillars,
   SolutionWorkflow,
   BenefitThreePoints,
+  BenefitMasoukenReasons,
   BenefitKpiGrid,
   BenefitBeforeAfter,
   ProcessStepFlow,

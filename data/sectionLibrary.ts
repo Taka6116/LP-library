@@ -274,6 +274,15 @@ export const sectionCategories: SectionCategory[] = [
         recommendedFor: ["競合が多い商材", "差別化ポイントが明確なサービス", "検討後期のLP"],
       },
       {
+        id: "benefit-masouken-reasons",
+        categoryId: "benefit",
+        title: "選ばれる5つの理由（M&A総合研究所）",
+        description: "ネイビー＋グリーンで「5つの理由」を画像/テキスト左右交互の縦リストで提示。番号バッジ＋REASONラベル付き",
+        tags: ["選ばれる理由", "左右交互", "番号付き", "実セクション", "BtoB"],
+        componentType: "BenefitMasoukenReasons",
+        recommendedFor: ["士業・コンサル・仲介系", "選ばれる理由を強調したいLP", "信頼訴求型BtoB"],
+      },
+      {
         id: "benefit-kpi-grid",
         categoryId: "benefit",
         title: "KPI Grid Benefit",
